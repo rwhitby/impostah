@@ -409,6 +409,34 @@ static bool read_file(LSHandle* lshandle, LSMessage *message, char *filename, bo
   return false;
 }
 
+bool listDbKinds_method(LSHandle* lshandle, LSMessage *message, void *ctx) {
+  LSError lserror;
+  LSErrorInit(&lserror);
+
+  // Local buffer to store the command
+  char command[MAXLINLEN];
+
+  // Extract the temp argument from the message
+  json_t *object = json_parse_document(LSMessageGetPayload(message));
+  json_t *temp = json_find_first_label(object, "temp");               
+  if (!temp || (temp->child->type != JSON_TRUE)) {
+    // Initialise the command to read the list of kinds.
+    sprintf(command, "/bin/ls -1 /etc/palm/db/kinds/ 2>&1");
+  }
+  else {
+    // Initialise the command to read the list of kinds.
+    sprintf(command, "/bin/ls -1 /etc/palm/tempdb/kinds/ 2>&1");
+  }
+
+  return simple_command(lshandle, message, command);
+
+ error:
+  LSErrorPrint(&lserror, stderr);
+  LSErrorFree(&lserror);
+ end:
+  return false;
+}
+
 bool getDbKind_method(LSHandle* lshandle, LSMessage *message, void *ctx) {
   LSError lserror;
   LSErrorInit(&lserror);
@@ -425,7 +453,15 @@ bool getDbKind_method(LSHandle* lshandle, LSMessage *message, void *ctx) {
     return true;
   }
 
-  sprintf(filename, "/etc/palm/db/kinds/%s", id->child->text);
+  // Extract the temp argument from the message
+  object = json_parse_document(LSMessageGetPayload(message));
+  json_t *temp = json_find_first_label(object, "temp");               
+  if (!temp || (temp->child->type != JSON_TRUE)) {
+    sprintf(filename, "/etc/palm/db/kinds/%s", id->child->text);
+  }
+  else {
+    sprintf(filename, "/etc/palm/tempdb/kinds/%s", id->child->text);
+  }
 
   return read_file(lshandle, message, filename, false);
 
@@ -436,7 +472,35 @@ bool getDbKind_method(LSHandle* lshandle, LSMessage *message, void *ctx) {
   return false;
 }
 
-bool getDbPermission_method(LSHandle* lshandle, LSMessage *message, void *ctx) {
+bool listDbPerms_method(LSHandle* lshandle, LSMessage *message, void *ctx) {
+  LSError lserror;
+  LSErrorInit(&lserror);
+
+  // Local buffer to store the command
+  char command[MAXLINLEN];
+
+  // Extract the temp argument from the message
+  json_t *object = json_parse_document(LSMessageGetPayload(message));
+  json_t *temp = json_find_first_label(object, "temp");               
+  if (!temp || (temp->child->type != JSON_TRUE)) {
+    // Initialise the command to read the list of kinds.
+    sprintf(command, "/bin/ls -1 /etc/palm/db/permissions/ 2>&1");
+  }
+  else {
+    // Initialise the command to read the list of kinds.
+    sprintf(command, "/bin/ls -1 /etc/palm/tempdb/permissions/ 2>&1");
+  }
+
+  return simple_command(lshandle, message, command);
+
+ error:
+  LSErrorPrint(&lserror, stderr);
+  LSErrorFree(&lserror);
+ end:
+  return false;
+}
+
+bool getDbPerm_method(LSHandle* lshandle, LSMessage *message, void *ctx) {
   LSError lserror;
   LSErrorInit(&lserror);
 
@@ -452,7 +516,15 @@ bool getDbPermission_method(LSHandle* lshandle, LSMessage *message, void *ctx) {
     return true;
   }
 
-  sprintf(filename, "/etc/palm/db/permissions/%s", id->child->text);
+  // Extract the temp argument from the message
+  object = json_parse_document(LSMessageGetPayload(message));
+  json_t *temp = json_find_first_label(object, "temp");               
+  if (!temp || (temp->child->type != JSON_TRUE)) {
+    sprintf(filename, "/etc/palm/db/permissions/%s", id->child->text);
+  }
+  else {
+    sprintf(filename, "/etc/palm/tempdb/permissions/%s", id->child->text);
+  }
 
   return read_file(lshandle, message, filename, false);
 
@@ -549,8 +621,11 @@ LSMethod luna_methods[] = {
   { "status",		dummy_method },
   { "version",		version_method },
 
+  { "listDbKinds",	listDbKinds_method },
   { "getDbKind",	getDbKind_method },
-  { "getDbPermission",	getDbPermission_method },
+
+  { "listDbPerms",	listDbPerms_method },
+  { "getDbPerm",	getDbPerm_method },
 
   { "impersonate",	impersonate_method },
 

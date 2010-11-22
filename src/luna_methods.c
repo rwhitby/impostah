@@ -535,6 +535,135 @@ bool getDbPerm_method(LSHandle* lshandle, LSMessage *message, void *ctx) {
   return false;
 }
 
+bool listActivityIDs_method(LSHandle* lshandle, LSMessage *message, void *ctx) {
+  LSError lserror;
+  LSErrorInit(&lserror);
+
+  // Local buffer to store the command
+  char command[MAXLINLEN];
+
+  // Initialise the command to read the list of kinds.
+  sprintf(command, "/bin/ls -1 /etc/palm/activities/ 2>&1");
+
+  return simple_command(lshandle, message, command);
+
+ error:
+  LSErrorPrint(&lserror, stderr);
+  LSErrorFree(&lserror);
+ end:
+  return false;
+}
+
+bool listActivities_method(LSHandle* lshandle, LSMessage *message, void *ctx) {
+  LSError lserror;
+  LSErrorInit(&lserror);
+
+  // Local buffer to store the command
+  char command[MAXLINLEN];
+
+  // Extract the id argument from the message
+  json_t *object = json_parse_document(LSMessageGetPayload(message));
+  json_t *id = json_find_first_label(object, "id");               
+  if (!id || (id->child->type != JSON_STRING) || (strspn(id->child->text, ALLOWED_CHARS) != strlen(id->child->text))) {
+    if (!LSMessageReply(lshandle, message,
+			"{\"returnValue\": false, \"errorCode\": -1, \"errorText\": \"Invalid or missing id\"}",
+			&lserror)) goto error;
+    return true;
+  }
+
+  sprintf(command, "/bin/ls -1 /etc/palm/activities/%s/ 2>&1", id->child->text);
+
+  return simple_command(lshandle, message, command);
+
+ error:
+  LSErrorPrint(&lserror, stderr);
+  LSErrorFree(&lserror);
+ end:
+  return false;
+}
+
+bool getActivity_method(LSHandle* lshandle, LSMessage *message, void *ctx) {
+  LSError lserror;
+  LSErrorInit(&lserror);
+
+  char filename[MAXLINLEN];
+
+  // Extract the id argument from the message
+  json_t *object = json_parse_document(LSMessageGetPayload(message));
+  json_t *id = json_find_first_label(object, "id");               
+  if (!id || (id->child->type != JSON_STRING) || (strspn(id->child->text, ALLOWED_CHARS) != strlen(id->child->text))) {
+    if (!LSMessageReply(lshandle, message,
+			"{\"returnValue\": false, \"errorCode\": -1, \"errorText\": \"Invalid or missing id\"}",
+			&lserror)) goto error;
+    return true;
+  }
+
+  // Extract the activity argument from the message
+  object = json_parse_document(LSMessageGetPayload(message));
+  json_t *activity = json_find_first_label(object, "activity");               
+  if (!activity || (activity->child->type != JSON_STRING) || (strspn(activity->child->text, ALLOWED_CHARS) != strlen(activity->child->text))) {
+    if (!LSMessageReply(lshandle, message,
+			"{\"returnValue\": false, \"errorCode\": -1, \"errorText\": \"Invalid or missing activity\"}",
+			&lserror)) goto error;
+    return true;
+  }
+
+  sprintf(filename, "/etc/palm/activities/%s/%s", id->child->text, activity->child->text);
+
+  return read_file(lshandle, message, filename, false);
+
+ error:
+  LSErrorPrint(&lserror, stderr);
+  LSErrorFree(&lserror);
+ end:
+  return false;
+}
+
+bool listBackups_method(LSHandle* lshandle, LSMessage *message, void *ctx) {
+  LSError lserror;
+  LSErrorInit(&lserror);
+
+  // Local buffer to store the command
+  char command[MAXLINLEN];
+
+  sprintf(command, "/bin/ls -1 /etc/palm/backup/ 2>&1");
+
+  return simple_command(lshandle, message, command);
+
+ error:
+  LSErrorPrint(&lserror, stderr);
+  LSErrorFree(&lserror);
+ end:
+  return false;
+}
+
+bool getBackup_method(LSHandle* lshandle, LSMessage *message, void *ctx) {
+  LSError lserror;
+  LSErrorInit(&lserror);
+
+  char filename[MAXLINLEN];
+
+  // Extract the id argument from the message
+  json_t *object = json_parse_document(LSMessageGetPayload(message));
+  json_t *id = json_find_first_label(object, "id");               
+  if (!id || (id->child->type != JSON_STRING) || (strspn(id->child->text, ALLOWED_CHARS) != strlen(id->child->text))) {
+    if (!LSMessageReply(lshandle, message,
+			"{\"returnValue\": false, \"errorCode\": -1, \"errorText\": \"Invalid or missing id\"}",
+			&lserror)) goto error;
+    return true;
+  }
+
+  sprintf(filename, "/etc/palm/backup/%s", id->child->text);
+
+  return read_file(lshandle, message, filename, false);
+
+ error:
+  LSErrorPrint(&lserror, stderr);
+  LSErrorFree(&lserror);
+ end:
+  return false;
+}
+
 //
 // Handler for the impersonate service.
 //
@@ -626,6 +755,13 @@ LSMethod luna_methods[] = {
 
   { "listDbPerms",	listDbPerms_method },
   { "getDbPerm",	getDbPerm_method },
+
+  { "listActivityIDs",	listActivityIDs_method },
+  { "listActivities",	listActivities_method },
+  { "getActivity",	getActivity_method },
+
+  { "listBackups",	listBackups_method },
+  { "getBackup",	getBackup_method },
 
   { "impersonate",	impersonate_method },
 

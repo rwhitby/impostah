@@ -1,0 +1,16 @@
+{
+	"title": "Impostah",
+	"id": "org.webosinternals.impostah",
+	"version": "0.0.1",
+	"release_date":	"12-Nov-2010",
+	"vendor": "WebOS Internals",
+	"vendor_email":	"support@webos-internals.org",
+	"vendor_url": "http://www.webos-internals.org/wiki/Application:Impostah",
+	"type": "web",
+	"main": "index.html",
+	"icon": "icon.png",
+	"miniicon": "miniicon.png",
+	"removable": "true",
+	"noWindow": true,
+	"noDeprecatedStyles": true 
+}

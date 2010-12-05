@@ -59,12 +59,13 @@ MainAssistant.prototype.setup = function()
 		});
     
     this.mainModel.items.push({
-	    name:     $L('Backup Exploration'),
-		scene:    'backup-explore',
-		});
-    this.mainModel.items.push({
 	    name:     $L('Activity Exploration'),
 		scene:    'activity-explore',
+		});
+
+    this.mainModel.items.push({
+	    name:     $L('Backup Exploration'),
+		scene:    'backup-explore',
 		});
     
     // setup widget

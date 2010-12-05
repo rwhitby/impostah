@@ -51,7 +51,7 @@ Db8exploreAssistant.prototype.setup = function()
 		}
 	);
 	
-	this.controller.listen(this.filterElement, Mojo.Event.propertyChange, this.appChangedHandler);
+	// this.controller.listen(this.filterElement, Mojo.Event.propertyChange, this.dbKindChangedHandler);
 	
 };
 
@@ -81,7 +81,7 @@ Db8exploreAssistant.prototype.dbKinds = function(payload)
 
 Db8exploreAssistant.prototype.queryTap = function(event)
 {
-	this.controller.stageController.pushScene('get-log', {filter: this.filterModel.value, custom: this.customTextElement.mojo.getValue()});
+	this.controller.stageController.pushScene('view-json', {filter: this.filterModel.value, custom: this.customTextElement.mojo.getValue()});
 };
 
 Db8exploreAssistant.prototype.activate = function(event)

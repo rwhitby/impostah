@@ -11,6 +11,7 @@ function StartupAssistant(changelog)
     this.newMessages =
 	[
 	 // Don't forget the comma on all but the last entry
+	 { version: '0.0.3', log: [ 'Added upstart script' ] },
 	 { version: '0.0.2', log: [ 'Lists DB kinds' ] },
 	 { version: '0.0.1', log: [ 'Initial skeleton' ] }
 	 ];

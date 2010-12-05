@@ -1,0 +1,7 @@
+description "Impostah Service"
+
+start on stopped finish
+
+exec /var/usr/sbin/org.webosinternals.impostah
+
+respawn

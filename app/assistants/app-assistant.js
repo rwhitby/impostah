@@ -2,8 +2,8 @@ var prefs = new preferenceCookie();
 var vers =  new versionCookie();
 
 // stage names
-var mainStageName = 'gehrpelcg-main';
-var dashStageName = 'gehrpelcg-dash';
+var mainStageName = 'impostah-main';
+var dashStageName = 'impostah-dash';
 
 function AppAssistant() {}
 

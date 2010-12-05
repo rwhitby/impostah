@@ -79,6 +79,9 @@ BackupExploreAssistant.prototype.buKinds = function(payload)
 		return;
 	}
 
+	var oldKind = prefs.get().lastBackupKind;
+	var newKind = false;
+
 	if (payload.stdOut && payload.stdOut.length > 0)
 	{
 		payload.stdOut.sort();
@@ -87,15 +90,22 @@ BackupExploreAssistant.prototype.buKinds = function(payload)
 		{
 			var id = payload.stdOut[a];
 			this.buKindsModel.choices.push({label:id, value:id});
+			if (id == oldKind) {
+				newKind = oldKind;
+			}
 		}
 		
+		if (newKind === false) {
+			newKind = payload.stdOut[0];
+		}
+
 		this.controller.modelChanged(this.buKindsModel);
 	}
 
 	// Enable the drop-down list
 	this.buKindsModel.disabled = false;
 	this.controller.modelChanged(this.buKindsModel);
-	this.buKindChanged({value: prefs.get().lastBackupKind});
+	this.buKindChanged({value: newKind});
 };
 
 BackupExploreAssistant.prototype.buKindChanged = function(event)

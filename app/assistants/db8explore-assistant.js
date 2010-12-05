@@ -47,6 +47,7 @@ Db8exploreAssistant.prototype.setup = function()
     this.dbPermHandler = 		this.dbPerm.bindAsEventListener(this);
 	this.dbKindChangedHandler = this.dbKindChanged.bindAsEventListener(this);
     this.queryTapHandler = 		this.queryTap.bindAsEventListener(this);
+    this.impersonateHandler = 	this.impersonate.bindAsEventListener(this);
 	
 	this.controller.setupWidget
 	(
@@ -189,6 +190,12 @@ Db8exploreAssistant.prototype.dbPerm = function(payload)
 Db8exploreAssistant.prototype.queryTap = function(event)
 {
 	//this.controller.stageController.pushScene('view-json', {kind: this.dbKindsModel.value});
+	this.request = ImpostahService.impersonate(this.impersonateHandler, this.dbPermsModel.value, this.dbKindsModel.value);
+};
+Db8exploreAssistant.prototype.impersonate = function(payload)
+{
+	Mojo.Log.error('==============');
+	for (var p in payload) Mojo.Log.error(p, ': ', payload[p]);
 };
 
 Db8exploreAssistant.prototype.activate = function(event)

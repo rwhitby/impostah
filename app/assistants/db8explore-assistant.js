@@ -100,6 +100,18 @@ Db8exploreAssistant.prototype.deactivate = function(event)
 {
 };
 
+Db8exploreAssistant.prototype.errorMessage = function(msg)
+{
+	this.controller.showAlertDialog(
+	{
+		allowHTMLMessage:	true,
+		preventCancel:		true,
+	    title:				'Impostah',
+	    message:			msg,
+	    choices:			[{label:$L("Ok"), value:'ok'}],
+	    onChoose:			function(e){}
+    });
+}
 Db8exploreAssistant.prototype.handleCommand = function(event)
 {
 	if (event.type == Mojo.Event.command)

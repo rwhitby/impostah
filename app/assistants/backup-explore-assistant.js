@@ -21,6 +21,7 @@ function BackupExploreAssistant()
 	{
 		value: prefs.get().lastBackupKind,
 		choices: [],
+		multiline: true,
 		disabled: true
 	}
 	this.kindId = '';

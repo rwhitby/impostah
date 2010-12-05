@@ -21,6 +21,7 @@ function ActivityExploreAssistant()
 	{
 		value: prefs.get().lastActivitySet,
 		choices: [],
+		multiline: true,
 		disabled: true
 	}
 	this.setId = '';
@@ -29,6 +30,7 @@ function ActivityExploreAssistant()
 	{
 		value: prefs.get().lastActivityKind,
 		choices: [],
+		multiline: true,
 		disabled: true
 	}
 	

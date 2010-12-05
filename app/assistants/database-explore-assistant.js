@@ -22,6 +22,7 @@ function DatabaseExploreAssistant()
 	{
 		value: prefs.get().lastDatabaseKind,
 		choices: [],
+		multiline: true,
 		disabled: true
 	}
 	this.kindId = '';
@@ -31,6 +32,7 @@ function DatabaseExploreAssistant()
 	{
 		value: prefs.get().lastDatabasePerm,
 		choices: [],
+		multiline: true,
 		disabled: true
 	}
 	

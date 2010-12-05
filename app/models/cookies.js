@@ -19,6 +19,7 @@ preferenceCookie.prototype.get = function(reload)
 				
 				// non-pref settings
 				lastKind: '',
+				lastPerm: '',
 				
 			};
 			

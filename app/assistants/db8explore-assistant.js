@@ -17,6 +17,18 @@ function Db8exploreAssistant()
 		]
 	};
 	
+	this.dbKindsModel =
+	{
+		value: prefs.get().lastKind,
+		choices: []
+	}
+	
+	this.dbPermsModel =
+	{
+		value: prefs.get().lastPerm,
+		choices: []
+	}
+	
 };
 
 Db8exploreAssistant.prototype.setup = function()
@@ -30,6 +42,9 @@ Db8exploreAssistant.prototype.setup = function()
 	
 	// setup handlers
     this.dbKindsHandler = 		this.dbKinds.bindAsEventListener(this);
+    this.dbKindHandler = 		this.dbKind.bindAsEventListener(this);
+    this.dbPermsHandler = 		this.dbPerms.bindAsEventListener(this);
+    this.dbPermHandler = 		this.dbPerm.bindAsEventListener(this);
 	this.dbKindChangedHandler = this.dbKindChanged.bindAsEventListener(this);
     this.queryTapHandler = 		this.queryTap.bindAsEventListener(this);
 	
@@ -37,14 +52,21 @@ Db8exploreAssistant.prototype.setup = function()
 	(
 		'dbKind',
 		{},
-		this.dbKindsModel =
-		{
-			value: prefs.get().lastKind,
-			choices: []
-		}
+		this.dbKindsModel
 	);
+	this.dbKindChanged({value: prefs.get().lastKind});
 	
 	this.controller.listen(this.dbKindElement, Mojo.Event.propertyChange, this.dbKindChangedHandler);
+	
+	
+	this.controller.setupWidget
+	(
+		'dbPerm',
+		{},
+		this.dbPermsModel
+	);
+	
+	//this.controller.listen(this.dbKindElement, Mojo.Event.propertyChange, this.dbKindChangedHandler);
 	
 	
 	this.controller.setupWidget
@@ -95,8 +117,46 @@ Db8exploreAssistant.prototype.dbKindChanged = function(event)
 	cookie.put(tprefs);
 	var tmp = prefs.get(true);
 	
-	
+	this.request = ImpostahService.listDbPerms(this.dbPermsHandler, event.value);
+	this.request = ImpostahService.getDbKind(this.dbKindHandler, event.value);
 }
+
+Db8exploreAssistant.prototype.dbKind = function(payload)
+{
+	if (payload.contents)
+	{
+		var obj = JSON.parse(payload.contents);
+		
+		this.dbPermsModel.value = obj.owner;
+		this.controller.modelChanged(this.dbPermsModel);
+	}
+};
+Db8exploreAssistant.prototype.dbPerms = function(payload)
+{
+	if (payload.stdOut && payload.stdOut.length > 0)
+	{
+		this.dbPermsModel.choices = [];
+		
+		payload.stdOut.sort();
+		
+		for (var a = 0; a < payload.stdOut.length; a++)
+		{
+			this.dbPermsModel.choices.push({label:payload.stdOut[a], value:payload.stdOut[a]});
+		}
+		
+		this.controller.modelChanged(this.dbPermsModel);
+	}
+	else if (payload.returnValue === false)
+	{
+		this.errorMessage('<b>Service Error (listDbPerms):</b><br>'+payload.errorText);
+	}
+};
+
+Db8exploreAssistant.prototype.dbPerm = function(payload)
+{
+	Mojo.Log.error('==============');
+	for (var p in payload) Mojo.Log.error(p, ': ', payload[p]);
+};
 
 Db8exploreAssistant.prototype.queryTap = function(event)
 {

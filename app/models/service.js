@@ -51,7 +51,7 @@ ImpostahService.impersonate = function(callback, owner, kind)
 		{
 			"id": owner,
 			"service": "com.palm.db",
-			"mothod": "find",
+			"method": "find",
 			"params": {
 				"query": {
 					"from": kind

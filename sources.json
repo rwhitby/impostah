@@ -24,4 +24,8 @@
         "scenes": "help-data",
         "source": "app/assistants/help-data-assistant.js"
     }
+    {
+        "scenes": "db8explore",
+        "source": "app/assistants/db8explore-assistant.js"
+    },
 ]

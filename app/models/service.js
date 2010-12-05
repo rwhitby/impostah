@@ -2,11 +2,11 @@ ImpostahService.identifier = 'palm://org.webosinternals.impostah';
 
 function ImpostahService(){};
 
-ImpostahService.getDbKinds = function(callback)
+ImpostahService.listDbKinds = function(callback)
 {
     var request = new Mojo.Service.Request(ImpostahService.identifier,
 	{
-	    method: 'getDbKinds',
+	    method: 'listDbKinds',
 	    onSuccess: callback,
 	    onFailure: callback
 	});

@@ -28,13 +28,30 @@ Db8exploreAssistant.prototype.setup = function()
 	this.controller.setupWidget(Mojo.Menu.appMenu, { omitDefaultItems: true }, this.menuModel);
 	
 	// get elements
+	this.filterContainer =		this.controller.get('filterContainer');
+	this.filterElement =		this.controller.get('filter');
 	this.queryButton =		this.controller.get('queryButton');
 	
 	// setup handlers
     this.dbKindsHandler = this.dbKinds.bindAsEventListener(this);
     this.queryTapHandler = this.queryTap.bindAsEventListener(this);
 	
-	this.request = ImpostahService.getDbKinds(this.dbKindsHandler);
+	this.request = ImpostahService.listDbKinds(this.dbKindsHandler);
+	
+	this.controller.setupWidget
+	(
+		'filter',
+		{},
+		this.filterModel =
+		{
+			value: prefs.get().lastLog,
+			choices: 
+			[
+			]
+		}
+	);
+	
+	this.controller.listen(this.filterElement, Mojo.Event.propertyChange, this.appChangedHandler);
 	
 };
 
@@ -42,6 +59,24 @@ Db8exploreAssistant.prototype.dbKinds = function(payload)
 {
 	alert('===============');
 	for (var p in payload) alert(p+': '+payload[p]);
+
+	if (payload.stdOut && payload.stdOut.length > 0)
+	{
+		this.filterModel.choices = [];
+		
+		payload.stdOut.sort();
+		
+		for (var a = 0; a < payload.stdOut.length; a++)
+		{
+			this.filterModel.choices.push({label:payload.stdOut[a], value:payload.stdOut[a]});
+		}
+		
+		this.controller.modelChanged(this.filterModel);
+	}
+	else if (payload.returnValue === false)
+	{
+		this.errorMessage('<b>Service Error (listDbKinds):</b><br>'+payload.errorText);
+	}
 };
 
 Db8exploreAssistant.prototype.queryTap = function(event)

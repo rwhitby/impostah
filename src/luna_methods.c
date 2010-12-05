@@ -817,6 +817,6 @@ LSMethod luna_methods[] = {
 };
 
 bool register_methods(LSPalmService *serviceHandle, LSError lserror) {
-  return LSPalmServiceRegisterCategory(serviceHandle, "/", NULL, luna_methods,
+  return LSPalmServiceRegisterCategory(serviceHandle, "/", luna_methods, luna_methods,
 				       NULL, NULL, &lserror);
 }

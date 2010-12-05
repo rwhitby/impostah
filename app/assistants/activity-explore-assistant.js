@@ -135,7 +135,7 @@ ActivityExploreAssistant.prototype.activitySetChanged = function(event)
 
 	// Disable the activity kinds list
 	this.activityKindsModel.choices = [];
-	this.activityKindsModel.value = false;
+	this.activityKindsModel.value = "";
 	this.activityKindsModel.disabled = true;
 	this.controller.modelChanged(this.activityKindsModel);
 
@@ -174,6 +174,7 @@ ActivityExploreAssistant.prototype.activityKinds = function(payload)
 
 	// Enable the drop-down list
 	this.activityKindsModel.disabled = false;
+	this.activityKindsModel.value = newKind;
 	this.controller.modelChanged(this.activityKindsModel);
 	this.activityKindChanged({value: newKind});
 };

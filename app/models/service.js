@@ -2,24 +2,30 @@ ImpostahService.identifier = 'palm://org.webosinternals.impostah';
 
 function ImpostahService(){};
 
-ImpostahService.listDbKinds = function(callback)
+ImpostahService.listDbKinds = function(callback, temporary)
 {
     var request = new Mojo.Service.Request(ImpostahService.identifier,
 	{
 	    method: 'listDbKinds',
+		parameters:
+		{
+			"temp": temporary
+		},
 	    onSuccess: callback,
 	    onFailure: callback
 	});
     return request;
 };
-ImpostahService.getDbKind = function(callback, kind)
+
+ImpostahService.getDbKind = function(callback, kind, temporary)
 {
     var request = new Mojo.Service.Request(ImpostahService.identifier,
 	{
 	    method: 'getDbKind',
 		parameters:
 		{
-			"id": kind
+			"id": kind,
+			"temp": temporary
 		},
 	    onSuccess: callback,
 	    onFailure: callback
@@ -27,14 +33,14 @@ ImpostahService.getDbKind = function(callback, kind)
     return request;
 };
 
-ImpostahService.listDbPerms = function(callback, kind)
+ImpostahService.listDbPerms = function(callback, temporary)
 {
     var request = new Mojo.Service.Request(ImpostahService.identifier,
 	{
 	    method: 'listDbPerms',
 		parameters:
 		{
-			"id": kind
+			"temp": temporary
 		},
 	    onSuccess: callback,
 	    onFailure: callback
@@ -42,21 +48,33 @@ ImpostahService.listDbPerms = function(callback, kind)
     return request;
 };
 
-ImpostahService.impersonate = function(callback, owner, kind)
+ImpostahService.getDbPerm = function(callback, kind, temporary)
+{
+    var request = new Mojo.Service.Request(ImpostahService.identifier,
+	{
+	    method: 'getDbPerm',
+		parameters:
+		{
+			"id": kind,
+			"temp": temporary
+		},
+	    onSuccess: callback,
+	    onFailure: callback
+	});
+    return request;
+};
+
+ImpostahService.impersonate = function(callback, id, service, method, params)
 {
     var request = new Mojo.Service.Request(ImpostahService.identifier,
 	{
 	    method: 'impersonate',
 		parameters:
 		{
-			"id": owner,
-			"service": "com.palm.db",
-			"method": "find",
-			"params": {
-				"query": {
-					"from": kind
-				}
-			}
+			"id": id,
+			"service": service,
+			"method": method,
+			"params": params
 		},
 	    onSuccess: callback,
 	    onFailure: callback

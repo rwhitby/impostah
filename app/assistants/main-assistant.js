@@ -54,7 +54,7 @@ MainAssistant.prototype.setup = function()
     this.listTapHandler = this.listTap.bindAsEventListener(this);
 	
     this.mainModel.items.push({
-	    name:     $L('DB8 Exploration'),
+	    name:     $L('Database Exploration'),
 		scene:    'db8explore',
 		});
     

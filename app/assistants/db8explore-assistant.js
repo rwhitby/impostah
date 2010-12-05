@@ -17,17 +17,21 @@ function Db8exploreAssistant()
 		]
 	};
 	
+	this.dbKindsSet = $H();
 	this.dbKindsModel =
 	{
 		value: prefs.get().lastKind,
-		choices: []
+		choices: [],
+		disabled: true
 	}
 	this.kindId = '';
 	
+	this.dbPermsSet = $H();
 	this.dbPermsModel =
 	{
 		value: prefs.get().lastPerm,
-		choices: []
+		choices: [],
+		disabled: true
 	}
 	
 };
@@ -39,14 +43,20 @@ Db8exploreAssistant.prototype.setup = function()
 	
 	// get elements
 	this.dbKindElement =		this.controller.get('dbKind');
+	this.dbPermElement =		this.controller.get('dbPerm');
 	this.queryButton =			this.controller.get('queryButton');
 	
 	// setup handlers
-    this.dbKindsHandler = 		this.dbKinds.bindAsEventListener(this);
-    this.dbKindHandler = 		this.dbKind.bindAsEventListener(this);
-    this.dbPermsHandler = 		this.dbPerms.bindAsEventListener(this);
-    this.dbPermHandler = 		this.dbPerm.bindAsEventListener(this);
+    this.dbKindsHandler = 		this.dbKinds.bindAsEventListener(this, false);
+    this.dbKindsTempHandler = 	this.dbKinds.bindAsEventListener(this, true);
+    this.dbKindHandler = 		this.dbKind.bindAsEventListener(this, false);
+    this.dbKindTempHandler = 	this.dbKind.bindAsEventListener(this, true);
+    this.dbPermsHandler = 		this.dbPerms.bindAsEventListener(this, false);
+    this.dbPermsTempHandler = 	this.dbPerms.bindAsEventListener(this, true);
+    this.dbPermHandler = 		this.dbPerm.bindAsEventListener(this, false);
+    this.dbPermTempHandler = 	this.dbPerm.bindAsEventListener(this, true);
 	this.dbKindChangedHandler = this.dbKindChanged.bindAsEventListener(this);
+	this.dbPermChangedHandler = this.dbPermChanged.bindAsEventListener(this);
     this.queryTapHandler = 		this.queryTap.bindAsEventListener(this);
     this.impersonateHandler = 	this.impersonate.bindAsEventListener(this);
 	
@@ -56,10 +66,8 @@ Db8exploreAssistant.prototype.setup = function()
 		{},
 		this.dbKindsModel
 	);
-	this.dbKindChanged({value: prefs.get().lastKind});
 	
 	this.controller.listen(this.dbKindElement, Mojo.Event.propertyChange, this.dbKindChangedHandler);
-	
 	
 	this.controller.setupWidget
 	(
@@ -68,46 +76,89 @@ Db8exploreAssistant.prototype.setup = function()
 		this.dbPermsModel
 	);
 	
-	//this.controller.listen(this.dbKindElement, Mojo.Event.propertyChange, this.dbKindChangedHandler);
-	
-	
+	this.controller.listen(this.dbPermElement, Mojo.Event.propertyChange, this.dbPermChangedHandler);
+
 	this.controller.setupWidget
 	(
 		'queryButton',
 		{},
-		this.dbusButtonModel =
+		this.queryButtonModel =
 		{
 			buttonLabel: $L("Query"),
-			disabled: false
+			disabled: true
 		}
 	);
 	
 	this.controller.listen(this.queryButton,  Mojo.Event.tap, this.queryTapHandler);
 	
-	
-	this.request = ImpostahService.listDbKinds(this.dbKindsHandler);
-	
+	this.dbKindsModel.choices = [];
+	this.dbPermsModel.choices = [];
+
+	this.request = ImpostahService.listDbPerms(this.dbPermsHandler, false);
 	
 };
 
-Db8exploreAssistant.prototype.dbKinds = function(payload)
+Db8exploreAssistant.prototype.dbKinds = function(payload, temporary)
 {
+	if (payload.returnValue === false) {
+		this.errorMessage('<b>Service Error (listDbKinds):</b><br>'+payload.errorText);
+	}
+
 	if (payload.stdOut && payload.stdOut.length > 0)
 	{
-		this.dbKindsModel.choices = [];
-		
 		payload.stdOut.sort();
 		
 		for (var a = 0; a < payload.stdOut.length; a++)
 		{
-			this.dbKindsModel.choices.push({label:payload.stdOut[a], value:payload.stdOut[a]});
+			var id = payload.stdOut[a];
+			this.dbKindsSet[id] = temporary;
+			this.dbKindsModel.choices.push({label:id, value:id});
 		}
 		
 		this.controller.modelChanged(this.dbKindsModel);
 	}
-	else if (payload.returnValue === false)
+
+	if (temporary === false) {
+		this.request = ImpostahService.listDbKinds(this.dbKindsTempHandler, true);
+	}
+	else {
+		// Enable the drop-down list
+		this.dbKindsModel.disabled = false;
+		this.controller.modelChanged(this.dbKindsModel);
+		this.dbKindChanged({value: prefs.get().lastKind});
+	}
+};
+
+Db8exploreAssistant.prototype.dbPerms = function(payload, temporary)
+{
+	if (payload.returnValue === false) {
+		this.errorMessage('<b>Service Error (listDbPerms):</b><br>'+payload.errorText);
+	}
+
+	if (payload.stdOut && payload.stdOut.length > 0)
 	{
-		this.errorMessage('<b>Service Error (listDbKinds):</b><br>'+payload.errorText);
+		payload.stdOut.sort();
+		
+		for (var a = 0; a < payload.stdOut.length; a++)
+		{
+			var id = payload.stdOut[a];
+			this.dbPermsSet[id] = temporary;
+			this.dbPermsModel.choices.push({label:id, value:id});
+		}
+		
+		this.controller.modelChanged(this.dbPermsModel);
+	}
+
+	if (temporary === false) {
+		this.request = ImpostahService.listDbPerms(this.dbPermsTempHandler, true);
+	}
+	else {
+		// Enable the drop-down list
+		this.dbPermsModel.disabled = false;
+		this.controller.modelChanged(this.dbPermsModel);
+
+		// Now get the list of kinds
+		this.request = ImpostahService.listDbKinds(this.dbKindsHandler, false);
 	}
 };
 
@@ -121,12 +172,20 @@ Db8exploreAssistant.prototype.dbKindChanged = function(event)
 	
 	this.kindId = '';
 	
-	this.request = ImpostahService.listDbPerms(this.dbPermsHandler, event.value);
-	this.request = ImpostahService.getDbKind(this.dbKindHandler, event.value);
+	if (this.dbKindsSet[event.value] === true) {
+		this.request = ImpostahService.getDbKind(this.dbKindTempHandler, event.value, true);
+	}
+	else {
+		this.request = ImpostahService.getDbKind(this.dbKindHandler, event.value, false);
+	}
 }
 
 Db8exploreAssistant.prototype.dbKind = function(payload)
 {
+	if (payload.returnValue === false) {
+		this.errorMessage('<b>Service Error (getDbKind):</b><br>'+payload.errorText);
+	}
+
 	// no stage means its not a subscription, and we should have all the contents right now
 	if (!payload.stage) {
 		if (payload.contents) {
@@ -157,50 +216,57 @@ Db8exploreAssistant.prototype.dbKind = function(payload)
 		this.dbPermsModel.value = obj.owner;
 		this.kindId = obj.id;
 		this.controller.modelChanged(this.dbPermsModel);
+
+		// Enable the query button
+		this.queryButtonModel.disabled = false;
+		this.controller.modelChanged(this.queryButtonModel);
 	}
 	catch (e) {
 		Mojo.Log.logException(e, 'Db8explore#dbKind');
 	}
 };
 
-
-Db8exploreAssistant.prototype.dbPerms = function(payload)
+Db8exploreAssistant.prototype.dbPermChanged = function(event)
 {
-	if (payload.stdOut && payload.stdOut.length > 0)
-	{
-		this.dbPermsModel.choices = [];
-		
-		payload.stdOut.sort();
-		
-		for (var a = 0; a < payload.stdOut.length; a++)
-		{
-			this.dbPermsModel.choices.push({label:payload.stdOut[a], value:payload.stdOut[a]});
-		}
-		
-		this.controller.modelChanged(this.dbPermsModel);
+	var cookie = new preferenceCookie();
+	var tprefs = cookie.get();
+	tprefs.lastPerm = event.value;
+	cookie.put(tprefs);
+	var tmp = prefs.get(true);
+	
+	if (this.dbPermsSet[event.value] === true) {
+		this.request = ImpostahService.getDbPerm(this.dbPermTempHandler, event.value, true);
 	}
-	else if (payload.returnValue === false)
-	{
-		this.errorMessage('<b>Service Error (listDbPerms):</b><br>'+payload.errorText);
+	else {
+		this.request = ImpostahService.getDbPerm(this.dbPermHandler, event.value, false);
 	}
-};
+}
 
-Db8exploreAssistant.prototype.dbPerm = function(payload)
+Db8exploreAssistant.prototype.dbPerm = function(payload, temporary)
 {
+	if (payload.returnValue === false) {
+		this.errorMessage('<b>Service Error (getDbPerm):</b><br>'+payload.errorText);
+	}
+
 	Mojo.Log.error('==============');
 	for (var p in payload) Mojo.Log.error(p, ': ', payload[p]);
 };
 
 Db8exploreAssistant.prototype.queryTap = function(event)
 {
-	if (this.kindId && this.dbPermsModel.value)
-	{
-		//this.controller.stageController.pushScene('view-json', {kind: this.dbKindsModel.value});
-		this.request = ImpostahService.impersonate(this.impersonateHandler, this.dbPermsModel.value, this.kindId);
+	if (this.kindId && this.dbPermsModel.value) {
+		this.request = ImpostahService.impersonate(this.impersonateHandler,
+												   this.dbPermsModel.value,
+												   "com.palm.db", "find", { "query" : { "from" : this.kindId }});
 	}
 };
+
 Db8exploreAssistant.prototype.impersonate = function(payload)
 {
+	if (payload.returnValue === false) {
+		this.errorMessage('<b>Service Error (impersonate):</b><br>'+payload.errorText);
+	}
+
 	Mojo.Log.error('==============');
 	for (var p in payload) Mojo.Log.error(p, ': ', payload[p]);
 };

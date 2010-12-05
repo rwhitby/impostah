@@ -102,15 +102,20 @@ body.palm-dark .palm-separator
 
 
 /*
- * db8explore scene styles
+ * database-explore scene styles
  */
-.db8explore .palm-list-selector .title
+.database-explore .palm-list-selector .title
 {
 	text-align: left;
 }
 
-
-
+/*
+ * backup-explore scene styles
+ */
+.backup-explore .palm-list-selector .title
+{
+	text-align: left;
+}
 
 /*
  * Generic Form Styles

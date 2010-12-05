@@ -25,7 +25,11 @@
         "source": "app/assistants/help-data-assistant.js"
     },
     {
-        "scenes": "db8explore",
-        "source": "app/assistants/db8explore-assistant.js"
+        "scenes": "database-explore",
+        "source": "app/assistants/database-explore-assistant.js"
+    },
+    {
+        "scenes": "backup-explore",
+        "source": "app/assistants/backup-explore-assistant.js"
     }
 ]

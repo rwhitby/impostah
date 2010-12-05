@@ -1,4 +1,4 @@
-function Db8exploreAssistant()
+function DatabaseExploreAssistant()
 {
 	// setup menu
 	this.menuModel =
@@ -20,7 +20,7 @@ function Db8exploreAssistant()
 	this.dbKindsSet = $H();
 	this.dbKindsModel =
 	{
-		value: prefs.get().lastKind,
+		value: prefs.get().lastDbKind,
 		choices: [],
 		disabled: true
 	}
@@ -29,14 +29,14 @@ function Db8exploreAssistant()
 	this.dbPermsSet = $H();
 	this.dbPermsModel =
 	{
-		value: prefs.get().lastPerm,
+		value: prefs.get().lastDbPerm,
 		choices: [],
 		disabled: true
 	}
 	
 };
 
-Db8exploreAssistant.prototype.setup = function()
+DatabaseExploreAssistant.prototype.setup = function()
 {
 	// setup menu
 	this.controller.setupWidget(Mojo.Menu.appMenu, { omitDefaultItems: true }, this.menuModel);
@@ -98,7 +98,7 @@ Db8exploreAssistant.prototype.setup = function()
 	
 };
 
-Db8exploreAssistant.prototype.dbKinds = function(payload, temporary)
+DatabaseExploreAssistant.prototype.dbKinds = function(payload, temporary)
 {
 	if (payload.returnValue === false) {
 		this.errorMessage('<b>Service Error (listDbKinds):</b><br>'+payload.errorText);
@@ -125,11 +125,11 @@ Db8exploreAssistant.prototype.dbKinds = function(payload, temporary)
 		// Enable the drop-down list
 		this.dbKindsModel.disabled = false;
 		this.controller.modelChanged(this.dbKindsModel);
-		this.dbKindChanged({value: prefs.get().lastKind});
+		this.dbKindChanged({value: prefs.get().lastDbKind});
 	}
 };
 
-Db8exploreAssistant.prototype.dbPerms = function(payload, temporary)
+DatabaseExploreAssistant.prototype.dbPerms = function(payload, temporary)
 {
 	if (payload.returnValue === false) {
 		this.errorMessage('<b>Service Error (listDbPerms):</b><br>'+payload.errorText);
@@ -162,11 +162,11 @@ Db8exploreAssistant.prototype.dbPerms = function(payload, temporary)
 	}
 };
 
-Db8exploreAssistant.prototype.dbKindChanged = function(event)
+DatabaseExploreAssistant.prototype.dbKindChanged = function(event)
 {
 	var cookie = new preferenceCookie();
 	var tprefs = cookie.get();
-	tprefs.lastKind = event.value;
+	tprefs.lastDbKind = event.value;
 	cookie.put(tprefs);
 	var tmp = prefs.get(true);
 	
@@ -180,7 +180,7 @@ Db8exploreAssistant.prototype.dbKindChanged = function(event)
 	}
 }
 
-Db8exploreAssistant.prototype.dbKind = function(payload)
+DatabaseExploreAssistant.prototype.dbKind = function(payload)
 {
 	if (payload.returnValue === false) {
 		this.errorMessage('<b>Service Error (getDbKind):</b><br>'+payload.errorText);
@@ -222,15 +222,15 @@ Db8exploreAssistant.prototype.dbKind = function(payload)
 		this.controller.modelChanged(this.queryButtonModel);
 	}
 	catch (e) {
-		Mojo.Log.logException(e, 'Db8explore#dbKind');
+		Mojo.Log.logException(e, 'DatabaseExplore#dbKind');
 	}
 };
 
-Db8exploreAssistant.prototype.dbPermChanged = function(event)
+DatabaseExploreAssistant.prototype.dbPermChanged = function(event)
 {
 	var cookie = new preferenceCookie();
 	var tprefs = cookie.get();
-	tprefs.lastPerm = event.value;
+	tprefs.lastDbPerm = event.value;
 	cookie.put(tprefs);
 	var tmp = prefs.get(true);
 	
@@ -242,7 +242,7 @@ Db8exploreAssistant.prototype.dbPermChanged = function(event)
 	}
 }
 
-Db8exploreAssistant.prototype.dbPerm = function(payload, temporary)
+DatabaseExploreAssistant.prototype.dbPerm = function(payload, temporary)
 {
 	if (payload.returnValue === false) {
 		this.errorMessage('<b>Service Error (getDbPerm):</b><br>'+payload.errorText);
@@ -252,7 +252,7 @@ Db8exploreAssistant.prototype.dbPerm = function(payload, temporary)
 	for (var p in payload) Mojo.Log.error(p, ': ', payload[p]);
 };
 
-Db8exploreAssistant.prototype.queryTap = function(event)
+DatabaseExploreAssistant.prototype.queryTap = function(event)
 {
 	if (this.kindId && this.dbPermsModel.value) {
 		this.request = ImpostahService.impersonate(this.impersonateHandler,
@@ -261,7 +261,7 @@ Db8exploreAssistant.prototype.queryTap = function(event)
 	}
 };
 
-Db8exploreAssistant.prototype.impersonate = function(payload)
+DatabaseExploreAssistant.prototype.impersonate = function(payload)
 {
 	if (payload.returnValue === false) {
 		this.errorMessage('<b>Service Error (impersonate):</b><br>'+payload.errorText);
@@ -271,7 +271,7 @@ Db8exploreAssistant.prototype.impersonate = function(payload)
 	for (var p in payload) Mojo.Log.error(p, ': ', payload[p]);
 };
 
-Db8exploreAssistant.prototype.activate = function(event)
+DatabaseExploreAssistant.prototype.activate = function(event)
 {
 	
 	if (this.firstActivate)
@@ -283,11 +283,11 @@ Db8exploreAssistant.prototype.activate = function(event)
 	}
 	this.firstActivate = true;
 };
-Db8exploreAssistant.prototype.deactivate = function(event)
+DatabaseExploreAssistant.prototype.deactivate = function(event)
 {
 };
 
-Db8exploreAssistant.prototype.errorMessage = function(msg)
+DatabaseExploreAssistant.prototype.errorMessage = function(msg)
 {
 	this.controller.showAlertDialog(
 	{
@@ -299,7 +299,7 @@ Db8exploreAssistant.prototype.errorMessage = function(msg)
 	    onChoose:			function(e){}
     });
 }
-Db8exploreAssistant.prototype.handleCommand = function(event)
+DatabaseExploreAssistant.prototype.handleCommand = function(event)
 {
 	if (event.type == Mojo.Event.command)
 	{
@@ -316,7 +316,7 @@ Db8exploreAssistant.prototype.handleCommand = function(event)
 	}
 };
 
-Db8exploreAssistant.prototype.cleanup = function(event)
+DatabaseExploreAssistant.prototype.cleanup = function(event)
 {
 };
 

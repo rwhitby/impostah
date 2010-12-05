@@ -55,7 +55,12 @@ MainAssistant.prototype.setup = function()
 	
     this.mainModel.items.push({
 	    name:     $L('Database Exploration'),
-		scene:    'db8explore',
+		scene:    'database-explore',
+		});
+    
+    this.mainModel.items.push({
+	    name:     $L('Backup Exploration'),
+		scene:    'backup-explore',
 		});
     
     // setup widget

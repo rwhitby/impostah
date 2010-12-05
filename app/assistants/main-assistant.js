@@ -34,22 +34,39 @@ MainAssistant.prototype.setup = function()
 	// set theme because this can be the first scene pushed
 	this.controller.document.body.className = prefs.get().theme;
 	
+	// setup menu
+	this.controller.setupWidget(Mojo.Menu.appMenu, { omitDefaultItems: true }, this.menuModel);
+	
 	// get elements
 	this.iconElement =		this.controller.get('icon');
 	this.titleElement =		this.controller.get('main-title');
 	this.versionElement =	this.controller.get('version');
 	this.subTitleElement =	this.controller.get('subTitle');
+	this.queryButton =		this.controller.get('queryButton');
 	
 	// set version string random subtitle
 	this.titleElement.innerHTML = Mojo.Controller.appInfo.title;
 	this.versionElement.innerHTML = "v" + Mojo.Controller.appInfo.version;
 	this.subTitleElement.innerHTML = this.getRandomSubTitle();
 	
-	// setup menu
-	this.controller.setupWidget(Mojo.Menu.appMenu, { omitDefaultItems: true }, this.menuModel);
+	// setup handlers
+    this.dbKindsHandler = this.dbKinds.bindAsEventListener(this);
+    this.queryTapHandler = this.queryTap.bindAsEventListener(this);
+	
+	this.reqeust = ImpostahService.getDbKinds(this.dbKindsHandler);
 	
 };
 
+MainAssistant.prototype.dbKinds = function(payload)
+{
+	alert('===============');
+	for (var p in payload) alert(p+': '+payload[p]);
+};
+
+MainAssistant.prototype.queryTap = function(event)
+{
+	this.controller.stageController.pushScene('get-log', {filter: this.filterModel.value, custom: this.customTextElement.mojo.getValue()});
+};
 
 MainAssistant.prototype.activate = function(event)
 {

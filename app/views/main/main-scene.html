@@ -4,7 +4,7 @@
 
 	<div class="palm-page-header multi-line">
 		<div class="palm-page-header-wrapper">
-			<div class="icon" id="icon"></div>
+			<div class="icon"></div>
 			<div class="title main">
 				<span id="main-title">Impostah</span>
 				<span class="version" id="version">v0.0.0</span>
@@ -13,8 +13,29 @@
 		</div>
 	</div>
 	
-	<div class="palm-list" id="list">
+	<div class="palm-group">
+		<div class="palm-group-title" id="preferences-global">What To Look For</div>
+		<div class="palm-list">
+			
+			<div class="palm-row single" id="filterContainer">
+				<div class="palm-row-wrapper">
+					<div id="filter" x-mojo-element="ListSelector"></div>
+				</div>
+			</div>
+			
+			<div class="palm-row last" style="display: none;" id="customContainer">
+				<div class="palm-row-wrapper textfield-group" x-mojo-focus-highlight="true">
+					<div class="title">
+						<div class="label" id="custom-filter"></div>
+						<div id="customText" x-mojo-element="TextField"></div>
+					</div>
+				</div>
+			</div>
+			
+		</div>
 	</div>
+	
+	<div x-mojo-element="Button" id="queryButton"></div>
 	
 	<div class="scene-fade-bottom" x-mojo-scroll-fade="bottom"></div>
 	

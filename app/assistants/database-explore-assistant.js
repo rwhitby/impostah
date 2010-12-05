@@ -96,7 +96,7 @@ DatabaseExploreAssistant.prototype.setup = function()
 	this.dbPermsModel.choices = [];
     this.bodyElement.innerHTML = "";
 
-	this.request = ImpostahService.listDbPerms(this.dbPermsHandler, false);
+	this.request = ImpostahService.listDbPerms(this.dbPermsTempHandler, true);
 	
 };
 
@@ -124,26 +124,15 @@ DatabaseExploreAssistant.prototype.dbKinds = function(payload, temporary)
 			}
 		}
 		
-		// %%% FIXME %%% need to search through complete list
 		if (newKind === false) {
-			if (temporary === false) {
-				newKind = payload.stdOut[0];
-			}
-			else {
-				if (oldKind == '') {
-					newKind = payload.stdOut[0];
-				}
-				else {
-					newKind = oldKind;
-				}
-			}
+			newKind = payload.stdOut[0];
 		}
 
 		this.controller.modelChanged(this.dbKindsModel);
 	}
 
-	if (temporary === false) {
-		this.request = ImpostahService.listDbKinds(this.dbKindsTempHandler, true);
+	if (temporary === true) {
+		this.request = ImpostahService.listDbKinds(this.dbKindsHandler, false);
 	}
 	else {
 		// Enable the drop-down list
@@ -178,26 +167,15 @@ DatabaseExploreAssistant.prototype.dbPerms = function(payload, temporary)
 			}
 		}
 		
-		// %%% FIXME %%% need to search through complete list
 		if (newPerm === false) {
-			if (temporary === false) {
-				newPerm = payload.stdOut[0];
-			}
-			else {
-				if (oldPerm == '') {
-					newPerm = payload.stdOut[0];
-				}
-				else {
-					newPerm = oldPerm;
-				}
-			}
+			newPerm = payload.stdOut[0];
 		}
 
 		this.controller.modelChanged(this.dbPermsModel);
 	}
 
-	if (temporary === false) {
-		this.request = ImpostahService.listDbPerms(this.dbPermsTempHandler, true);
+	if (temporary === true) {
+		this.request = ImpostahService.listDbPerms(this.dbPermsHandler, false);
 	}
 	else {
 		// Enable the drop-down list
@@ -207,7 +185,7 @@ DatabaseExploreAssistant.prototype.dbPerms = function(payload, temporary)
 		// this.dbPermChanged({value: newPerm});
 
 		// Now get the list of kinds
-		this.request = ImpostahService.listDbKinds(this.dbKindsHandler, false);
+		this.request = ImpostahService.listDbKinds(this.dbKindsTempHandler, true);
 	}
 };
 

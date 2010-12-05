@@ -130,7 +130,12 @@ DatabaseExploreAssistant.prototype.dbKinds = function(payload, temporary)
 				newKind = payload.stdOut[0];
 			}
 			else {
-				newKind = oldKind;
+				if (oldKind === false) {
+					newKind = payload.stdOut[0];
+				}
+				else {
+					newKind = oldKind;
+				}
 			}
 		}
 
@@ -179,7 +184,12 @@ DatabaseExploreAssistant.prototype.dbPerms = function(payload, temporary)
 				newPerm = payload.stdOut[0];
 			}
 			else {
-				newPerm = oldPerm;
+				if (oldPerm === false) {
+					newPerm = payload.stdOut[0];
+				}
+				else {
+					newPerm = oldPerm;
+				}
 			}
 		}
 

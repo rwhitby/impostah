@@ -249,6 +249,8 @@ DatabaseExploreAssistant.prototype.dbKind = function(payload)
 	}
 	catch (e) {
 		Mojo.Log.logException(e, 'DatabaseExplore#dbKind');
+		this.errorMessage('<b>Parsing Error (dbKind):</b><br>'+e.message);
+		return;
 	}
 };
 

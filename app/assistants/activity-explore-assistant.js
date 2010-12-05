@@ -239,6 +239,8 @@ ActivityExploreAssistant.prototype.activityKind = function(payload)
 	}
 	catch (e) {
 		Mojo.Log.logException(e, 'ActivityExplore#activity');
+		this.errorMessage('<b>Parsing Error (activity):</b><br>'+e.message);
+		return;
 	}
 };
 

@@ -155,6 +155,8 @@ BackupExploreAssistant.prototype.buKind = function(payload)
 	}
 	catch (e) {
 		Mojo.Log.logException(e, 'BackupExplore#buKind');
+		this.errorMessage('<b>Parsing Error (buKind):</b><br>'+e.message);
+		return;
 	}
 };
 

@@ -22,6 +22,7 @@ function Db8exploreAssistant()
 		value: prefs.get().lastKind,
 		choices: []
 	}
+	this.kindId = '';
 	
 	this.dbPermsModel =
 	{
@@ -118,6 +119,8 @@ Db8exploreAssistant.prototype.dbKindChanged = function(event)
 	cookie.put(tprefs);
 	var tmp = prefs.get(true);
 	
+	this.kindId = '';
+	
 	this.request = ImpostahService.listDbPerms(this.dbPermsHandler, event.value);
 	this.request = ImpostahService.getDbKind(this.dbKindHandler, event.value);
 }
@@ -129,6 +132,7 @@ Db8exploreAssistant.prototype.dbKind = function(payload)
 		var obj = JSON.parse(payload.contents);
 		
 		this.dbPermsModel.value = obj.owner;
+		this.kindId = obj.id;
 		this.controller.modelChanged(this.dbPermsModel);
 	}
 };
@@ -161,13 +165,16 @@ Db8exploreAssistant.prototype.dbPerm = function(payload)
 
 Db8exploreAssistant.prototype.queryTap = function(event)
 {
-	//this.controller.stageController.pushScene('view-json', {kind: this.dbKindsModel.value});
-	this.request = ImpostahService.impersonate(this.impersonateHandler, this.dbPermsModel.value, this.dbKindsModel.value);
+	if (this.kindId && this.dbPermsModel.value)
+	{
+		//this.controller.stageController.pushScene('view-json', {kind: this.dbKindsModel.value});
+		this.request = ImpostahService.impersonate(this.impersonateHandler, this.dbPermsModel.value, this.kindId);
+	}
 };
 Db8exploreAssistant.prototype.impersonate = function(payload)
 {
 	Mojo.Log.error('==============');
-	for (var p in payload) Mojo.Log.error(p, ': ', payload[p]);
+	for (var r in payload.results) Mojo.Log.error(r, ': ', payload.results[r]);
 };
 
 Db8exploreAssistant.prototype.activate = function(event)

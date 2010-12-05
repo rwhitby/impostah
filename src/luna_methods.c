@@ -463,7 +463,7 @@ bool getDbKind_method(LSHandle* lshandle, LSMessage *message, void *ctx) {
     sprintf(filename, "/etc/palm/tempdb/kinds/%s", id->child->text);
   }
 
-  return read_file(lshandle, message, filename, false);
+  return read_file(lshandle, message, filename, true);
 
  error:
   LSErrorPrint(&lserror, stderr);
@@ -526,7 +526,7 @@ bool getDbPerm_method(LSHandle* lshandle, LSMessage *message, void *ctx) {
     sprintf(filename, "/etc/palm/tempdb/permissions/%s", id->child->text);
   }
 
-  return read_file(lshandle, message, filename, false);
+  return read_file(lshandle, message, filename, true);
 
  error:
   LSErrorPrint(&lserror, stderr);
@@ -610,7 +610,7 @@ bool getActivity_method(LSHandle* lshandle, LSMessage *message, void *ctx) {
 
   sprintf(filename, "/etc/palm/activities/%s/%s", id->child->text, activity->child->text);
 
-  return read_file(lshandle, message, filename, false);
+  return read_file(lshandle, message, filename, true);
 
  error:
   LSErrorPrint(&lserror, stderr);
@@ -655,7 +655,7 @@ bool getBackup_method(LSHandle* lshandle, LSMessage *message, void *ctx) {
 
   sprintf(filename, "/etc/palm/backup/%s", id->child->text);
 
-  return read_file(lshandle, message, filename, false);
+  return read_file(lshandle, message, filename, true);
 
  error:
   LSErrorPrint(&lserror, stderr);
@@ -700,7 +700,7 @@ bool getFilecacheType_method(LSHandle* lshandle, LSMessage *message, void *ctx) 
 
   sprintf(filename, "/etc/palm/filecache_types/%s", type->child->text);
 
-  return read_file(lshandle, message, filename, false);
+  return read_file(lshandle, message, filename, true);
 
  error:
   LSErrorPrint(&lserror, stderr);

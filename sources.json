@@ -31,5 +31,9 @@
     {
         "scenes": "backup-explore",
         "source": "app/assistants/backup-explore-assistant.js"
+    },
+    {
+        "scenes": "activity-explore",
+        "source": "app/assistants/activity-explore-assistant.js"
     }
 ]

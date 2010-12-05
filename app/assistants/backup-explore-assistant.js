@@ -19,7 +19,7 @@ function BackupExploreAssistant()
 	
 	this.buKindsModel =
 	{
-		value: prefs.get().lastBuKind,
+		value: prefs.get().lastBackupKind,
 		choices: [],
 		disabled: true
 	}
@@ -95,14 +95,14 @@ BackupExploreAssistant.prototype.buKinds = function(payload)
 	// Enable the drop-down list
 	this.buKindsModel.disabled = false;
 	this.controller.modelChanged(this.buKindsModel);
-	this.buKindChanged({value: prefs.get().lastBuKind});
+	this.buKindChanged({value: prefs.get().lastBackupKind});
 };
 
 BackupExploreAssistant.prototype.buKindChanged = function(event)
 {
 	var cookie = new preferenceCookie();
 	var tprefs = cookie.get();
-	tprefs.lastBuKind = event.value;
+	tprefs.lastBackupKind = event.value;
 	cookie.put(tprefs);
 	var tmp = prefs.get(true);
 	

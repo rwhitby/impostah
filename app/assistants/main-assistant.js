@@ -62,6 +62,10 @@ MainAssistant.prototype.setup = function()
 	    name:     $L('Backup Exploration'),
 		scene:    'backup-explore',
 		});
+    this.mainModel.items.push({
+	    name:     $L('Activity Exploration'),
+		scene:    'activity-explore',
+		});
     
     // setup widget
     this.controller.setupWidget('mainList', {

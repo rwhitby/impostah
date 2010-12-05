@@ -18,9 +18,11 @@ preferenceCookie.prototype.get = function(reload)
 				
 				
 				// non-pref settings
-				lastDbKind: '',
-				lastDbPerm: '',
-				lastBuKind: '',
+				lastDatabaseKind: '',
+				lastDatabasePerm: '',
+				lastBackupKind: '',
+				lastActivitySet: '',
+				lastActivityKind: '',
 				
 			};
 			

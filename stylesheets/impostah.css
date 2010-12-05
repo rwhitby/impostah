@@ -118,6 +118,14 @@ body.palm-dark .palm-separator
 }
 
 /*
+ * activity-explore scene styles
+ */
+.activity-explore .palm-list-selector .title
+{
+	text-align: left;
+}
+
+/*
  * Generic Form Styles
  */
 .form .palm-row-wrapper .note

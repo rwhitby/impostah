@@ -20,7 +20,7 @@ function DatabaseExploreAssistant()
 	this.dbKindsSet = $H();
 	this.dbKindsModel =
 	{
-		value: prefs.get().lastDbKind,
+		value: prefs.get().lastDatabaseKind,
 		choices: [],
 		disabled: true
 	}
@@ -29,7 +29,7 @@ function DatabaseExploreAssistant()
 	this.dbPermsSet = $H();
 	this.dbPermsModel =
 	{
-		value: prefs.get().lastDbPerm,
+		value: prefs.get().lastDatabasePerm,
 		choices: [],
 		disabled: true
 	}
@@ -107,6 +107,9 @@ DatabaseExploreAssistant.prototype.dbKinds = function(payload, temporary)
 		return;
 	}
 
+	var oldKind = prefs.get().lastDatabaseKind;
+	var newKind = false;
+
 	if (payload.stdOut && payload.stdOut.length > 0)
 	{
 		payload.stdOut.sort();
@@ -116,8 +119,21 @@ DatabaseExploreAssistant.prototype.dbKinds = function(payload, temporary)
 			var id = payload.stdOut[a];
 			this.dbKindsSet[id] = temporary;
 			this.dbKindsModel.choices.push({label:id, value:id});
+			if (id == oldKind) {
+				newKind = oldKind;
+			}
 		}
 		
+		// %%% FIXME %%% need to search through complete list
+		if (newKind === false) {
+			if (temporary === false) {
+				newKind = payload.stdOut[0];
+			}
+			else {
+				newKind = oldKind;
+			}
+		}
+
 		this.controller.modelChanged(this.dbKindsModel);
 	}
 
@@ -128,7 +144,7 @@ DatabaseExploreAssistant.prototype.dbKinds = function(payload, temporary)
 		// Enable the drop-down list
 		this.dbKindsModel.disabled = false;
 		this.controller.modelChanged(this.dbKindsModel);
-		this.dbKindChanged({value: prefs.get().lastDbKind});
+		this.dbKindChanged({value: newKind});
 	}
 };
 
@@ -170,13 +186,17 @@ DatabaseExploreAssistant.prototype.dbKindChanged = function(event)
 {
 	var cookie = new preferenceCookie();
 	var tprefs = cookie.get();
-	tprefs.lastDbKind = event.value;
+	tprefs.lastDatabaseKind = event.value;
 	cookie.put(tprefs);
 	var tmp = prefs.get(true);
 	
 	this.kindId = '';
     this.bodyElement.innerHTML = "";
 	
+	// Disable the query button
+	this.queryButtonModel.disabled = true;
+	this.controller.modelChanged(this.queryButtonModel);
+
 	if (this.dbKindsSet[event.value] === true) {
 		this.request = ImpostahService.getDbKind(this.dbKindTempHandler, event.value, true);
 	}
@@ -236,7 +256,7 @@ DatabaseExploreAssistant.prototype.dbPermChanged = function(event)
 {
 	var cookie = new preferenceCookie();
 	var tprefs = cookie.get();
-	tprefs.lastDbPerm = event.value;
+	tprefs.lastDatabasePerm = event.value;
 	cookie.put(tprefs);
 	var tmp = prefs.get(true);
 	

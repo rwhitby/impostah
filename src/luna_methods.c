@@ -535,7 +535,7 @@ bool getDbPerm_method(LSHandle* lshandle, LSMessage *message, void *ctx) {
   return false;
 }
 
-bool listActivityIDs_method(LSHandle* lshandle, LSMessage *message, void *ctx) {
+bool listActivitySets_method(LSHandle* lshandle, LSMessage *message, void *ctx) {
   LSError lserror;
   LSErrorInit(&lserror);
 
@@ -561,17 +561,17 @@ bool listActivities_method(LSHandle* lshandle, LSMessage *message, void *ctx) {
   // Local buffer to store the command
   char command[MAXLINLEN];
 
-  // Extract the id argument from the message
+  // Extract the set argument from the message
   json_t *object = json_parse_document(LSMessageGetPayload(message));
-  json_t *id = json_find_first_label(object, "id");               
-  if (!id || (id->child->type != JSON_STRING) || (strspn(id->child->text, ALLOWED_CHARS) != strlen(id->child->text))) {
+  json_t *set = json_find_first_label(object, "set");               
+  if (!set || (set->child->type != JSON_STRING) || (strspn(set->child->text, ALLOWED_CHARS) != strlen(set->child->text))) {
     if (!LSMessageReply(lshandle, message,
-			"{\"returnValue\": false, \"errorCode\": -1, \"errorText\": \"Invalid or missing id\"}",
+			"{\"returnValue\": false, \"errorCode\": -1, \"errorText\": \"Invalid or missing set\"}",
 			&lserror)) goto error;
     return true;
   }
 
-  sprintf(command, "/bin/ls -1 /etc/palm/activities/%s/ 2>&1", id->child->text);
+  sprintf(command, "/bin/ls -1 /etc/palm/activities/%s/ 2>&1", set->child->text);
 
   return simple_command(lshandle, message, command);
 
@@ -588,8 +588,18 @@ bool getActivity_method(LSHandle* lshandle, LSMessage *message, void *ctx) {
 
   char filename[MAXLINLEN];
 
-  // Extract the id argument from the message
+  // Extract the set argument from the message
   json_t *object = json_parse_document(LSMessageGetPayload(message));
+  json_t *set = json_find_first_label(object, "set");               
+  if (!set || (set->child->type != JSON_STRING) || (strspn(set->child->text, ALLOWED_CHARS) != strlen(set->child->text))) {
+    if (!LSMessageReply(lshandle, message,
+			"{\"returnValue\": false, \"errorCode\": -1, \"errorText\": \"Invalid or missing set\"}",
+			&lserror)) goto error;
+    return true;
+  }
+
+  // Extract the id argument from the message
+  object = json_parse_document(LSMessageGetPayload(message));
   json_t *id = json_find_first_label(object, "id");               
   if (!id || (id->child->type != JSON_STRING) || (strspn(id->child->text, ALLOWED_CHARS) != strlen(id->child->text))) {
     if (!LSMessageReply(lshandle, message,
@@ -598,17 +608,7 @@ bool getActivity_method(LSHandle* lshandle, LSMessage *message, void *ctx) {
     return true;
   }
 
-  // Extract the activity argument from the message
-  object = json_parse_document(LSMessageGetPayload(message));
-  json_t *activity = json_find_first_label(object, "activity");               
-  if (!activity || (activity->child->type != JSON_STRING) || (strspn(activity->child->text, ALLOWED_CHARS) != strlen(activity->child->text))) {
-    if (!LSMessageReply(lshandle, message,
-			"{\"returnValue\": false, \"errorCode\": -1, \"errorText\": \"Invalid or missing activity\"}",
-			&lserror)) goto error;
-    return true;
-  }
-
-  sprintf(filename, "/etc/palm/activities/%s/%s", id->child->text, activity->child->text);
+  sprintf(filename, "/etc/palm/activities/%s/%s", set->child->text, id->child->text);
 
   return read_file(lshandle, message, filename, true);
 
@@ -801,7 +801,7 @@ LSMethod luna_methods[] = {
   { "listDbPerms",		listDbPerms_method },
   { "getDbPerm",		getDbPerm_method },
 
-  { "listActivityIDs",		listActivityIDs_method },
+  { "listActivitySets",		listActivitySets_method },
   { "listActivities",		listActivities_method },
   { "getActivity",		getActivity_method },
 

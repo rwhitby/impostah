@@ -45,6 +45,7 @@ DatabaseExploreAssistant.prototype.setup = function()
 	this.dbKindElement =		this.controller.get('dbKind');
 	this.dbPermElement =		this.controller.get('dbPerm');
 	this.queryButton =			this.controller.get('queryButton');
+	this.bodyElement =			this.controller.get('body');
 	
 	// setup handlers
     this.dbKindsHandler = 		this.dbKinds.bindAsEventListener(this, false);
@@ -93,6 +94,7 @@ DatabaseExploreAssistant.prototype.setup = function()
 	
 	this.dbKindsModel.choices = [];
 	this.dbPermsModel.choices = [];
+    this.bodyElement.innerHTML = "";
 
 	this.request = ImpostahService.listDbPerms(this.dbPermsHandler, false);
 	
@@ -102,6 +104,7 @@ DatabaseExploreAssistant.prototype.dbKinds = function(payload, temporary)
 {
 	if (payload.returnValue === false) {
 		this.errorMessage('<b>Service Error (listDbKinds):</b><br>'+payload.errorText);
+		return;
 	}
 
 	if (payload.stdOut && payload.stdOut.length > 0)
@@ -133,6 +136,7 @@ DatabaseExploreAssistant.prototype.dbPerms = function(payload, temporary)
 {
 	if (payload.returnValue === false) {
 		this.errorMessage('<b>Service Error (listDbPerms):</b><br>'+payload.errorText);
+		return;
 	}
 
 	if (payload.stdOut && payload.stdOut.length > 0)
@@ -171,6 +175,7 @@ DatabaseExploreAssistant.prototype.dbKindChanged = function(event)
 	var tmp = prefs.get(true);
 	
 	this.kindId = '';
+    this.bodyElement.innerHTML = "";
 	
 	if (this.dbKindsSet[event.value] === true) {
 		this.request = ImpostahService.getDbKind(this.dbKindTempHandler, event.value, true);
@@ -184,6 +189,7 @@ DatabaseExploreAssistant.prototype.dbKind = function(payload)
 {
 	if (payload.returnValue === false) {
 		this.errorMessage('<b>Service Error (getDbKind):</b><br>'+payload.errorText);
+		return;
 	}
 
 	// no stage means its not a subscription, and we should have all the contents right now
@@ -234,6 +240,8 @@ DatabaseExploreAssistant.prototype.dbPermChanged = function(event)
 	cookie.put(tprefs);
 	var tmp = prefs.get(true);
 	
+    this.bodyElement.innerHTML = "";
+
 	if (this.dbPermsSet[event.value] === true) {
 		this.request = ImpostahService.getDbPerm(this.dbPermTempHandler, event.value, true);
 	}
@@ -246,6 +254,7 @@ DatabaseExploreAssistant.prototype.dbPerm = function(payload, temporary)
 {
 	if (payload.returnValue === false) {
 		this.errorMessage('<b>Service Error (getDbPerm):</b><br>'+payload.errorText);
+		return;
 	}
 
 	Mojo.Log.error('==============');
@@ -265,6 +274,11 @@ DatabaseExploreAssistant.prototype.impersonate = function(payload)
 {
 	if (payload.returnValue === false) {
 		this.errorMessage('<b>Service Error (impersonate):</b><br>'+payload.errorText);
+		return;
+	}
+
+	if (payload.results) {
+		this.bodyElement.innerHTML = JSON.stringify(payload.results);
 	}
 
 	Mojo.Log.error('==============');

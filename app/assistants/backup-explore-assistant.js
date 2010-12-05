@@ -34,14 +34,14 @@ BackupExploreAssistant.prototype.setup = function()
 	
 	// get elements
 	this.buKindElement =		this.controller.get('buKind');
-	this.queryButton =			this.controller.get('queryButton');
+	this.showButton =			this.controller.get('showButton');
+	this.bodyElement =			this.controller.get('body');
 	
 	// setup handlers
     this.buKindsHandler = 		this.buKinds.bindAsEventListener(this);
     this.buKindHandler = 		this.buKind.bindAsEventListener(this);
 	this.buKindChangedHandler = this.buKindChanged.bindAsEventListener(this);
-    this.queryTapHandler = 		this.queryTap.bindAsEventListener(this);
-    this.impersonateHandler = 	this.impersonate.bindAsEventListener(this);
+    this.showTapHandler = 		this.showTap.bindAsEventListener(this);
 	
 	this.controller.setupWidget
 	(
@@ -54,18 +54,19 @@ BackupExploreAssistant.prototype.setup = function()
 	
 	this.controller.setupWidget
 	(
-		'queryButton',
+		'showButton',
 		{},
-		this.queryButtonModel =
+		this.showButtonModel =
 		{
-			buttonLabel: $L("Query"),
+			buttonLabel: $L("Show"),
 			disabled: true
 		}
 	);
 	
-	this.controller.listen(this.queryButton,  Mojo.Event.tap, this.queryTapHandler);
+	this.controller.listen(this.showButton,  Mojo.Event.tap, this.showTapHandler);
 	
 	this.buKindsModel.choices = [];
+    this.bodyElement.innerHTML = "";
 
 	this.request = ImpostahService.listBackups(this.buKindsHandler, false);
 	
@@ -75,6 +76,7 @@ BackupExploreAssistant.prototype.buKinds = function(payload)
 {
 	if (payload.returnValue === false) {
 		this.errorMessage('<b>Service Error (listBackups):</b><br>'+payload.errorText);
+		return;
 	}
 
 	if (payload.stdOut && payload.stdOut.length > 0)
@@ -105,6 +107,7 @@ BackupExploreAssistant.prototype.buKindChanged = function(event)
 	var tmp = prefs.get(true);
 	
 	this.kindId = '';
+    this.bodyElement.innerHTML = "";
 	
 	this.request = ImpostahService.getBackup(this.buKindHandler, event.value);
 }
@@ -113,6 +116,8 @@ BackupExploreAssistant.prototype.buKind = function(payload)
 {
 	if (payload.returnValue === false) {
 		this.errorMessage('<b>Service Error (getBackup):</b><br>'+payload.errorText);
+		this.rawData = '';
+		return;
 	}
 
 	// no stage means its not a subscription, and we should have all the contents right now
@@ -144,32 +149,18 @@ BackupExploreAssistant.prototype.buKind = function(payload)
 		
 		this.kindId = obj.id;
 
-		// Enable the query button
-		this.queryButtonModel.disabled = false;
-		this.controller.modelChanged(this.queryButtonModel);
+		// Enable the show button
+		this.showButtonModel.disabled = false;
+		this.controller.modelChanged(this.showButtonModel);
 	}
 	catch (e) {
 		Mojo.Log.logException(e, 'BackupExplore#buKind');
 	}
 };
 
-BackupExploreAssistant.prototype.queryTap = function(event)
+BackupExploreAssistant.prototype.showTap = function(event)
 {
-	if (this.kindId && this.dbPermsModel.value) {
-		this.request = ImpostahService.impersonate(this.impersonateHandler,
-												   this.dbPermsModel.value,
-												   "com.palm.db", "find", { "query" : { "from" : this.kindId }});
-	}
-};
-
-BackupExploreAssistant.prototype.impersonate = function(payload)
-{
-	if (payload.returnValue === false) {
-		this.errorMessage('<b>Service Error (impersonate):</b><br>'+payload.errorText);
-	}
-
-	Mojo.Log.error('==============');
-	for (var p in payload) Mojo.Log.error(p, ': ', payload[p]);
+    this.bodyElement.innerHTML = this.rawData;
 };
 
 BackupExploreAssistant.prototype.activate = function(event)

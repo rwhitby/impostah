@@ -127,15 +127,43 @@ Db8exploreAssistant.prototype.dbKindChanged = function(event)
 
 Db8exploreAssistant.prototype.dbKind = function(payload)
 {
-	if (payload.contents)
-	{
-		var obj = JSON.parse(payload.contents);
+	// no stage means its not a subscription, and we should have all the contents right now
+	if (!payload.stage) {
+		if (payload.contents) {
+			this.rawData = payload.contents;
+		}
+	}
+	else {
+		if (payload.stage == 'start') {
+			// at start we clear the old data to make sure its empty
+			this.rawData = '';
+			return;
+		}
+		else if (payload.stage == 'middle') {
+			// in the middle, we append the data
+			if (payload.contents) {
+				this.rawData += payload.contents;
+			}
+			return;
+		}
+		else if (payload.stage == 'end') {
+			// at end, we parse the data we've recieved this whole time
+		}
+	}
+
+	try {
+		var obj = JSON.parse(this.rawData);
 		
 		this.dbPermsModel.value = obj.owner;
 		this.kindId = obj.id;
 		this.controller.modelChanged(this.dbPermsModel);
 	}
+	catch (e) {
+		Mojo.Log.logException(e, 'Db8explore#dbKind');
+	}
 };
+
+
 Db8exploreAssistant.prototype.dbPerms = function(payload)
 {
 	if (payload.stdOut && payload.stdOut.length > 0)

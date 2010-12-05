@@ -133,7 +133,11 @@ ActivityExploreAssistant.prototype.activitySetChanged = function(event)
 	this.showButtonModel.disabled = true;
 	this.controller.modelChanged(this.showButtonModel);
 
+	// Disable the activity kinds list
 	this.activityKindsModel.choices = [];
+	this.activityKindsModel.disabled = true;
+	this.controller.modelChanged(this.activityKindsModel);
+
 	this.request = ImpostahService.listActivities(this.activityKindsHandler, event.value);
 }
 

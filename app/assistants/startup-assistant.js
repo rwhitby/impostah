@@ -5,7 +5,7 @@ function StartupAssistant(changelog)
     // on first start, this message is displayed, along with the current version message from below
     this.firstMessage = $L('Here are some tips for first-timers:<ul><li>Impostah has no tips yet</li></ul>');
 	
-    this.secondMessage = $L('We hope you enjoy being able to impersonate other applications.<br>Please consider making a <a href=http://donate.webos-internals.org/>donation</a> if you wish to show your appreciation.');
+    this.secondMessage = $L('We hope you enjoy being able to impersonate other applications to access the secrets inside your device.<br>Please consider making a <a href=http://donate.webos-internals.org/>donation</a> if you wish to show your appreciation.');
 	
     // on new version start
     this.newMessages =

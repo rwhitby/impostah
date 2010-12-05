@@ -3,7 +3,7 @@ function StartupAssistant(changelog)
 	this.justChangelog = changelog;
 	
     // on first start, this message is displayed, along with the current version message from below
-    this.firstMessage = $L('Here are some tips for first-timers:<ul><li>Lumberjack has no tips yet</li></ul>');
+    this.firstMessage = $L('Here are some tips for first-timers:<ul><li>Impostah has no tips yet</li></ul>');
 	
     this.secondMessage = $L('We hope you enjoy being able to impersonate other applications.<br>Please consider making a <a href=http://donate.webos-internals.org/>donation</a> if you wish to show your appreciation.');
 	

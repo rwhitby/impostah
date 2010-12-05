@@ -135,6 +135,7 @@ ActivityExploreAssistant.prototype.activitySetChanged = function(event)
 
 	// Disable the activity kinds list
 	this.activityKindsModel.choices = [];
+	this.activityKindsModel.value = false;
 	this.activityKindsModel.disabled = true;
 	this.controller.modelChanged(this.activityKindsModel);
 

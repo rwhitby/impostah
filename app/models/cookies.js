@@ -16,6 +16,10 @@ preferenceCookie.prototype.get = function(reload)
 				// Global Group
 				theme: 'palm-default',
 				
+				
+				// non-pref settings
+				lastKind: '',
+				
 			};
 			
 			// uncomment to delete cookie for testing

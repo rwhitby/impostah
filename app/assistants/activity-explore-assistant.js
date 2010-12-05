@@ -99,6 +99,9 @@ ActivityExploreAssistant.prototype.activitySets = function(payload)
 		return;
 	}
 
+	var oldSet = prefs.get().lastActivitySet;
+	var newSet = false;
+
 	if (payload.stdOut && payload.stdOut.length > 0)
 	{
 		payload.stdOut.sort();
@@ -107,15 +110,23 @@ ActivityExploreAssistant.prototype.activitySets = function(payload)
 		{
 			var id = payload.stdOut[a];
 			this.activitySetsModel.choices.push({label:id, value:id});
+			if (id == oldSet) {
+				newSet = oldSet;
+			}
 		}
 		
+		if (newSet === false) {
+			newSet = payload.stdOut[0];
+		}
+
 		this.controller.modelChanged(this.activitySetsModel);
 	}
 
 	// Enable the drop-down list
 	this.activitySetsModel.disabled = false;
+	this.activitySetsModel.value = newSet;
 	this.controller.modelChanged(this.activitySetsModel);
-	this.activitySetChanged({value: prefs.get().lastActivitySet});
+	this.activitySetChanged({value: newSet});
 };
 
 ActivityExploreAssistant.prototype.activitySetChanged = function(event)

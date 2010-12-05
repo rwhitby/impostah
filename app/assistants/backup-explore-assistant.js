@@ -104,6 +104,7 @@ BackupExploreAssistant.prototype.buKinds = function(payload)
 
 	// Enable the drop-down list
 	this.buKindsModel.disabled = false;
+	this.buKindsModel.value = newKind;
 	this.controller.modelChanged(this.buKindsModel);
 	this.buKindChanged({value: newKind});
 };

@@ -1,0 +1,14 @@
+{
+  "role": {
+     "exeName":"/var/usr/sbin/org.webosinternals.impostah",
+     "type": "privileged",
+     "allowedNames": ["org.webosinternals.impostah"]
+  },
+  "permissions": [
+    {
+      "service":"org.webosinternals.impostah",
+      "inbound":["*"],
+      "outbound":["*"]
+    }
+  ]
+}

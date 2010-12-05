@@ -64,6 +64,32 @@ ImpostahService.getDbPerm = function(callback, kind, temporary)
     return request;
 };
 
+ImpostahService.listBackups = function(callback)
+{
+    var request = new Mojo.Service.Request(ImpostahService.identifier,
+	{
+	    method: 'listBackups',
+	    onSuccess: callback,
+	    onFailure: callback
+	});
+    return request;
+};
+
+ImpostahService.getBackup = function(callback, kind)
+{
+    var request = new Mojo.Service.Request(ImpostahService.identifier,
+	{
+	    method: 'getBackup',
+		parameters:
+		{
+			"id": kind,
+		},
+	    onSuccess: callback,
+	    onFailure: callback
+	});
+    return request;
+};
+
 ImpostahService.impersonate = function(callback, id, service, method, params)
 {
     var request = new Mojo.Service.Request(ImpostahService.identifier,

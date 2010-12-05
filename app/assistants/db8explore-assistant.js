@@ -174,7 +174,7 @@ Db8exploreAssistant.prototype.queryTap = function(event)
 Db8exploreAssistant.prototype.impersonate = function(payload)
 {
 	Mojo.Log.error('==============');
-	for (var p in payload) Mojo.Log.error(p, ': ', payload[p]]);
+	for (var p in payload) Mojo.Log.error(p, ': ', payload[p]);
 };
 
 Db8exploreAssistant.prototype.activate = function(event)

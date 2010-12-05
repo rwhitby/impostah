@@ -143,6 +143,7 @@ DatabaseExploreAssistant.prototype.dbKinds = function(payload, temporary)
 	else {
 		// Enable the drop-down list
 		this.dbKindsModel.disabled = false;
+		this.dbKindsModel.value = newKind;
 		this.controller.modelChanged(this.dbKindsModel);
 		this.dbKindChanged({value: newKind});
 	}
@@ -155,6 +156,9 @@ DatabaseExploreAssistant.prototype.dbPerms = function(payload, temporary)
 		return;
 	}
 
+	var oldPerm = prefs.get().lastDatabasePerm;
+	var newPerm = false;
+
 	if (payload.stdOut && payload.stdOut.length > 0)
 	{
 		payload.stdOut.sort();
@@ -164,8 +168,21 @@ DatabaseExploreAssistant.prototype.dbPerms = function(payload, temporary)
 			var id = payload.stdOut[a];
 			this.dbPermsSet[id] = temporary;
 			this.dbPermsModel.choices.push({label:id, value:id});
+			if (id == oldPerm) {
+				newPerm = oldPerm;
+			}
 		}
 		
+		// %%% FIXME %%% need to search through complete list
+		if (newPerm === false) {
+			if (temporary === false) {
+				newPerm = payload.stdOut[0];
+			}
+			else {
+				newPerm = oldPerm;
+			}
+		}
+
 		this.controller.modelChanged(this.dbPermsModel);
 	}
 
@@ -175,7 +192,9 @@ DatabaseExploreAssistant.prototype.dbPerms = function(payload, temporary)
 	else {
 		// Enable the drop-down list
 		this.dbPermsModel.disabled = false;
+		this.dbPermsModel.value = newPerm;
 		this.controller.modelChanged(this.dbPermsModel);
+		// this.dbPermChanged({value: newPerm});
 
 		// Now get the list of kinds
 		this.request = ImpostahService.listDbKinds(this.dbKindsHandler, false);

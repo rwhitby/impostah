@@ -2,9 +2,10 @@ function MainAssistant()
 {
 	// subtitle random list
 	this.randomSub = 
-	[
-		{weight: 30, text: $L('This app is not what you think it is')}
-	];
+		[
+		 {weight: 30, text: $L('This app is not what you think it is')},
+		 {weight: 6, text: $L("<a href=\"http://donate.webos-internals.org/\">Donated</a> To WebOS Internals Lately?")}
+		 ];
 	
 	// setup list model
 	this.mainModel = {items:[]};
@@ -42,30 +43,36 @@ MainAssistant.prototype.setup = function()
 	this.titleElement =		this.controller.get('main-title');
 	this.versionElement =	this.controller.get('version');
 	this.subTitleElement =	this.controller.get('subTitle');
-	this.queryButton =		this.controller.get('queryButton');
+	this.listElement =		this.controller.get('mainList');
 	
 	// set version string random subtitle
 	this.titleElement.innerHTML = Mojo.Controller.appInfo.title;
 	this.versionElement.innerHTML = "v" + Mojo.Controller.appInfo.version;
 	this.subTitleElement.innerHTML = this.getRandomSubTitle();
 	
-	// setup handlers
-    this.dbKindsHandler = this.dbKinds.bindAsEventListener(this);
-    this.queryTapHandler = this.queryTap.bindAsEventListener(this);
+    // handlers
+    this.listTapHandler = this.listTap.bindAsEventListener(this);
 	
-	this.reqeust = ImpostahService.getDbKinds(this.dbKindsHandler);
-	
+    this.mainModel.items.push({
+	    name:     $L('DB8 Exploration'),
+		scene:    'db8explore',
+		});
+    
+    // setup widget
+    this.controller.setupWidget('mainList', {
+			itemTemplate: "main/rowTemplate", swipeToDelete: false, reorderable: false }, this.mainModel);
+    this.controller.listen(this.listElement, Mojo.Event.listTap, this.listTapHandler);
 };
 
-MainAssistant.prototype.dbKinds = function(payload)
+MainAssistant.prototype.listTap = function(event)
 {
-	alert('===============');
-	for (var p in payload) alert(p+': '+payload[p]);
-};
-
-MainAssistant.prototype.queryTap = function(event)
-{
-	this.controller.stageController.pushScene('get-log', {filter: this.filterModel.value, custom: this.customTextElement.mojo.getValue()});
+    if (event.item.scene === false || event.item.style == 'disabled') {
+	// no scene or its disabled, so we won't do anything
+    }
+    else {
+	// push the scene
+	this.controller.stageController.pushScene(event.item.scene, event.item);
+    }
 };
 
 MainAssistant.prototype.activate = function(event)
@@ -133,6 +140,7 @@ MainAssistant.prototype.handleCommand = function(event)
 
 MainAssistant.prototype.cleanup = function(event)
 {
+    this.controller.stopListening(this.listElement, Mojo.Event.listTap, this.listTapHandler);
 };
 
 // Local Variables:

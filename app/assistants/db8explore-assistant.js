@@ -1,4 +1,4 @@
-function Db8ExploreAssistant()
+function Db8exploreAssistant()
 {
 	// setup list model
 	this.mainModel = {items:[]};
@@ -22,7 +22,7 @@ function Db8ExploreAssistant()
 	
 };
 
-Db8ExploreAssistant.prototype.setup = function()
+Db8exploreAssistant.prototype.setup = function()
 {
 	// setup menu
 	this.controller.setupWidget(Mojo.Menu.appMenu, { omitDefaultItems: true }, this.menuModel);
@@ -38,18 +38,18 @@ Db8ExploreAssistant.prototype.setup = function()
 	
 };
 
-Db8ExploreAssistant.prototype.dbKinds = function(payload)
+Db8exploreAssistant.prototype.dbKinds = function(payload)
 {
 	alert('===============');
 	for (var p in payload) alert(p+': '+payload[p]);
 };
 
-Db8ExploreAssistant.prototype.queryTap = function(event)
+Db8exploreAssistant.prototype.queryTap = function(event)
 {
 	this.controller.stageController.pushScene('get-log', {filter: this.filterModel.value, custom: this.customTextElement.mojo.getValue()});
 };
 
-Db8ExploreAssistant.prototype.activate = function(event)
+Db8exploreAssistant.prototype.activate = function(event)
 {
 	
 	if (this.firstActivate)
@@ -61,11 +61,11 @@ Db8ExploreAssistant.prototype.activate = function(event)
 	}
 	this.firstActivate = true;
 };
-Db8ExploreAssistant.prototype.deactivate = function(event)
+Db8exploreAssistant.prototype.deactivate = function(event)
 {
 };
 
-Db8ExploreAssistant.prototype.handleCommand = function(event)
+Db8exploreAssistant.prototype.handleCommand = function(event)
 {
 	if (event.type == Mojo.Event.command)
 	{
@@ -82,7 +82,7 @@ Db8ExploreAssistant.prototype.handleCommand = function(event)
 	}
 };
 
-Db8ExploreAssistant.prototype.cleanup = function(event)
+Db8exploreAssistant.prototype.cleanup = function(event)
 {
 };
 

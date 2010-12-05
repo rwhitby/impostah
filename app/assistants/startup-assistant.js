@@ -3,15 +3,16 @@ function StartupAssistant(changelog)
 	this.justChangelog = changelog;
 	
     // on first start, this message is displayed, along with the current version message from below
-    this.firstMessage = $L('Message 1');
+    this.firstMessage = $L('Here are some tips for first-timers:<ul><li>Lumberjack has no tips yet</li></ul>');
 	
-    this.secondMessage = $L('Message 2');
+    this.secondMessage = $L('We hope you enjoy being able to impersonate other applications.<br>Please consider making a <a href=http://donate.webos-internals.org/>donation</a> if you wish to show your appreciation.');
 	
     // on new version start
     this.newMessages =
 	[
 	 // Don't forget the comma on all but the last entry
-	 { version: '0.0.1', log: [ 'First Public Release' ] }
+	 { version: '0.0.2', log: [ 'Lists DB kinds' ] },
+	 { version: '0.0.1', log: [ 'Initial skeleton' ] }
 	 ];
 	
     // setup menu

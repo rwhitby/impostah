@@ -257,7 +257,7 @@ DatabaseExploreAssistant.prototype.databaseKind = function(payload)
 	}
 
 	try {
-		var obj = JSON.parse(this.rawData);
+		var obj = JSON.parse(this.rawData.replace(/\/\*([^\*]*)\*\//g, ''));
 		
 		this.databaseId = obj.id;
 		this.databaseOwner = obj.owner;

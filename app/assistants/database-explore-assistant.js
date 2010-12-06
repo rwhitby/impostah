@@ -26,6 +26,7 @@ function DatabaseExploreAssistant()
 		disabled: true
 	}
 	this.kindId = '';
+	this.kindData = '';
 	
 	this.dbPermsSet = $H();
 	this.dbPermsModel =
@@ -35,6 +36,7 @@ function DatabaseExploreAssistant()
 		multiline: true,
 		disabled: true
 	}
+	this.permData = '';
 	
 };
 
@@ -50,14 +52,6 @@ DatabaseExploreAssistant.prototype.setup = function()
 	this.bodyElement =			this.controller.get('body');
 	
 	// setup handlers
-    this.dbKindsHandler = 		this.dbKinds.bindAsEventListener(this, false);
-    this.dbKindsTempHandler = 	this.dbKinds.bindAsEventListener(this, true);
-    this.dbKindHandler = 		this.dbKind.bindAsEventListener(this, false);
-    this.dbKindTempHandler = 	this.dbKind.bindAsEventListener(this, true);
-    this.dbPermsHandler = 		this.dbPerms.bindAsEventListener(this, false);
-    this.dbPermsTempHandler = 	this.dbPerms.bindAsEventListener(this, true);
-    this.dbPermHandler = 		this.dbPerm.bindAsEventListener(this, false);
-    this.dbPermTempHandler = 	this.dbPerm.bindAsEventListener(this, true);
 	this.dbKindChangedHandler = this.dbKindChanged.bindAsEventListener(this);
 	this.dbPermChangedHandler = this.dbPermChanged.bindAsEventListener(this);
     this.queryTapHandler = 		this.queryTap.bindAsEventListener(this);
@@ -98,11 +92,12 @@ DatabaseExploreAssistant.prototype.setup = function()
 	this.dbPermsModel.choices = [];
     this.bodyElement.innerHTML = "";
 
-	this.request = ImpostahService.listDbPerms(this.dbPermsTempHandler, true);
+	this.request = ImpostahService.listDbPerms(this.dbPerms.bindAsEventListener(this, "tempdb/permissions"),
+											   "tempdb/permissions");
 	
 };
 
-DatabaseExploreAssistant.prototype.dbKinds = function(payload, temporary)
+DatabaseExploreAssistant.prototype.dbKinds = function(payload, location)
 {
 	if (payload.returnValue === false) {
 		this.errorMessage('<b>Service Error (listDbKinds):</b><br>'+payload.errorText);
@@ -119,7 +114,7 @@ DatabaseExploreAssistant.prototype.dbKinds = function(payload, temporary)
 		for (var a = 0; a < payload.stdOut.length; a++)
 		{
 			var id = payload.stdOut[a];
-			this.dbKindsSet[id] = temporary;
+			this.dbKindsSet[id] = location;
 			this.dbKindsModel.choices.push({label:id, value:id});
 			if (id == oldKind) {
 				newKind = oldKind;
@@ -133,8 +128,11 @@ DatabaseExploreAssistant.prototype.dbKinds = function(payload, temporary)
 		this.controller.modelChanged(this.dbKindsModel);
 	}
 
-	if (temporary === true) {
-		this.request = ImpostahService.listDbKinds(this.dbKindsHandler, false);
+	if (location == "tempdb/kinds") {
+		this.request = ImpostahService.listDbKinds(this.dbKinds.bindAsEventListener(this, "db_kinds"), "db_kinds");
+	}
+	else if (location == "db_kinds") {
+		this.request = ImpostahService.listDbKinds(this.dbKinds.bindAsEventListener(this, "db/kinds"), "db/kinds");
 	}
 	else {
 		// Enable the drop-down list
@@ -145,7 +143,7 @@ DatabaseExploreAssistant.prototype.dbKinds = function(payload, temporary)
 	}
 };
 
-DatabaseExploreAssistant.prototype.dbPerms = function(payload, temporary)
+DatabaseExploreAssistant.prototype.dbPerms = function(payload, location)
 {
 	if (payload.returnValue === false) {
 		this.errorMessage('<b>Service Error (listDbPerms):</b><br>'+payload.errorText);
@@ -162,7 +160,7 @@ DatabaseExploreAssistant.prototype.dbPerms = function(payload, temporary)
 		for (var a = 0; a < payload.stdOut.length; a++)
 		{
 			var id = payload.stdOut[a];
-			this.dbPermsSet[id] = temporary;
+			this.dbPermsSet[id] = location;
 			this.dbPermsModel.choices.push({label:id, value:id});
 			if (id == oldPerm) {
 				newPerm = oldPerm;
@@ -176,8 +174,9 @@ DatabaseExploreAssistant.prototype.dbPerms = function(payload, temporary)
 		this.controller.modelChanged(this.dbPermsModel);
 	}
 
-	if (temporary === true) {
-		this.request = ImpostahService.listDbPerms(this.dbPermsHandler, false);
+	if (location == "tempdb/permissions") {
+		this.request = ImpostahService.listDbPerms(this.dbPerms.bindAsEventListener(this, "db/permissions"),
+												   "db/permissions");
 	}
 	else {
 		// Enable the drop-down list
@@ -187,7 +186,8 @@ DatabaseExploreAssistant.prototype.dbPerms = function(payload, temporary)
 		// this.dbPermChanged({value: newPerm});
 
 		// Now get the list of kinds
-		this.request = ImpostahService.listDbKinds(this.dbKindsTempHandler, true);
+		this.request = ImpostahService.listDbKinds(this.dbKinds.bindAsEventListener(this, "tempdb/kinds"),
+												   "tempdb/kinds");
 	}
 };
 
@@ -206,12 +206,8 @@ DatabaseExploreAssistant.prototype.dbKindChanged = function(event)
 	this.queryButtonModel.disabled = true;
 	this.controller.modelChanged(this.queryButtonModel);
 
-	if (this.dbKindsSet[event.value] === true) {
-		this.request = ImpostahService.getDbKind(this.dbKindTempHandler, event.value, true);
-	}
-	else {
-		this.request = ImpostahService.getDbKind(this.dbKindHandler, event.value, false);
-	}
+	this.request = ImpostahService.getDbKind(this.dbKind.bindAsEventListener(this),
+											 event.value, this.dbKindsSet[event.value]);
 }
 
 DatabaseExploreAssistant.prototype.dbKind = function(payload)
@@ -224,19 +220,19 @@ DatabaseExploreAssistant.prototype.dbKind = function(payload)
 	// no stage means its not a subscription, and we should have all the contents right now
 	if (!payload.stage) {
 		if (payload.contents) {
-			this.rawData = payload.contents;
+			this.kindData = payload.contents;
 		}
 	}
 	else {
 		if (payload.stage == 'start') {
 			// at start we clear the old data to make sure its empty
-			this.rawData = '';
+			this.kindData = '';
 			return;
 		}
 		else if (payload.stage == 'middle') {
 			// in the middle, we append the data
 			if (payload.contents) {
-				this.rawData += payload.contents;
+				this.kindData += payload.contents;
 			}
 			return;
 		}
@@ -246,7 +242,7 @@ DatabaseExploreAssistant.prototype.dbKind = function(payload)
 	}
 
 	try {
-		var obj = JSON.parse(this.rawData);
+		var obj = JSON.parse(this.kindData);
 		
 		this.dbPermsModel.value = obj.owner;
 		this.kindId = obj.id;
@@ -273,29 +269,55 @@ DatabaseExploreAssistant.prototype.dbPermChanged = function(event)
 	
     this.bodyElement.innerHTML = "";
 
-	if (this.dbPermsSet[event.value] === true) {
-		this.request = ImpostahService.getDbPerm(this.dbPermTempHandler, event.value, true);
-	}
-	else {
-		this.request = ImpostahService.getDbPerm(this.dbPermHandler, event.value, false);
-	}
+	this.request = ImpostahService.getDbPerm(this.dbPerm.bindAsEventListener(this),
+											 event.value, this.dbPermsSet[event.value]);
 }
 
-DatabaseExploreAssistant.prototype.dbPerm = function(payload, temporary)
+DatabaseExploreAssistant.prototype.dbPerm = function(payload)
 {
 	if (payload.returnValue === false) {
 		this.errorMessage('<b>Service Error (getDbPerm):</b><br>'+payload.errorText);
 		return;
 	}
 
-	Mojo.Log.error('==============');
-	for (var p in payload) Mojo.Log.error(p, ': ', payload[p]);
+	// no stage means its not a subscription, and we should have all the contents right now
+	if (!payload.stage) {
+		if (payload.contents) {
+			this.permData = payload.contents;
+		}
+	}
+	else {
+		if (payload.stage == 'start') {
+			// at start we clear the old data to make sure its empty
+			this.permData = '';
+			return;
+		}
+		else if (payload.stage == 'middle') {
+			// in the middle, we append the data
+			if (payload.contents) {
+				this.permData += payload.contents;
+			}
+			return;
+		}
+		else if (payload.stage == 'end') {
+			// at end, we parse the data we've recieved this whole time
+		}
+	}
+
+	try {
+		var obj = JSON.parse(this.permData);
+	}
+	catch (e) {
+		Mojo.Log.logException(e, 'DatabaseExplore#dbPerm');
+		this.errorMessage('<b>Parsing Error (dbPerm):</b><br>'+e.message);
+		return;
+	}
 };
 
 DatabaseExploreAssistant.prototype.queryTap = function(event)
 {
 	var service = "com.palm.db";
-	if (this.dbKindsSet[this.dbKindsModel.value]) {
+	if (this.dbKindsSet[this.dbKindsModel.value] == "tempdb/kinds") {
 		service = "com.palm.tempdb";
 	}
 
@@ -317,8 +339,8 @@ DatabaseExploreAssistant.prototype.impersonate = function(payload)
 		this.bodyElement.innerHTML = JSON.stringify(payload.results);
 	}
 
-	Mojo.Log.error('==============');
-	for (var p in payload) Mojo.Log.error(p, ': ', payload[p]);
+	// Mojo.Log.error('==============');
+	// for (var p in payload) Mojo.Log.error(p, ': ', payload[p]);
 };
 
 DatabaseExploreAssistant.prototype.activate = function(event)

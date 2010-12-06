@@ -416,17 +416,21 @@ bool listDbKinds_method(LSHandle* lshandle, LSMessage *message, void *ctx) {
   // Local buffer to store the command
   char command[MAXLINLEN];
 
-  // Extract the temp argument from the message
+  // Extract the location argument from the message
   json_t *object = json_parse_document(LSMessageGetPayload(message));
-  json_t *temp = json_find_first_label(object, "temp");               
-  if (!temp || (temp->child->type != JSON_TRUE)) {
-    // Initialise the command to read the list of kinds.
-    sprintf(command, "/bin/ls -1 /etc/palm/db/kinds/ 2>&1");
+  json_t *location = json_find_first_label(object, "location");
+  if (!location || (location->child->type != JSON_STRING) ||
+      (strcmp(location->child->text, "db/kinds") &&
+       strcmp(location->child->text, "tempdb/kinds") &&
+       strcmp(location->child->text, "db_kinds"))) {
+    if (!LSMessageReply(lshandle, message,
+			"{\"returnValue\": false, \"errorCode\": -1, \"errorText\": \"Invalid or missing location\"}",
+			&lserror)) goto error;
+    return true;
   }
-  else {
-    // Initialise the command to read the list of kinds.
-    sprintf(command, "/bin/ls -1 /etc/palm/tempdb/kinds/ 2>&1");
-  }
+
+  // Initialise the command to read the list of kinds.
+  sprintf(command, "/bin/ls -1 /etc/palm/%s/ 2>&1", location->child->text);
 
   return simple_command(lshandle, message, command);
 
@@ -453,15 +457,21 @@ bool getDbKind_method(LSHandle* lshandle, LSMessage *message, void *ctx) {
     return true;
   }
 
-  // Extract the temp argument from the message
+  // Extract the location argument from the message
   object = json_parse_document(LSMessageGetPayload(message));
-  json_t *temp = json_find_first_label(object, "temp");               
-  if (!temp || (temp->child->type != JSON_TRUE)) {
-    sprintf(filename, "/etc/palm/db/kinds/%s", id->child->text);
+  json_t *location = json_find_first_label(object, "location");               
+  if (!location || (location->child->type != JSON_STRING) ||
+      (strcmp(location->child->text, "db/kinds") &&
+       strcmp(location->child->text, "tempdb/kinds") &&
+       strcmp(location->child->text, "db_kinds"))) {
+    if (!LSMessageReply(lshandle, message,
+			"{\"returnValue\": false, \"errorCode\": -1, \"errorText\": \"Invalid or missing location\"}",
+			&lserror)) goto error;
+    return true;
   }
-  else {
-    sprintf(filename, "/etc/palm/tempdb/kinds/%s", id->child->text);
-  }
+
+  // Initialise the command to retrieve the kind.
+  sprintf(filename, "/etc/palm/%s/%s", location->child->text, id->child->text);
 
   return read_file(lshandle, message, filename, true);
 
@@ -479,17 +489,20 @@ bool listDbPerms_method(LSHandle* lshandle, LSMessage *message, void *ctx) {
   // Local buffer to store the command
   char command[MAXLINLEN];
 
-  // Extract the temp argument from the message
+  // Extract the location argument from the message
   json_t *object = json_parse_document(LSMessageGetPayload(message));
-  json_t *temp = json_find_first_label(object, "temp");               
-  if (!temp || (temp->child->type != JSON_TRUE)) {
-    // Initialise the command to read the list of kinds.
-    sprintf(command, "/bin/ls -1 /etc/palm/db/permissions/ 2>&1");
+  json_t *location = json_find_first_label(object, "location");
+  if (!location || (location->child->type != JSON_STRING) ||
+      (strcmp(location->child->text, "db/permissions") &&
+       strcmp(location->child->text, "tempdb/permissions"))) {
+    if (!LSMessageReply(lshandle, message,
+			"{\"returnValue\": false, \"errorCode\": -1, \"errorText\": \"Invalid or missing location\"}",
+			&lserror)) goto error;
+    return true;
   }
-  else {
-    // Initialise the command to read the list of kinds.
-    sprintf(command, "/bin/ls -1 /etc/palm/tempdb/permissions/ 2>&1");
-  }
+
+  // Initialise the command to read the list of permissions.
+  sprintf(command, "/bin/ls -1 /etc/palm/%s/ 2>&1", location->child->text);
 
   return simple_command(lshandle, message, command);
 
@@ -516,15 +529,20 @@ bool getDbPerm_method(LSHandle* lshandle, LSMessage *message, void *ctx) {
     return true;
   }
 
-  // Extract the temp argument from the message
+  // Extract the location argument from the message
   object = json_parse_document(LSMessageGetPayload(message));
-  json_t *temp = json_find_first_label(object, "temp");               
-  if (!temp || (temp->child->type != JSON_TRUE)) {
-    sprintf(filename, "/etc/palm/db/permissions/%s", id->child->text);
+  json_t *location = json_find_first_label(object, "location");
+  if (!location || (location->child->type != JSON_STRING) ||
+      (strcmp(location->child->text, "db/permissions") &&
+       strcmp(location->child->text, "tempdb/permissions"))) {
+    if (!LSMessageReply(lshandle, message,
+			"{\"returnValue\": false, \"errorCode\": -1, \"errorText\": \"Invalid or missing location\"}",
+			&lserror)) goto error;
+    return true;
   }
-  else {
-    sprintf(filename, "/etc/palm/tempdb/permissions/%s", id->child->text);
-  }
+
+  // Initialise the command to retrieve the permissions.
+  sprintf(filename, "/etc/palm/%s/%s", location->child->text, id->child->text);
 
   return read_file(lshandle, message, filename, true);
 

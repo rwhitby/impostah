@@ -2,14 +2,14 @@ ImpostahService.identifier = 'palm://org.webosinternals.impostah';
 
 function ImpostahService(){};
 
-ImpostahService.listDbKinds = function(callback, temporary)
+ImpostahService.listDbKinds = function(callback, location)
 {
     var request = new Mojo.Service.Request(ImpostahService.identifier,
 	{
 	    method: 'listDbKinds',
 		parameters:
 		{
-			"temp": temporary
+			"location": location
 		},
 	    onSuccess: callback,
 	    onFailure: callback
@@ -17,7 +17,7 @@ ImpostahService.listDbKinds = function(callback, temporary)
     return request;
 };
 
-ImpostahService.getDbKind = function(callback, kind, temporary)
+ImpostahService.getDbKind = function(callback, kind, location)
 {
     var request = new Mojo.Service.Request(ImpostahService.identifier,
 	{
@@ -25,7 +25,7 @@ ImpostahService.getDbKind = function(callback, kind, temporary)
 		parameters:
 		{
 			"id": kind,
-			"temp": temporary
+			"location": location
 		},
 	    onSuccess: callback,
 	    onFailure: callback
@@ -33,14 +33,14 @@ ImpostahService.getDbKind = function(callback, kind, temporary)
     return request;
 };
 
-ImpostahService.listDbPerms = function(callback, temporary)
+ImpostahService.listDbPerms = function(callback, location)
 {
     var request = new Mojo.Service.Request(ImpostahService.identifier,
 	{
 	    method: 'listDbPerms',
 		parameters:
 		{
-			"temp": temporary
+			"location": location
 		},
 	    onSuccess: callback,
 	    onFailure: callback
@@ -48,7 +48,7 @@ ImpostahService.listDbPerms = function(callback, temporary)
     return request;
 };
 
-ImpostahService.getDbPerm = function(callback, kind, temporary)
+ImpostahService.getDbPerm = function(callback, kind, location)
 {
     var request = new Mojo.Service.Request(ImpostahService.identifier,
 	{
@@ -56,7 +56,7 @@ ImpostahService.getDbPerm = function(callback, kind, temporary)
 		parameters:
 		{
 			"id": kind,
-			"temp": temporary
+			"location": location
 		},
 	    onSuccess: callback,
 	    onFailure: callback

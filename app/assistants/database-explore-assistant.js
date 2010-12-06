@@ -244,7 +244,7 @@ DatabaseExploreAssistant.prototype.dbKind = function(payload)
 	}
 
 	try {
-		var obj = JSON.parse(this.rawData);
+		var obj = JSON.parse(this.rawData.replace(/\/\*([^\*]*)\*\//g, ''));
 		
 		this.dbPermsModel.value = obj.owner;
 		this.kindId = obj.id;

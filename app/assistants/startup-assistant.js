@@ -11,6 +11,7 @@ function StartupAssistant(changelog)
     this.newMessages =
 	[
 	 // Don't forget the comma on all but the last entry
+	 { version: '0.1.0', log: [ 'Revamped the database exploration scene' ] },
 	 { version: '0.0.8', log: [ 'Added support for multiple database locations' ] },
 	 { version: '0.0.7', log: [ 'Set appropriate defaults for all selections' ] },
 	 { version: '0.0.6', log: [ 'Added support for activity configurations' ] },

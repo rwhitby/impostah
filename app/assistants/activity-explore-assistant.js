@@ -21,7 +21,6 @@ function ActivityExploreAssistant()
 	{
 		value: prefs.get().lastActivitySet,
 		choices: [],
-		multiline: true,
 		disabled: true
 	}
 	this.setId = '';
@@ -30,9 +29,9 @@ function ActivityExploreAssistant()
 	{
 		value: prefs.get().lastActivityKind,
 		choices: [],
-		multiline: true,
 		disabled: true
 	}
+	this.kindId = '';
 	
 };
 
@@ -58,7 +57,7 @@ ActivityExploreAssistant.prototype.setup = function()
 	this.controller.setupWidget
 	(
 		'activitySet',
-		{},
+		{ multiline: true },
 		this.activitySetsModel
 	);
 	
@@ -67,7 +66,7 @@ ActivityExploreAssistant.prototype.setup = function()
 	this.controller.setupWidget
 	(
 		'activityKind',
-		{},
+		{ multiline: true },
 		this.activityKindsModel
 	);
 	
@@ -87,7 +86,15 @@ ActivityExploreAssistant.prototype.setup = function()
 	this.controller.listen(this.showButton,  Mojo.Event.tap, this.showTapHandler);
 	
 	this.activitySetsModel.choices = [];
+	this.activitySetsModel.value = "";
+	this.activitySetsModel.disabled = true;
+	this.controller.modelChanged(this.activitySetsModel);
+
 	this.activityKindsModel.choices = [];
+	this.activityKindsModel.value = "";
+	this.activityKindsModel.disabled = true;
+	this.controller.modelChanged(this.activityKindsModel);
+
     this.bodyElement.innerHTML = "";
 
 	this.request = ImpostahService.listActivitySets(this.activitySetsHandler);
@@ -111,7 +118,9 @@ ActivityExploreAssistant.prototype.activitySets = function(payload)
 		for (var a = 0; a < payload.stdOut.length; a++)
 		{
 			var id = payload.stdOut[a];
-			this.activitySetsModel.choices.push({label:id, value:id});
+			// %%% FIXME %%% Truncate if necessary
+			var label = payload.stdOut[a];
+			this.activitySetsModel.choices.push({label:label, value:id});
 			if (id == oldSet) {
 				newSet = oldSet;
 			}
@@ -120,8 +129,6 @@ ActivityExploreAssistant.prototype.activitySets = function(payload)
 		if (newSet === false) {
 			newSet = payload.stdOut[0];
 		}
-
-		this.controller.modelChanged(this.activitySetsModel);
 	}
 
 	// Enable the drop-down list
@@ -172,7 +179,9 @@ ActivityExploreAssistant.prototype.activityKinds = function(payload)
 		for (var a = 0; a < payload.stdOut.length; a++)
 		{
 			var id = payload.stdOut[a];
-			this.activityKindsModel.choices.push({label:id, value:id});
+			// %%% FIXME %%% Truncate if necessary
+			var label = payload.stdOut[a];
+			this.activityKindsModel.choices.push({label:label, value:id});
 			if (id == oldKind) {
 				newKind = oldKind;
 			}
@@ -181,8 +190,6 @@ ActivityExploreAssistant.prototype.activityKinds = function(payload)
 		if (newKind === false) {
 			newKind = payload.stdOut[0];
 		}
-
-		this.controller.modelChanged(this.activityKindsModel);
 	}
 
 	// Enable the drop-down list

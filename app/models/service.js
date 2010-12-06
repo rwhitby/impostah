@@ -2,14 +2,25 @@ ImpostahService.identifier = 'palm://org.webosinternals.impostah';
 
 function ImpostahService(){};
 
-ImpostahService.listDbKinds = function(callback, location)
+ImpostahService.listDatabaseSets = function(callback)
 {
     var request = new Mojo.Service.Request(ImpostahService.identifier,
 	{
-	    method: 'listDbKinds',
+	    method: 'listDatabaseSets',
+	    onSuccess: callback,
+	    onFailure: callback
+	});
+    return request;
+};
+
+ImpostahService.listDatabases = function(callback, set)
+{
+    var request = new Mojo.Service.Request(ImpostahService.identifier,
+	{
+	    method: 'listDatabases',
 		parameters:
 		{
-			"location": location
+			"set": set
 		},
 	    onSuccess: callback,
 	    onFailure: callback
@@ -17,72 +28,15 @@ ImpostahService.listDbKinds = function(callback, location)
     return request;
 };
 
-ImpostahService.getDbKind = function(callback, kind, location)
+ImpostahService.getDatabase = function(callback, set, id)
 {
     var request = new Mojo.Service.Request(ImpostahService.identifier,
 	{
-	    method: 'getDbKind',
+	    method: 'getDatabase',
 		parameters:
 		{
-			"id": kind,
-			"location": location
-		},
-	    onSuccess: callback,
-	    onFailure: callback
-	});
-    return request;
-};
-
-ImpostahService.listDbPerms = function(callback, location)
-{
-    var request = new Mojo.Service.Request(ImpostahService.identifier,
-	{
-	    method: 'listDbPerms',
-		parameters:
-		{
-			"location": location
-		},
-	    onSuccess: callback,
-	    onFailure: callback
-	});
-    return request;
-};
-
-ImpostahService.getDbPerm = function(callback, kind, location)
-{
-    var request = new Mojo.Service.Request(ImpostahService.identifier,
-	{
-	    method: 'getDbPerm',
-		parameters:
-		{
-			"id": kind,
-			"location": location
-		},
-	    onSuccess: callback,
-	    onFailure: callback
-	});
-    return request;
-};
-
-ImpostahService.listBackups = function(callback)
-{
-    var request = new Mojo.Service.Request(ImpostahService.identifier,
-	{
-	    method: 'listBackups',
-	    onSuccess: callback,
-	    onFailure: callback
-	});
-    return request;
-};
-
-ImpostahService.getBackup = function(callback, kind)
-{
-    var request = new Mojo.Service.Request(ImpostahService.identifier,
-	{
-	    method: 'getBackup',
-		parameters:
-		{
-			"id": kind
+			"set": set,
+			"id": id
 		},
 	    onSuccess: callback,
 	    onFailure: callback
@@ -124,6 +78,32 @@ ImpostahService.getActivity = function(callback, set, id)
 		parameters:
 		{
 			"set": set,
+			"id": id
+		},
+	    onSuccess: callback,
+	    onFailure: callback
+	});
+    return request;
+};
+
+ImpostahService.listBackups = function(callback)
+{
+    var request = new Mojo.Service.Request(ImpostahService.identifier,
+	{
+	    method: 'listBackups',
+	    onSuccess: callback,
+	    onFailure: callback
+	});
+    return request;
+};
+
+ImpostahService.getBackup = function(callback, id)
+{
+    var request = new Mojo.Service.Request(ImpostahService.identifier,
+	{
+	    method: 'getBackup',
+		parameters:
+		{
 			"id": id
 		},
 	    onSuccess: callback,

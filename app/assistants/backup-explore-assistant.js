@@ -17,11 +17,10 @@ function BackupExploreAssistant()
 		]
 	};
 	
-	this.buKindsModel =
+	this.backupKindsModel =
 	{
 		value: prefs.get().lastBackupKind,
 		choices: [],
-		multiline: true,
 		disabled: true
 	}
 	this.kindId = '';
@@ -34,24 +33,24 @@ BackupExploreAssistant.prototype.setup = function()
 	this.controller.setupWidget(Mojo.Menu.appMenu, { omitDefaultItems: true }, this.menuModel);
 	
 	// get elements
-	this.buKindElement =		this.controller.get('buKind');
+	this.backupKindElement =		this.controller.get('backupKind');
 	this.showButton =			this.controller.get('showButton');
 	this.bodyElement =			this.controller.get('body');
 	
 	// setup handlers
-    this.buKindsHandler = 		this.buKinds.bindAsEventListener(this);
-    this.buKindHandler = 		this.buKind.bindAsEventListener(this);
-	this.buKindChangedHandler = this.buKindChanged.bindAsEventListener(this);
+    this.backupKindsHandler = 		this.backupKinds.bindAsEventListener(this);
+    this.backupKindHandler = 		this.backupKind.bindAsEventListener(this);
+	this.backupKindChangedHandler = this.backupKindChanged.bindAsEventListener(this);
     this.showTapHandler = 		this.showTap.bindAsEventListener(this);
 	
 	this.controller.setupWidget
 	(
-		'buKind',
-		{},
-		this.buKindsModel
+		'backupKind',
+		{ multiline: true },
+		this.backupKindsModel
 	);
 	
-	this.controller.listen(this.buKindElement, Mojo.Event.propertyChange, this.buKindChangedHandler);
+	this.controller.listen(this.backupKindElement, Mojo.Event.propertyChange, this.backupKindChangedHandler);
 	
 	this.controller.setupWidget
 	(
@@ -66,14 +65,18 @@ BackupExploreAssistant.prototype.setup = function()
 	
 	this.controller.listen(this.showButton,  Mojo.Event.tap, this.showTapHandler);
 	
-	this.buKindsModel.choices = [];
+	this.backupKindsModel.choices = [];
+	this.backupKindsModel.value = "";
+	this.backupKindsModel.disabled = true;
+	this.controller.modelChanged(this.backupKindsModel);
+
     this.bodyElement.innerHTML = "";
 
-	this.request = ImpostahService.listBackups(this.buKindsHandler, false);
+	this.request = ImpostahService.listBackups(this.backupKindsHandler, false);
 	
 };
 
-BackupExploreAssistant.prototype.buKinds = function(payload)
+BackupExploreAssistant.prototype.backupKinds = function(payload)
 {
 	if (payload.returnValue === false) {
 		this.errorMessage('<b>Service Error (listBackups):</b><br>'+payload.errorText);
@@ -90,7 +93,9 @@ BackupExploreAssistant.prototype.buKinds = function(payload)
 		for (var a = 0; a < payload.stdOut.length; a++)
 		{
 			var id = payload.stdOut[a];
-			this.buKindsModel.choices.push({label:id, value:id});
+			// %%% FIXME %%% Truncate if necessary
+			var label = payload.stdOut[a];
+			this.backupKindsModel.choices.push({label:label, value:id});
 			if (id == oldKind) {
 				newKind = oldKind;
 			}
@@ -99,18 +104,16 @@ BackupExploreAssistant.prototype.buKinds = function(payload)
 		if (newKind === false) {
 			newKind = payload.stdOut[0];
 		}
-
-		this.controller.modelChanged(this.buKindsModel);
 	}
 
 	// Enable the drop-down list
-	this.buKindsModel.disabled = false;
-	this.buKindsModel.value = newKind;
-	this.controller.modelChanged(this.buKindsModel);
-	this.buKindChanged({value: newKind});
+	this.backupKindsModel.disabled = false;
+	this.backupKindsModel.value = newKind;
+	this.controller.modelChanged(this.backupKindsModel);
+	this.backupKindChanged({value: newKind});
 };
 
-BackupExploreAssistant.prototype.buKindChanged = function(event)
+BackupExploreAssistant.prototype.backupKindChanged = function(event)
 {
 	var cookie = new preferenceCookie();
 	var tprefs = cookie.get();
@@ -121,10 +124,10 @@ BackupExploreAssistant.prototype.buKindChanged = function(event)
 	this.kindId = '';
     this.bodyElement.innerHTML = "";
 	
-	this.request = ImpostahService.getBackup(this.buKindHandler, event.value);
+	this.request = ImpostahService.getBackup(this.backupKindHandler, event.value);
 }
 
-BackupExploreAssistant.prototype.buKind = function(payload)
+BackupExploreAssistant.prototype.backupKind = function(payload)
 {
 	if (payload.returnValue === false) {
 		this.errorMessage('<b>Service Error (getBackup):</b><br>'+payload.errorText);
@@ -166,8 +169,8 @@ BackupExploreAssistant.prototype.buKind = function(payload)
 		this.controller.modelChanged(this.showButtonModel);
 	}
 	catch (e) {
-		Mojo.Log.logException(e, 'BackupExplore#buKind');
-		this.errorMessage('<b>Parsing Error (buKind):</b><br>'+e.message);
+		Mojo.Log.logException(e, 'BackupExplore#backupKind');
+		this.errorMessage('<b>Parsing Error (backupKind):</b><br>'+e.message);
 		return;
 	}
 };

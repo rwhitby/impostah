@@ -26,7 +26,7 @@
 #include "luna_service.h"
 #include "luna_methods.h"
 
-#define ALLOWED_CHARS "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.-"
+#define ALLOWED_CHARS "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.-_"
 
 #define API_VERSION "1"
 
@@ -409,28 +409,14 @@ static bool read_file(LSHandle* lshandle, LSMessage *message, char *filename, bo
   return false;
 }
 
-bool listDbKinds_method(LSHandle* lshandle, LSMessage *message, void *ctx) {
+bool listDatabaseSets_method(LSHandle* lshandle, LSMessage *message, void *ctx) {
   LSError lserror;
   LSErrorInit(&lserror);
 
   // Local buffer to store the command
   char command[MAXLINLEN];
 
-  // Extract the location argument from the message
-  json_t *object = json_parse_document(LSMessageGetPayload(message));
-  json_t *location = json_find_first_label(object, "location");
-  if (!location || (location->child->type != JSON_STRING) ||
-      (strcmp(location->child->text, "db/kinds") &&
-       strcmp(location->child->text, "tempdb/kinds") &&
-       strcmp(location->child->text, "db_kinds"))) {
-    if (!LSMessageReply(lshandle, message,
-			"{\"returnValue\": false, \"errorCode\": -1, \"errorText\": \"Invalid or missing location\"}",
-			&lserror)) goto error;
-    return true;
-  }
-
-  // Initialise the command to read the list of kinds.
-  sprintf(command, "/bin/ls -1 /etc/palm/%s/ 2>&1", location->child->text);
+  sprintf(command, "cd /etc/palm ; /bin/ls -1 -d db/kinds db_kinds tempdb/kinds 2>&1");
 
   return simple_command(lshandle, message, command);
 
@@ -441,68 +427,27 @@ bool listDbKinds_method(LSHandle* lshandle, LSMessage *message, void *ctx) {
   return false;
 }
 
-bool getDbKind_method(LSHandle* lshandle, LSMessage *message, void *ctx) {
-  LSError lserror;
-  LSErrorInit(&lserror);
-
-  char filename[MAXLINLEN];
-
-  // Extract the id argument from the message
-  json_t *object = json_parse_document(LSMessageGetPayload(message));
-  json_t *id = json_find_first_label(object, "id");               
-  if (!id || (id->child->type != JSON_STRING) || (strspn(id->child->text, ALLOWED_CHARS) != strlen(id->child->text))) {
-    if (!LSMessageReply(lshandle, message,
-			"{\"returnValue\": false, \"errorCode\": -1, \"errorText\": \"Invalid or missing id\"}",
-			&lserror)) goto error;
-    return true;
-  }
-
-  // Extract the location argument from the message
-  object = json_parse_document(LSMessageGetPayload(message));
-  json_t *location = json_find_first_label(object, "location");               
-  if (!location || (location->child->type != JSON_STRING) ||
-      (strcmp(location->child->text, "db/kinds") &&
-       strcmp(location->child->text, "tempdb/kinds") &&
-       strcmp(location->child->text, "db_kinds"))) {
-    if (!LSMessageReply(lshandle, message,
-			"{\"returnValue\": false, \"errorCode\": -1, \"errorText\": \"Invalid or missing location\"}",
-			&lserror)) goto error;
-    return true;
-  }
-
-  // Initialise the command to retrieve the kind.
-  sprintf(filename, "/etc/palm/%s/%s", location->child->text, id->child->text);
-
-  return read_file(lshandle, message, filename, true);
-
- error:
-  LSErrorPrint(&lserror, stderr);
-  LSErrorFree(&lserror);
- end:
-  return false;
-}
-
-bool listDbPerms_method(LSHandle* lshandle, LSMessage *message, void *ctx) {
+bool listDatabases_method(LSHandle* lshandle, LSMessage *message, void *ctx) {
   LSError lserror;
   LSErrorInit(&lserror);
 
   // Local buffer to store the command
   char command[MAXLINLEN];
 
-  // Extract the location argument from the message
+  // Extract the set argument from the message
   json_t *object = json_parse_document(LSMessageGetPayload(message));
-  json_t *location = json_find_first_label(object, "location");
-  if (!location || (location->child->type != JSON_STRING) ||
-      (strcmp(location->child->text, "db/permissions") &&
-       strcmp(location->child->text, "tempdb/permissions"))) {
+  json_t *set = json_find_first_label(object, "set");
+  if (!set || (set->child->type != JSON_STRING) ||
+      (strcmp(set->child->text, "db/kinds") &&
+       strcmp(set->child->text, "tempdb/kinds") &&
+       strcmp(set->child->text, "db_kinds"))) {
     if (!LSMessageReply(lshandle, message,
-			"{\"returnValue\": false, \"errorCode\": -1, \"errorText\": \"Invalid or missing location\"}",
+			"{\"returnValue\": false, \"errorCode\": -1, \"errorText\": \"Invalid or missing set\"}",
 			&lserror)) goto error;
     return true;
   }
 
-  // Initialise the command to read the list of permissions.
-  sprintf(command, "/bin/ls -1 /etc/palm/%s/ 2>&1", location->child->text);
+  sprintf(command, "/bin/ls -1 /etc/palm/%s/ 2>&1", set->child->text);
 
   return simple_command(lshandle, message, command);
 
@@ -513,14 +458,27 @@ bool listDbPerms_method(LSHandle* lshandle, LSMessage *message, void *ctx) {
   return false;
 }
 
-bool getDbPerm_method(LSHandle* lshandle, LSMessage *message, void *ctx) {
+bool getDatabase_method(LSHandle* lshandle, LSMessage *message, void *ctx) {
   LSError lserror;
   LSErrorInit(&lserror);
 
   char filename[MAXLINLEN];
 
-  // Extract the id argument from the message
+  // Extract the set argument from the message
   json_t *object = json_parse_document(LSMessageGetPayload(message));
+  json_t *set = json_find_first_label(object, "set");               
+  if (!set || (set->child->type != JSON_STRING) ||
+      (strcmp(set->child->text, "db/kinds") &&
+       strcmp(set->child->text, "tempdb/kinds") &&
+       strcmp(set->child->text, "db_kinds"))) {
+    if (!LSMessageReply(lshandle, message,
+			"{\"returnValue\": false, \"errorCode\": -1, \"errorText\": \"Invalid or missing set\"}",
+			&lserror)) goto error;
+    return true;
+  }
+
+  // Extract the id argument from the message
+  object = json_parse_document(LSMessageGetPayload(message));
   json_t *id = json_find_first_label(object, "id");               
   if (!id || (id->child->type != JSON_STRING) || (strspn(id->child->text, ALLOWED_CHARS) != strlen(id->child->text))) {
     if (!LSMessageReply(lshandle, message,
@@ -529,20 +487,7 @@ bool getDbPerm_method(LSHandle* lshandle, LSMessage *message, void *ctx) {
     return true;
   }
 
-  // Extract the location argument from the message
-  object = json_parse_document(LSMessageGetPayload(message));
-  json_t *location = json_find_first_label(object, "location");
-  if (!location || (location->child->type != JSON_STRING) ||
-      (strcmp(location->child->text, "db/permissions") &&
-       strcmp(location->child->text, "tempdb/permissions"))) {
-    if (!LSMessageReply(lshandle, message,
-			"{\"returnValue\": false, \"errorCode\": -1, \"errorText\": \"Invalid or missing location\"}",
-			&lserror)) goto error;
-    return true;
-  }
-
-  // Initialise the command to retrieve the permissions.
-  sprintf(filename, "/etc/palm/%s/%s", location->child->text, id->child->text);
+  sprintf(filename, "/etc/palm/%s/%s", set->child->text, id->child->text);
 
   return read_file(lshandle, message, filename, true);
 
@@ -560,7 +505,6 @@ bool listActivitySets_method(LSHandle* lshandle, LSMessage *message, void *ctx) 
   // Local buffer to store the command
   char command[MAXLINLEN];
 
-  // Initialise the command to read the list of kinds.
   sprintf(command, "/bin/ls -1 /etc/palm/activities/ 2>&1");
 
   return simple_command(lshandle, message, command);
@@ -727,6 +671,77 @@ bool getFilecacheType_method(LSHandle* lshandle, LSMessage *message, void *ctx) 
   return false;
 }
 
+bool listDbPerms_method(LSHandle* lshandle, LSMessage *message, void *ctx) {
+  LSError lserror;
+  LSErrorInit(&lserror);
+
+  // Local buffer to store the command
+  char command[MAXLINLEN];
+
+  // Extract the location argument from the message
+  json_t *object = json_parse_document(LSMessageGetPayload(message));
+  json_t *location = json_find_first_label(object, "location");
+  if (!location || (location->child->type != JSON_STRING) ||
+      (strcmp(location->child->text, "db/permissions") &&
+       strcmp(location->child->text, "tempdb/permissions"))) {
+    if (!LSMessageReply(lshandle, message,
+			"{\"returnValue\": false, \"errorCode\": -1, \"errorText\": \"Invalid or missing location\"}",
+			&lserror)) goto error;
+    return true;
+  }
+
+  // Initialise the command to read the list of permissions.
+  sprintf(command, "/bin/ls -1 /etc/palm/%s/ 2>&1", location->child->text);
+
+  return simple_command(lshandle, message, command);
+
+ error:
+  LSErrorPrint(&lserror, stderr);
+  LSErrorFree(&lserror);
+ end:
+  return false;
+}
+
+bool getDbPerm_method(LSHandle* lshandle, LSMessage *message, void *ctx) {
+  LSError lserror;
+  LSErrorInit(&lserror);
+
+  char filename[MAXLINLEN];
+
+  // Extract the id argument from the message
+  json_t *object = json_parse_document(LSMessageGetPayload(message));
+  json_t *id = json_find_first_label(object, "id");               
+  if (!id || (id->child->type != JSON_STRING) || (strspn(id->child->text, ALLOWED_CHARS) != strlen(id->child->text))) {
+    if (!LSMessageReply(lshandle, message,
+			"{\"returnValue\": false, \"errorCode\": -1, \"errorText\": \"Invalid or missing id\"}",
+			&lserror)) goto error;
+    return true;
+  }
+
+  // Extract the location argument from the message
+  object = json_parse_document(LSMessageGetPayload(message));
+  json_t *location = json_find_first_label(object, "location");
+  if (!location || (location->child->type != JSON_STRING) ||
+      (strcmp(location->child->text, "db/permissions") &&
+       strcmp(location->child->text, "tempdb/permissions"))) {
+    if (!LSMessageReply(lshandle, message,
+			"{\"returnValue\": false, \"errorCode\": -1, \"errorText\": \"Invalid or missing location\"}",
+			&lserror)) goto error;
+    return true;
+  }
+
+  // Initialise the command to retrieve the permissions.
+  sprintf(filename, "/etc/palm/%s/%s", location->child->text, id->child->text);
+
+  return read_file(lshandle, message, filename, true);
+
+ error:
+  LSErrorPrint(&lserror, stderr);
+  LSErrorFree(&lserror);
+ end:
+  return false;
+}
+
 //
 // Handler for the impersonate service.
 //
@@ -813,11 +828,9 @@ LSMethod luna_methods[] = {
   { "status",			dummy_method },
   { "version",			version_method },
 
-  { "listDbKinds",		listDbKinds_method },
-  { "getDbKind",		getDbKind_method },
-
-  { "listDbPerms",		listDbPerms_method },
-  { "getDbPerm",		getDbPerm_method },
+  { "listDatabaseSets",		listDatabaseSets_method },
+  { "listDatabases",		listDatabases_method },
+  { "getDatabase",		getDatabase_method },
 
   { "listActivitySets",		listActivitySets_method },
   { "listActivities",		listActivities_method },
@@ -828,6 +841,9 @@ LSMethod luna_methods[] = {
 
   { "listFilecacheTypes",	listFilecacheTypes_method },
   { "getFilecacheType",		getFilecacheType_method },
+
+  { "listDbPerms",		listDbPerms_method },
+  { "getDbPerm",		getDbPerm_method },
 
   { "impersonate",		impersonate_method },
 

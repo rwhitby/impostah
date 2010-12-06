@@ -294,10 +294,15 @@ DatabaseExploreAssistant.prototype.dbPerm = function(payload, temporary)
 
 DatabaseExploreAssistant.prototype.queryTap = function(event)
 {
+	var service = "com.palm.db";
+	if (this.dbKindsSet[this.dbKindsModel.value]) {
+		service = "com.palm.tempdb";
+	}
+
 	if (this.kindId && this.dbPermsModel.value) {
 		this.request = ImpostahService.impersonate(this.impersonateHandler,
 												   this.dbPermsModel.value,
-												   "com.palm.db", "find", { "query" : { "from" : this.kindId }});
+												   service, "find", { "query" : { "from" : this.kindId }});
 	}
 };
 

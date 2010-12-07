@@ -20,8 +20,13 @@ function ActivityExploreAssistant()
 	this.activitySetsModel =
 	{
 		value: prefs.get().lastActivitySet,
-		choices: [],
-		disabled: true
+		choices: [
+	{value:"app-persist",     label:"Application Persistent"},
+	{value:"app-temp",        label:"Application Temporary"},
+	{value:"service-persist", label:"Service Persistent"},
+	{value:"service-temp",    label:"Service Temporary"}
+				  ],
+		disabled: false
 	}
 	this.setId = '';
 	
@@ -31,7 +36,7 @@ function ActivityExploreAssistant()
 		choices: [],
 		disabled: true
 	}
-	this.kindId = '';
+	this.activityId = '';
 	
 };
 
@@ -47,17 +52,15 @@ ActivityExploreAssistant.prototype.setup = function()
 	this.bodyElement =			this.controller.get('body');
 	
 	// setup handlers
-    this.activitySetsHandler = 	this.activitySets.bindAsEventListener(this);
+	this.activitySetChangedHandler = this.activitySetChanged.bindAsEventListener(this);
     this.activityKindsHandler = this.activityKinds.bindAsEventListener(this);
     this.activityKindHandler = 	this.activityKind.bindAsEventListener(this);
-	this.activitySetChangedHandler = this.activitySetChanged.bindAsEventListener(this);
 	this.activityKindChangedHandler = this.activityKindChanged.bindAsEventListener(this);
     this.showTapHandler = 		this.showTap.bindAsEventListener(this);
 	
 	this.controller.setupWidget
 	(
-		'activitySet',
-		{ multiline: true },
+		'activitySet', {},
 		this.activitySetsModel
 	);
 	
@@ -85,11 +88,6 @@ ActivityExploreAssistant.prototype.setup = function()
 	
 	this.controller.listen(this.showButton,  Mojo.Event.tap, this.showTapHandler);
 	
-	this.activitySetsModel.choices = [];
-	this.activitySetsModel.value = "";
-	this.activitySetsModel.disabled = true;
-	this.controller.modelChanged(this.activitySetsModel);
-
 	this.activityKindsModel.choices = [];
 	this.activityKindsModel.value = "";
 	this.activityKindsModel.disabled = true;
@@ -97,45 +95,12 @@ ActivityExploreAssistant.prototype.setup = function()
 
     this.bodyElement.innerHTML = "";
 
-	this.request = ImpostahService.listActivitySets(this.activitySetsHandler);
-	
-};
-
-ActivityExploreAssistant.prototype.activitySets = function(payload)
-{
-	if (payload.returnValue === false) {
-		this.errorMessage('<b>Service Error (listActivitySets):</b><br>'+payload.errorText);
-		return;
+	this.setId = prefs.get().lastActivitySet;
+	if (this.setId == '') {
+		this.setId = this.activitySetsModel.choices[0].value;
 	}
+	this.activitySetChanged({value: this.setId});
 
-	var oldSet = prefs.get().lastActivitySet;
-	var newSet = false;
-
-	if (payload.stdOut && payload.stdOut.length > 0)
-	{
-		payload.stdOut.sort();
-		
-		for (var a = 0; a < payload.stdOut.length; a++)
-		{
-			var id = payload.stdOut[a];
-			// %%% FIXME %%% Truncate if necessary
-			var label = payload.stdOut[a];
-			this.activitySetsModel.choices.push({label:label, value:id});
-			if (id == oldSet) {
-				newSet = oldSet;
-			}
-		}
-		
-		if (newSet === false) {
-			newSet = payload.stdOut[0];
-		}
-	}
-
-	// Enable the drop-down list
-	this.activitySetsModel.disabled = false;
-	this.activitySetsModel.value = newSet;
-	this.controller.modelChanged(this.activitySetsModel);
-	this.activitySetChanged({value: newSet});
 };
 
 ActivityExploreAssistant.prototype.activitySetChanged = function(event)
@@ -159,36 +124,56 @@ ActivityExploreAssistant.prototype.activitySetChanged = function(event)
 	this.activityKindsModel.disabled = true;
 	this.controller.modelChanged(this.activityKindsModel);
 
-	this.request = ImpostahService.listActivities(this.activityKindsHandler, event.value);
+	this.request = ImpostahService.impersonate(this.activityKindsHandler, "com.palm.configurator",
+											   "com.palm.activitymanager",
+											   "list", {"details":true});
 }
 
 ActivityExploreAssistant.prototype.activityKinds = function(payload)
 {
 	if (payload.returnValue === false) {
-		this.errorMessage('<b>Service Error (listActivities):</b><br>'+payload.errorText);
+		this.errorMessage('<b>Service Error (activityKinds):</b><br>'+payload.errorText);
 		return;
 	}
 
 	var oldKind = prefs.get().lastActivityKind;
 	var newKind = false;
 
-	if (payload.stdOut && payload.stdOut.length > 0)
+	var activities = payload.activities;
+
+	if (activities && activities.length > 0)
 	{
-		payload.stdOut.sort();
-		
-		for (var a = 0; a < payload.stdOut.length; a++)
+		for (var a = 0; a < activities.length; a++)
 		{
-			var id = payload.stdOut[a];
-			// %%% FIXME %%% Truncate if necessary
-			var label = payload.stdOut[a];
-			this.activityKindsModel.choices.push({label:label, value:id});
-			if (id == oldKind) {
-				newKind = oldKind;
+			var id = activities[a].activityId;
+			var name = activities[a].name;
+			var creatorObj = activities[a].creator;
+			var typeObj = activities[a].type;
+			var creator = false;
+			if (creatorObj.appId) {
+				creator = creatorObj.appId;
+			}
+			if (creatorObj.serviceId) {
+				creator = creatorObj.serviceId;
+			}
+			if (creator &&
+				((this.setId == "app-persist")     && typeObj.persist && creatorObj.appId) ||
+				((this.setId == "app-temp")       && !typeObj.persist && creatorObj.appId) ||
+				((this.setId == "service-persist") && typeObj.persist && creatorObj.serviceId) ||
+				((this.setId == "service-temp")   && !typeObj.persist && creatorObj.serviceId)) {
+				if (creator.indexOf("com.palm.") == 0) {
+					creator = "..." + creator.slice(9);
+				}
+				// %%% FIXME %%% Truncate if necessary
+				this.activityKindsModel.choices.push({label:creator+":"+name, value:id});
+				if (id == oldKind) {
+					newKind = oldKind;
+				}
 			}
 		}
 		
 		if (newKind === false) {
-			newKind = payload.stdOut[0];
+			newKind = this.activityKindsModel.choices[0].value;
 		}
 	}
 
@@ -207,61 +192,35 @@ ActivityExploreAssistant.prototype.activityKindChanged = function(event)
 	cookie.put(tprefs);
 	var tmp = prefs.get(true);
 	
-	this.kindId = event.value;
+	this.activityId = event.value;
     this.bodyElement.innerHTML = "";
 
 	// Enable the show button
 	this.showButtonModel.disabled = false;
 	this.controller.modelChanged(this.showButtonModel);
+
 }
 
 ActivityExploreAssistant.prototype.showTap = function(event)
 {
-	this.request = ImpostahService.getActivity(this.activityKindHandler, this.setId, this.kindId);
+	if (this.activityId) {
+		this.request = ImpostahService.impersonate(this.activityKindHandler, "com.palm.configurator",
+												   "com.palm.activitymanager",
+												   "getDetails", { "activityId" : this.activityId });
+	}
 };
 
 ActivityExploreAssistant.prototype.activityKind = function(payload)
 {
 	if (payload.returnValue === false) {
-		this.errorMessage('<b>Service Error (getActivity):</b><br>'+payload.errorText);
+		this.errorMessage('<b>Service Error (activityKind):</b><br>'+payload.errorText);
 		return;
 	}
 
-	// no stage means its not a subscription, and we should have all the contents right now
-	if (!payload.stage) {
-		if (payload.contents) {
-			this.rawData = payload.contents;
-		}
-	}
-	else {
-		if (payload.stage == 'start') {
-			// at start we clear the old data to make sure its empty
-			this.rawData = '';
-			return;
-		}
-		else if (payload.stage == 'middle') {
-			// in the middle, we append the data
-			if (payload.contents) {
-				this.rawData += payload.contents;
-			}
-			return;
-		}
-		else if (payload.stage == 'end') {
-			// at end, we parse the data we've recieved this whole time
-		}
+	if (payload.activity) {
+		this.bodyElement.innerHTML = JSON.stringify(payload.activity);
 	}
 
-	try {
-		var obj = JSON.parse(this.rawData);
-		
-		this.bodyElement.innerHTML = this.rawData;
-
-	}
-	catch (e) {
-		Mojo.Log.logException(e, 'ActivityExplore#activity');
-		this.errorMessage('<b>Parsing Error (activity):</b><br>'+e.message);
-		return;
-	}
 };
 
 ActivityExploreAssistant.prototype.activate = function(event)

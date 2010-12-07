@@ -20,7 +20,10 @@ function DatabaseExploreAssistant()
 	this.databaseSetsModel =
 	{
 		value: prefs.get().lastDatabaseSet,
-		choices: [{value:"com.palm.db", label:"Permanent Databases"},{value:"com.palm.tempdb", label:"Temporary Databases"}],
+		choices: [
+	{value:"com.palm.db",     label:"Persistent"},
+	{value:"com.palm.tempdb", label:"Temporary"}
+				  ],
 		disabled: false
 	}
 	this.setId = '';

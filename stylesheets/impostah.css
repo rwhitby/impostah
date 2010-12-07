@@ -126,6 +126,14 @@ body.palm-dark .palm-separator
 }
 
 /*
+ * keystore-explore scene styles
+ */
+.keystore-explore .palm-list-selector .title
+{
+	text-align: left;
+}
+
+/*
  * Generic Form Styles
  */
 .form .palm-row-wrapper .note

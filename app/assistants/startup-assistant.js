@@ -11,14 +11,15 @@ function StartupAssistant(changelog)
     this.newMessages =
 	[
 	 // Don't forget the comma on all but the last entry
+	 { version: '0.2.2', log: [ 'Added support for keystore exploration' ] },
 	 { version: '0.2.1', log: [ 'Revamped the activity exploration backend' ] },
 	 { version: '0.2.0', log: [ 'Revamped the database exploration backend' ] },
 	 { version: '0.1.1', log: [ 'Strip comments from JSON files before parsing' ] },
 	 { version: '0.1.0', log: [ 'Revamped the database exploration scene' ] },
 	 { version: '0.0.8', log: [ 'Added support for multiple database locations' ] },
 	 { version: '0.0.7', log: [ 'Set appropriate defaults for all selections' ] },
-	 { version: '0.0.6', log: [ 'Added support for activity configurations' ] },
-	 { version: '0.0.5', log: [ 'Added support for backup configurations' ] },
+	 { version: '0.0.6', log: [ 'Added support for activity exploration' ] },
+	 { version: '0.0.5', log: [ 'Added support for backup exploration' ] },
 	 { version: '0.0.4', log: [ 'Added support for temporary databases' ] },
 	 { version: '0.0.3', log: [ 'Added upstart script' ] },
 	 { version: '0.0.2', log: [ 'Lists DB kinds' ] },

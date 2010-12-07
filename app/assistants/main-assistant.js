@@ -64,6 +64,11 @@ MainAssistant.prototype.setup = function()
 		});
 
     this.mainModel.items.push({
+	    name:     $L('Key Store Exploration'),
+		scene:    'keystore-explore',
+		});
+
+    this.mainModel.items.push({
 	    name:     $L('Backup Exploration'),
 		scene:    'backup-explore',
 		});

@@ -33,6 +33,10 @@
         "source": "app/assistants/backup-explore-assistant.js"
     },
     {
+        "scenes": "keystore-explore",
+        "source": "app/assistants/keystore-explore-assistant.js"
+    },
+    {
         "scenes": "activity-explore",
         "source": "app/assistants/activity-explore-assistant.js"
     }

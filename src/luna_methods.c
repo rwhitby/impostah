@@ -409,6 +409,24 @@ static bool read_file(LSHandle* lshandle, LSMessage *message, char *filename, bo
   return false;
 }
 
+bool listKeys_method(LSHandle* lshandle, LSMessage *message, void *ctx) {
+  LSError lserror;
+  LSErrorInit(&lserror);
+
+  // Local buffer to store the command
+  char command[MAXLINLEN];
+
+  sprintf(command, "sqlite3 /var/palm/data/keys.db 'SELECT id,ownerId,keyId FROM keytable ;' 2>&1");
+
+  return simple_command(lshandle, message, command);
+
+ error:
+  LSErrorPrint(&lserror, stderr);
+  LSErrorFree(&lserror);
+ end:
+  return false;
+}
+
 bool listBackups_method(LSHandle* lshandle, LSMessage *message, void *ctx) {
   LSError lserror;
   LSErrorInit(&lserror);
@@ -584,6 +602,8 @@ bool impersonate_method(LSHandle* lshandle, LSMessage *message, void *ctx) {
 LSMethod luna_methods[] = {
   { "status",			dummy_method },
   { "version",			version_method },
+
+  { "listKeys",			listKeys_method },
 
   { "listBackups",		listBackups_method },
   { "getBackup",		getBackup_method },

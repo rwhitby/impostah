@@ -2,42 +2,11 @@ ImpostahService.identifier = 'palm://org.webosinternals.impostah';
 
 function ImpostahService(){};
 
-ImpostahService.listActivitySets = function(callback)
+ImpostahService.listKeys = function(callback, set)
 {
     var request = new Mojo.Service.Request(ImpostahService.identifier,
 	{
-	    method: 'listActivitySets',
-	    onSuccess: callback,
-	    onFailure: callback
-	});
-    return request;
-};
-
-ImpostahService.listActivities = function(callback, set)
-{
-    var request = new Mojo.Service.Request(ImpostahService.identifier,
-	{
-	    method: 'listActivities',
-		parameters:
-		{
-			"set": set
-		},
-	    onSuccess: callback,
-	    onFailure: callback
-	});
-    return request;
-};
-
-ImpostahService.getActivity = function(callback, set, id)
-{
-    var request = new Mojo.Service.Request(ImpostahService.identifier,
-	{
-	    method: 'getActivity',
-		parameters:
-		{
-			"set": set,
-			"id": id
-		},
+	    method: 'listKeys',
 	    onSuccess: callback,
 	    onFailure: callback
 	});

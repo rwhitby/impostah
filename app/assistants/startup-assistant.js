@@ -11,6 +11,7 @@ function StartupAssistant(changelog)
     this.newMessages =
 	[
 	 // Don't forget the comma on all but the last entry
+	 { version: '0.2.0', log: [ 'Revamped the database exploration backend' ] },
 	 { version: '0.1.1', log: [ 'Strip comments from JSON files before parsing' ] },
 	 { version: '0.1.0', log: [ 'Revamped the database exploration scene' ] },
 	 { version: '0.0.8', log: [ 'Added support for multiple database locations' ] },

@@ -409,89 +409,6 @@ static bool read_file(LSHandle* lshandle, LSMessage *message, char *filename, bo
   return false;
 }
 
-bool listActivitySets_method(LSHandle* lshandle, LSMessage *message, void *ctx) {
-  LSError lserror;
-  LSErrorInit(&lserror);
-
-  // Local buffer to store the command
-  char command[MAXLINLEN];
-
-  sprintf(command, "/bin/ls -1 /etc/palm/activities/ 2>&1");
-
-  return simple_command(lshandle, message, command);
-
- error:
-  LSErrorPrint(&lserror, stderr);
-  LSErrorFree(&lserror);
- end:
-  return false;
-}
-
-bool listActivities_method(LSHandle* lshandle, LSMessage *message, void *ctx) {
-  LSError lserror;
-  LSErrorInit(&lserror);
-
-  // Local buffer to store the command
-  char command[MAXLINLEN];
-
-  // Extract the set argument from the message
-  json_t *object = json_parse_document(LSMessageGetPayload(message));
-  json_t *set = json_find_first_label(object, "set");               
-  if (!set || (set->child->type != JSON_STRING) || (strspn(set->child->text, ALLOWED_CHARS) != strlen(set->child->text))) {
-    if (!LSMessageReply(lshandle, message,
-			"{\"returnValue\": false, \"errorCode\": -1, \"errorText\": \"Invalid or missing set\"}",
-			&lserror)) goto error;
-    return true;
-  }
-
-  sprintf(command, "/bin/ls -1 /etc/palm/activities/%s/ 2>&1", set->child->text);
-
-  return simple_command(lshandle, message, command);
-
- error:
-  LSErrorPrint(&lserror, stderr);
-  LSErrorFree(&lserror);
- end:
-  return false;
-}
-
-bool getActivity_method(LSHandle* lshandle, LSMessage *message, void *ctx) {
-  LSError lserror;
-  LSErrorInit(&lserror);
-
-  char filename[MAXLINLEN];
-
-  // Extract the set argument from the message
-  json_t *object = json_parse_document(LSMessageGetPayload(message));
-  json_t *set = json_find_first_label(object, "set");               
-  if (!set || (set->child->type != JSON_STRING) || (strspn(set->child->text, ALLOWED_CHARS) != strlen(set->child->text))) {
-    if (!LSMessageReply(lshandle, message,
-			"{\"returnValue\": false, \"errorCode\": -1, \"errorText\": \"Invalid or missing set\"}",
-			&lserror)) goto error;
-    return true;
-  }
-
-  // Extract the id argument from the message
-  object = json_parse_document(LSMessageGetPayload(message));
-  json_t *id = json_find_first_label(object, "id");               
-  if (!id || (id->child->type != JSON_STRING) || (strspn(id->child->text, ALLOWED_CHARS) != strlen(id->child->text))) {
-    if (!LSMessageReply(lshandle, message,
-			"{\"returnValue\": false, \"errorCode\": -1, \"errorText\": \"Invalid or missing id\"}",
-			&lserror)) goto error;
-    return true;
-  }
-
-  sprintf(filename, "/etc/palm/activities/%s/%s", set->child->text, id->child->text);
-
-  return read_file(lshandle, message, filename, true);
-
- error:
-  LSErrorPrint(&lserror, stderr);
-  LSErrorFree(&lserror);
- end:
-  return false;
-}
-
 bool listBackups_method(LSHandle* lshandle, LSMessage *message, void *ctx) {
   LSError lserror;
   LSErrorInit(&lserror);
@@ -667,10 +584,6 @@ bool impersonate_method(LSHandle* lshandle, LSMessage *message, void *ctx) {
 LSMethod luna_methods[] = {
   { "status",			dummy_method },
   { "version",			version_method },
-
-  { "listActivitySets",		listActivitySets_method },
-  { "listActivities",		listActivities_method },
-  { "getActivity",		getActivity_method },
 
   { "listBackups",		listBackups_method },
   { "getBackup",		getBackup_method },

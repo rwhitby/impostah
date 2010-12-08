@@ -1,4 +1,5 @@
 [
+    {"source": "app/models/widget_betterlistselector.js"},
     {"source": "app/models/service.js"},
     {"source": "app/models/utility.js"},
     {"source": "app/models/help.js"},

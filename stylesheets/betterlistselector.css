@@ -1,0 +1,25 @@
+/*
+ * Styles for the "BetterListSelector" custom widget
+ */
+
+.better-list-selector .textfield-group.focused
+{
+	position: absolute;
+	z-index: 1000;
+	-webkit-border-image: url(../images/betterlistselector/group-textfield-shadow-52-first.png) 15 15 15 15 stretch stretch;
+	width: 100%;
+	margin-left: 7px;
+	margin-top: -9px;
+	padding-right: 4px;
+}
+body.palm-dark .better-list-selector .textfield-group.focused
+{
+	margin-left: 8px;
+	padding-right: 2px;
+	-webkit-border-image: url(../images/betterlistselector/group-textfield-shadow-first-dark.png) 15 15 15 15 stretch stretch;
+}
+
+.better-list-selector .palm-popup-content .palm-list
+{
+	padding-top: 46px;
+}

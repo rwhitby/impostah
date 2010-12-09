@@ -154,7 +154,7 @@ DatabaseExploreAssistant.prototype.databaseKinds = function(payload)
 			var id = databases[a].id;
 			var label = databases[a].id;
 			if (label.indexOf("com.palm.") == 0) {
-				label = "..." + label.slice(9);
+				label = label.slice(9);
 			}
 			this.databaseKindsModel.choices.push({label:label, value:id});
 			if (id == oldKind) {

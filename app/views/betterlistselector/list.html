@@ -15,15 +15,16 @@
 			<div class="fade-arrow"></div>
 		</div>
 		
+		<div id="#{popupId}-better-submenu-filter-spinner" class="filter-spinner" x-mojo-element="Spinner"></div>
 		<div class="palm-row-wrapper textfield-group focused">
 			<div class="title">
-				<div x-mojo-element="TextField"></div>
+				<div id="#{popupId}-better-submenu-filter-text" x-mojo-element="TextField"></div>
 			</div>
 		</div>
 
 		<div class="palm-popup-content" x-mojo-element="Scroller" x-mojo-popup-content="">   
 
-			<div class="palm-list">                       
+			<div class="palm-list" x-mojo-popup-elements-container="">
 				#{-listElements}
 			</div>
 			

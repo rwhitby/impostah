@@ -285,7 +285,7 @@ DatabaseExploreAssistant.prototype.impersonate = function(payload)
 															   "limit" : this.requestSize,
 															   "page" : payload.next
 														   }
-													   });
+													   }).defer;
 		}
 		else {
 

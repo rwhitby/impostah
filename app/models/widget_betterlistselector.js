@@ -294,7 +294,7 @@ Mojo.Widget.BetterSubmenu = Class.create({
 		this.filtering = false;
 		
 		this.containerTemplate = "betterlistselector/list";
-		this.itemTemplate = model.itemTemplate || Mojo.Widget.getSystemTemplatePath("submenu/item");
+		this.itemTemplate = model.itemTemplate || "betterlistselector/item";
 		this.itemRowTemplate = Mojo.Widget.getSystemTemplatePath("submenu/item-row");
 		
 		itemsText = this.renderItems(model.items, model.toggleCmd);
@@ -848,6 +848,7 @@ Mojo.Widget.BetterSubmenu = Class.create({
 				var item = this.controller.model.items[i];
 				if (item.value.toLowerCase().include(this.filterText.toLowerCase()))
 				{
+					item.label = item.label.replace(new RegExp('(' + this.filterText + ')', 'gi'), '<span class="highlight">$1</span>');
 					tmpItems.push(item);
 				}
 			}

@@ -49,7 +49,6 @@ ActivityExploreAssistant.prototype.setup = function()
 	this.activitySetElement =	this.controller.get('activitySet');
 	this.activityKindElement =	this.controller.get('activityKind');
 	this.showButton =			this.controller.get('showButton');
-	this.bodyElement =			this.controller.get('body');
 	
 	// setup handlers
 	this.activitySetChangedHandler = this.activitySetChanged.bindAsEventListener(this);
@@ -93,8 +92,6 @@ ActivityExploreAssistant.prototype.setup = function()
 	this.activityKindsModel.disabled = true;
 	this.controller.modelChanged(this.activityKindsModel);
 
-    this.bodyElement.innerHTML = "";
-
 	this.setId = prefs.get().lastActivitySet;
 	if (this.setId == '') {
 		this.setId = this.activitySetsModel.choices[0].value;
@@ -112,7 +109,6 @@ ActivityExploreAssistant.prototype.activitySetChanged = function(event)
 	var tmp = prefs.get(true);
 	
 	this.setId = event.value;
-    this.bodyElement.innerHTML = "";
 	
 	// Disable the show button
 	this.showButtonModel.disabled = true;
@@ -192,7 +188,6 @@ ActivityExploreAssistant.prototype.activityKindChanged = function(event)
 	var tmp = prefs.get(true);
 	
 	this.activityId = event.value;
-    this.bodyElement.innerHTML = "";
 
 	// Enable the show button
 	this.showButtonModel.disabled = false;
@@ -217,7 +212,7 @@ ActivityExploreAssistant.prototype.activityKind = function(payload)
 	}
 
 	if (payload.activity) {
-		this.bodyElement.innerHTML = JSON.stringify(payload.activity);
+		this.controller.stageController.pushScene("item", "Activity Record", payload.activity);
 	}
 
 };

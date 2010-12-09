@@ -36,7 +36,6 @@ FilecacheExploreAssistant.prototype.setup = function()
 	// get elements
 	this.filecacheKindElement =	this.controller.get('filecacheKind');
 	this.showButton =			this.controller.get('showButton');
-	this.bodyElement =			this.controller.get('body');
 	
 	// setup handlers
     this.filecacheKindsHandler = 		this.filecacheKinds.bindAsEventListener(this);
@@ -70,8 +69,6 @@ FilecacheExploreAssistant.prototype.setup = function()
 	this.filecacheKindsModel.value = "";
 	this.filecacheKindsModel.disabled = true;
 	this.controller.modelChanged(this.filecacheKindsModel);
-
-    this.bodyElement.innerHTML = "";
 
 	this.request = ImpostahService.impersonate(this.filecacheKindsHandler, "com.palm.filecache",
 											   "com.palm.filecache",
@@ -124,7 +121,6 @@ FilecacheExploreAssistant.prototype.filecacheKindChanged = function(event)
 	var tmp = prefs.get(true);
 	
 	this.typeId = event.value;
-    this.bodyElement.innerHTML = "";
 	
 	// Enable the show button
 	this.showButtonModel.disabled = false;
@@ -149,7 +145,7 @@ FilecacheExploreAssistant.prototype.filecacheKind = function(payload)
 		return;
 	}
 
-	this.bodyElement.innerHTML = JSON.stringify(payload);
+	this.controller.stageController.pushScene("item", "File Cache Type", payload);
 };
 
 FilecacheExploreAssistant.prototype.activate = function(event)

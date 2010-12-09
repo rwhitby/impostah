@@ -37,7 +37,6 @@ KeystoreExploreAssistant.prototype.setup = function()
 	// get elements
 	this.keystoreKindElement =	this.controller.get('keystoreKind');
 	this.showButton =			this.controller.get('showButton');
-	this.bodyElement =			this.controller.get('body');
 	
 	// setup handlers
     this.keystoreKindsHandler = 		this.keystoreKinds.bindAsEventListener(this);
@@ -71,8 +70,6 @@ KeystoreExploreAssistant.prototype.setup = function()
 	this.keystoreKindsModel.value = "";
 	this.keystoreKindsModel.disabled = true;
 	this.controller.modelChanged(this.keystoreKindsModel);
-
-    this.bodyElement.innerHTML = "";
 
 	this.request = ImpostahService.listKeys(this.keystoreKindsHandler, false);
 	
@@ -130,7 +127,6 @@ KeystoreExploreAssistant.prototype.keystoreKindChanged = function(event)
 	var tmp = prefs.get(true);
 	
 	this.keyId = event.value;
-    this.bodyElement.innerHTML = "";
 	
 	// Enable the show button
 	this.showButtonModel.disabled = false;
@@ -158,7 +154,7 @@ KeystoreExploreAssistant.prototype.keystoreKind = function(payload)
 		return;
 	}
 
-	this.bodyElement.innerHTML = JSON.stringify(payload);
+	this.controller.stageController.pushScene("item", "Key Store Record", payload);
 };
 
 KeystoreExploreAssistant.prototype.activate = function(event)

@@ -1,4 +1,4 @@
-function QueryDisplayAssistant(owner, service, database) {
+function QueryAssistant(owner, service, database) {
 	this.owner = owner;
 	this.service = service;
 	this.database = database;
@@ -27,7 +27,7 @@ function QueryDisplayAssistant(owner, service, database) {
 
 }
 
-QueryDisplayAssistant.prototype.setup = function() {
+QueryAssistant.prototype.setup = function() {
 
 	// setup menu
 	this.controller.setupWidget(Mojo.Menu.appMenu, { omitDefaultItems: true }, this.menuModel);
@@ -42,12 +42,12 @@ QueryDisplayAssistant.prototype.setup = function() {
     // setup widget
     this.controller.setupWidget('header', {title: this.database}, this.headerModel);
     this.controller.setupWidget('mainList', {
-			itemTemplate: "query-display/rowTemplate", swipeToDelete: false, reorderable: false }, this.mainModel);
+			itemTemplate: "query/rowTemplate", swipeToDelete: false, reorderable: false }, this.mainModel);
     this.controller.listen(this.listElement, Mojo.Event.listTap, this.listTapHandler);
 
 };
 
-QueryDisplayAssistant.prototype.activate = function(event) {
+QueryAssistant.prototype.activate = function(event) {
 
 	this.query = {
 		"from" : this.database,
@@ -60,7 +60,7 @@ QueryDisplayAssistant.prototype.activate = function(event) {
 
 };
 
-QueryDisplayAssistant.prototype.impersonate = function(payload)
+QueryAssistant.prototype.impersonate = function(payload)
 {
 	if (payload.returnValue === false) {
 		this.errorMessage('<b>Service Error (impersonate):</b><br>'+payload.errorText);
@@ -71,9 +71,9 @@ QueryDisplayAssistant.prototype.impersonate = function(payload)
 
 		for (var a = 0; a < payload.results.length; a++) {
 			this.mainModel.items[this.results] = {};
-			this.mainModel.items[this.results].name   = payload.results[a]._id;
-			this.mainModel.items[this.results].object = payload.results[a];
-			this.mainModel.items[this.results].string = JSON.stringify(payload.results[a]);
+			this.mainModel.items[this.results].id    = payload.results[a]._id;
+			this.mainModel.items[this.results].label = payload.results[a]._id;
+			this.mainModel.items[this.results].value = payload.results[a];
 			this.results++;
 		}
 		this.controller.modelChanged(this.mainModel);
@@ -108,17 +108,17 @@ QueryDisplayAssistant.prototype.impersonate = function(payload)
 	// for (var p in payload) Mojo.Log.error(p, ': ', payload[p]);
 };
 
-QueryDisplayAssistant.prototype.listTap = function(event)
+QueryAssistant.prototype.listTap = function(event)
 {
-	this.controller.stageController.pushScene("item-display", event.item.label, event.item.value);
+	this.controller.stageController.pushScene("item", "Database Record", event.item.value);
 };
 
-QueryDisplayAssistant.prototype.deactivate = function(event) {
+QueryAssistant.prototype.deactivate = function(event) {
 	/* remove any event handlers you added in activate and do any other cleanup that should happen before
 	   this scene is popped or another scene is pushed on top */
 };
 
-QueryDisplayAssistant.prototype.errorMessage = function(msg)
+QueryAssistant.prototype.errorMessage = function(msg)
 {
 	this.controller.showAlertDialog(
 	{
@@ -131,7 +131,7 @@ QueryDisplayAssistant.prototype.errorMessage = function(msg)
     });
 };
 
-QueryDisplayAssistant.prototype.handleCommand = function(event)
+QueryAssistant.prototype.handleCommand = function(event)
 {
 	if (event.type == Mojo.Event.command)
 	{
@@ -148,7 +148,7 @@ QueryDisplayAssistant.prototype.handleCommand = function(event)
 	}
 };
 
-QueryDisplayAssistant.prototype.cleanup = function(event) {
+QueryAssistant.prototype.cleanup = function(event) {
 	/* this function should do any cleanup needed before the scene is destroyed as 
 	   a result of being popped off the scene stack */
 };

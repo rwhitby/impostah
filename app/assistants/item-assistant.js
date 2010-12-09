@@ -1,4 +1,4 @@
-function ItemDisplayAssistant(label, item) {
+function ItemAssistant(label, item) {
 
 	this.label = label;
 	this.item = item;
@@ -19,7 +19,7 @@ function ItemDisplayAssistant(label, item) {
 
 }
 
-ItemDisplayAssistant.prototype.setup = function() {
+ItemAssistant.prototype.setup = function() {
 
 	// setup menu
 	this.controller.setupWidget(Mojo.Menu.appMenu, { omitDefaultItems: true }, this.menuModel);
@@ -34,26 +34,26 @@ ItemDisplayAssistant.prototype.setup = function() {
     this.listTapHandler = this.listTap.bindAsEventListener(this);
 	
 	this.mainModel.items[0] = {};
-	this.mainModel.items[0].text = JSON.stringify(this.item);
+	this.mainModel.items[0].label = JSON.stringify(this.item);
 
     // setup widget
     this.controller.setupWidget('mainList', {
-			itemTemplate: "item-display/rowTemplate", swipeToDelete: false, reorderable: false }, this.mainModel);
+			itemTemplate: "item/rowTemplate", swipeToDelete: false, reorderable: false }, this.mainModel);
     this.controller.listen(this.listElement, Mojo.Event.listTap, this.listTapHandler);
 
 };
 
-ItemDisplayAssistant.prototype.listTap = function(event)
+ItemAssistant.prototype.listTap = function(event)
 {
 	// Do something here
 };
 
-ItemDisplayAssistant.prototype.deactivate = function(event) {
+ItemAssistant.prototype.deactivate = function(event) {
 	/* remove any event handlers you added in activate and do any other cleanup that should happen before
 	   this scene is popped or another scene is pushed on top */
 };
 
-ItemDisplayAssistant.prototype.errorMessage = function(msg)
+ItemAssistant.prototype.errorMessage = function(msg)
 {
 	this.controller.showAlertDialog(
 	{
@@ -66,7 +66,7 @@ ItemDisplayAssistant.prototype.errorMessage = function(msg)
     });
 };
 
-ItemDisplayAssistant.prototype.handleCommand = function(event)
+ItemAssistant.prototype.handleCommand = function(event)
 {
 	if (event.type == Mojo.Event.command)
 	{
@@ -83,7 +83,7 @@ ItemDisplayAssistant.prototype.handleCommand = function(event)
 	}
 };
 
-ItemDisplayAssistant.prototype.cleanup = function(event) {
+ItemAssistant.prototype.cleanup = function(event) {
 	/* this function should do any cleanup needed before the scene is destroyed as 
 	   a result of being popped off the scene stack */
 };

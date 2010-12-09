@@ -46,11 +46,11 @@
         "source": "app/assistants/activity-explore-assistant.js"
     },
     {
-        "scenes": "query-display",
-        "source": "app/assistants/query-display-assistant.js"
+        "scenes": "query",
+        "source": "app/assistants/query-assistant.js"
     },
     {
-        "scenes": "item-display",
-        "source": "app/assistants/item-display-assistant.js"
+        "scenes": "item",
+        "source": "app/assistants/item-assistant.js"
     }
 ]

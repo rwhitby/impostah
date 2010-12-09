@@ -38,6 +38,10 @@
         "source": "app/assistants/keystore-explore-assistant.js"
     },
     {
+        "scenes": "filecache-explore",
+        "source": "app/assistants/filecache-explore-assistant.js"
+    },
+    {
         "scenes": "activity-explore",
         "source": "app/assistants/activity-explore-assistant.js"
     }

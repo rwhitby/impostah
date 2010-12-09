@@ -69,6 +69,11 @@ MainAssistant.prototype.setup = function()
 		});
 
     this.mainModel.items.push({
+	    name:     $L('File Cache Exploration'),
+		scene:    'filecache-explore',
+		});
+
+    this.mainModel.items.push({
 	    name:     $L('Backup Exploration'),
 		scene:    'backup-explore',
 		});

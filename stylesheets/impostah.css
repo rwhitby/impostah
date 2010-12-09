@@ -134,6 +134,14 @@ body.palm-dark .palm-separator
 }
 
 /*
+ * filecache-explore scene styles
+ */
+.filecache-explore .palm-list-selector .title
+{
+	text-align: left;
+}
+
+/*
  * Generic Form Styles
  */
 .form .palm-row-wrapper .note

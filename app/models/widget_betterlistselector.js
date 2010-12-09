@@ -837,7 +837,7 @@ Mojo.Widget.BetterSubmenu = Class.create({
 	},
 	_filter: function()
 	{
-		Mojo.Log.error('Filter: ', this.filterText);
+		//Mojo.Log.error('Filter: ', this.filterText);
 		
 		if (this.filterText != '')
 		{

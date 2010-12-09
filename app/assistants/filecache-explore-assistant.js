@@ -138,6 +138,7 @@ FilecacheExploreAssistant.prototype.showTap = function(event)
 		this.request = ImpostahService.impersonate(this.filecacheKindHandler, "com.palm.filecache",
 												   "com.palm.filecache",
 												   "GetCacheTypeStatus", { "typeName" : this.typeId });
+		// also DescribeType(typeName:string)
 	}
 };
 

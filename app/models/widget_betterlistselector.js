@@ -417,16 +417,6 @@ Mojo.Widget.BetterSubmenu = Class.create({
 			}
 			this.setPopupMaxHeight(this.controller.window.innerHeight -	(viewoffset || 0));
 		}
-
-		// If toggleCmd has been specified, make sure that the selected item
-		// is actually visible by scrolling to it
-		if (this.scroller && model.toggleCmd !== undefined) {
-			var node = this.scroller.querySelector('.chosen');
-			if (node) {
-				this.scroller.mojo.revealElement(node);
-			}
-		}
-
 		
 		// The scrim starts with opacity=0.0, and set to be animated with CSS transitions.
 		// We change it to 1.0 here, which should cause it to fade in over the appropriate time.
@@ -442,6 +432,8 @@ Mojo.Widget.BetterSubmenu = Class.create({
 		this._activateHandler = this._activateHandler.bind(this);
 		this.handleResize = this.handleResize.bind(this);
 		this.handleResizeCallback = this.setPopupMaxHeight.bind(this);
+		
+		this._moveToChosen = this._moveToChosen.bind(this);
 		
 		this._keyHandler = this._keyHandler.bindAsEventListener(this);
 		this._filterDelayHandler = this._filterDelayHandler.bindAsEventListener(this);
@@ -487,7 +479,7 @@ Mojo.Widget.BetterSubmenu = Class.create({
 
 			this.onsceneY = placeY;
 			
-			animateSubmenu = Mojo.Animation.Appmenu.animate.curry(this.popup, this.offsceneY, this.onsceneY, Mojo.doNothing);
+			animateSubmenu = Mojo.Animation.Appmenu.animate.curry(this.popup, this.offsceneY, this.onsceneY, this._moveToChosen);
 			//set the starting scrim opacity
 			this.scrim.style.opacity = 0;
 			Mojo.Animation.Scrim.animate(this.scrim, 0, 1, animateSubmenu);
@@ -531,8 +523,8 @@ Mojo.Widget.BetterSubmenu = Class.create({
 			
 			animateSubmenu = function(){
 				that.popup.show();
-				Mojo.Animation.Submenu.animate(that.popup, that.popupContent, cornersFrom ,cornersTo, Mojo.doNothing);
-			};
+				Mojo.Animation.Submenu.animate(that.popup, that.popupContent, cornersFrom ,cornersTo, this._moveToChosen);
+			}.bind(this);
 			
 			//set the starting scrim opacity
 			this.scrim.style.opacity = 0;
@@ -580,6 +572,16 @@ Mojo.Widget.BetterSubmenu = Class.create({
 			Mojo.Animation.Scrim.animate.curry(this.scrim, 1, 0, this.controller.remove.bind(this.controller)));
 		} else {
 			this.controller.remove();
+		}
+	},
+	
+	_moveToChosen: function()
+	{
+		if (this.scroller && this.controller.model.toggleCmd !== undefined) {
+			var node = this.scroller.querySelector('.chosen');
+			if (node) {
+				this.scroller.mojo.revealElement(node);
+			}
 		}
 	},
 	
@@ -845,9 +847,9 @@ Mojo.Widget.BetterSubmenu = Class.create({
 			for(i = 0; i < this.controller.model.items.length; i++)
 			{
 				var item = Object.clone(this.controller.model.items[i]);
-				if (item.value.toLowerCase().include(this.filterText.toLowerCase()))
+				if (item.value && item.value.toLowerCase().include(this.filterText.toLowerCase()))
 				{
-					item.label = item.label.replace(new RegExp('(' + this.filterText + ')', 'gi'), '<span class="highlight">$1</span>');
+					if (item.label) item.label = item.label.replace(new RegExp('(' + this.filterText + ')', 'gi'), '<span class="highlight">$1</span>');
 					tmpItems.push(item);
 				}
 			}

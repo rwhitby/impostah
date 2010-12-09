@@ -4,6 +4,7 @@
 
 .better-list-selector .textfield-group.focused
 {
+	display: none;
 	position: absolute;
 	z-index: 1000;
 	-webkit-border-image: url(../images/betterlistselector/group-textfield-shadow-52-first.png) 15 15 15 15 stretch stretch;
@@ -18,8 +19,20 @@ body.palm-dark .better-list-selector .textfield-group.focused
 	padding-right: 2px;
 	-webkit-border-image: url(../images/betterlistselector/group-textfield-shadow-first-dark.png) 15 15 15 15 stretch stretch;
 }
+.better-list-selector .filter-spinner
+{
+	position: absolute;
+	z-index: 1001;
+	top: -5px;
+	right: -5px;
+}
 
-.better-list-selector .palm-popup-content .palm-list
+.better-list-selector.filtering .textfield-group.focused
+{
+	display: block;
+}
+
+.better-list-selector.filtering .palm-popup-content .palm-list
 {
 	padding-top: 46px;
 }

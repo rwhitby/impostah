@@ -289,6 +289,10 @@ Mojo.Widget.BetterSubmenu = Class.create({
 		var scroller;
 		var scrimClass = model.scrimClass || 'submenu-popup';
 		
+		this.filterText = '';
+		this.filterTimer = false;
+		this.filtering = false;
+		
 		this.containerTemplate = "betterlistselector/list";
 		this.itemTemplate = model.itemTemplate || Mojo.Widget.getSystemTemplatePath("submenu/item");
 		this.itemRowTemplate = Mojo.Widget.getSystemTemplatePath("submenu/item-row");
@@ -307,6 +311,22 @@ Mojo.Widget.BetterSubmenu = Class.create({
 		
 		this.animateQueue = Mojo.Animation.queueForElement(this.controller.element);
 		
+		this.controller.scene.setupWidget
+		(
+			(model.popupId || '') + '-better-submenu-filter-spinner',
+			{spinnerSize: 'small'}, {spinning: false}
+		);
+		
+		this.controller.scene.setupWidget
+		(
+			(model.popupId || '') + '-better-submenu-filter-text',
+			{
+				focus: false,
+				autoFocus: false,
+				changeOnKeyPress: true
+			},
+			{}
+		);
 		
 		// This means the scroller and any drawers will all share the same model... but it should be okay since
 		// scroller doesn't use the model, and we don't need to maintain a consistent 'open' value for the drawers.
@@ -315,6 +335,9 @@ Mojo.Widget.BetterSubmenu = Class.create({
 		this.popup = this.controller.element.querySelector('div[x-mojo-popup-container]');
 		this.scrim = this.controller.element.querySelector('div[x-mojo-popup-scrim]');
 		this.popupContent = this.controller.element.querySelector('div[x-mojo-popup-content]');
+		
+		this.textbox = this.controller.element.querySelector('div[x-mojo-element=TextField]');
+		this.spinner = this.controller.element.querySelector('div[x-mojo-element=Spinner]');
 
 		scroller = this.controller.element.querySelector('div[x-mojo-element=Scroller]');
 		if (scroller) {
@@ -418,6 +441,10 @@ Mojo.Widget.BetterSubmenu = Class.create({
 		this._activateHandler = this._activateHandler.bind(this);
 		this.handleResize = this.handleResize.bind(this);
 		this.handleResizeCallback = this.setPopupMaxHeight.bind(this);
+		
+		this._keyHandler = this._keyHandler.bindAsEventListener(this);
+		this._filterDelayHandler = this._filterDelayHandler.bindAsEventListener(this);
+		this._filter = this._filter.bind(this);
 
 		
 		this.resizeDebouncer = Mojo.Function.debounce(undefined, this.handleResize, 0.1, this.controller.window);
@@ -425,6 +452,9 @@ Mojo.Widget.BetterSubmenu = Class.create({
 		
 		this.controller.listen(this.controller.element, 'mousedown', this._activateHandler);
 		this.controller.listen(this.controller.element, Mojo.Event.tap, this._activateHandler);
+		
+		this.controller.listen(this.textbox, Mojo.Event.propertyChange, this._filterDelayHandler);
+		this.controller.listen(this.controller.window, 'keypress', this._keyHandler);
 		
 		this.controller.scene.pushCommander(this);
 		this.controller.scene.pushContainer(this.controller.element, 
@@ -556,6 +586,8 @@ Mojo.Widget.BetterSubmenu = Class.create({
 		this.controller.stopListening(this.controller.element, 'mousedown', this._activateHandler);
 		this.controller.stopListening(this.controller.element, Mojo.Event.tap, this._activateHandler);
 		this.controller.stopListening(this.controller.window, 'resize', this.resizeDebouncer);
+		this.controller.stopListening(this.textbox, Mojo.Event.propertyChange, this._filterDelayHandler);
+		this.controller.stopListening(this.controller.window, 'keypress', this._keyHandler);
 	},
 	
 	renderItems: function(items, toggleCmd, prevParentItem, nextParentItem) {
@@ -714,9 +746,10 @@ Mojo.Widget.BetterSubmenu = Class.create({
 			
 			activateTarget = e.target;
 			
+			
 			// Handle taps to choose items or toggle drawers.
 			if(!cmd && e.type == Mojo.Event.tap) {
-			
+				
 				// find command item node, if any:
 				node = Mojo.View.findParentByAttribute(activateTarget, this.controller.element, 'x-mojo-menu-cmd');
 				
@@ -770,6 +803,48 @@ Mojo.Widget.BetterSubmenu = Class.create({
 		return;
 	},
 	
+	_keyHandler: function(e)
+	{
+		if (Mojo.Char.isValidWrittenChar(e.charCode)) 
+		{
+			this.controller.stopListening(this.controller.window, 'keypress', this._keyHandler);
+			this.popup.addClassName('filtering');
+			this.textbox.mojo.focus();
+		}
+	},
+	_filterDelayHandler: function(e)
+	{
+		clearTimeout(this.filterTimer);
+		
+		this.filterText = e.value;
+		
+		if (this.filterText == '') 
+		{
+			this.spinner.mojo.stop();
+			this.textbox.mojo.blur();
+			this.popup.removeClassName('filtering');
+			this.controller.listen(this.controller.window, 'keypress', this._keyHandler);
+			this._filter();
+		}
+		else
+		{
+			this.spinner.mojo.start();
+			this.filtering = true;
+			this.filterTimer = setTimeout(this._filter, 1000);
+		}
+	},
+	_filter: function()
+	{
+		Mojo.Log.error('Filter: ', this.filterText);
+		
+		if (this.filtering)
+		{
+			this.filtering = false;
+		}
+		
+		this.spinner.mojo.stop();
+	},
+
 	/** @private */
 	_removeSubmenu: function() {
 		this.controller.remove();	

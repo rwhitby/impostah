@@ -39,6 +39,7 @@ function DatabaseExploreAssistant()
 	this.databaseId = '';
 	this.databaseOwner = '';
 
+	this.request = false;
 };
 
 DatabaseExploreAssistant.prototype.setup = function()
@@ -128,6 +129,7 @@ DatabaseExploreAssistant.prototype.databaseSetChanged = function(event)
 	this.databaseKindsModel.disabled = true;
 	this.controller.modelChanged(this.databaseKindsModel);
 
+	if (this.request) this.request.cancel();
 	this.request = ImpostahService.impersonate(this.databaseKindsHandler, "com.palm.configurator", this.setId,
 											   "find", {
 												   "query" : {
@@ -191,6 +193,7 @@ DatabaseExploreAssistant.prototype.databaseKindChanged = function(event)
 	this.queryButtonModel.disabled = true;
 	this.controller.modelChanged(this.queryButtonModel);
 
+	if (this.request) this.request.cancel();
 	this.request = ImpostahService.impersonate(this.databaseKindHandler, "com.palm.configurator", this.setId,
 											   "find", {
 												   "query" : {
@@ -225,10 +228,14 @@ DatabaseExploreAssistant.prototype.databaseKind = function(payload)
 DatabaseExploreAssistant.prototype.queryTap = function(event)
 {
 	if (this.kindId && this.databaseOwner) {
+		this.results = 0;
+		if (this.request) this.request.cancel();
 		this.request = ImpostahService.impersonate(this.impersonateHandler, this.databaseOwner, this.setId,
 												   "find", {
+													   "count" : true,
 													   "query" : {
-														   "from" : this.databaseId
+														   "from" : this.databaseId,
+														   "limit" : 10
 													   }
 												   });
 	}
@@ -236,16 +243,40 @@ DatabaseExploreAssistant.prototype.queryTap = function(event)
 
 DatabaseExploreAssistant.prototype.impersonate = function(payload)
 {
-	// stop button spinner xD
-	this.queryButton.mojo.deactivate();
-	
 	if (payload.returnValue === false) {
 		this.errorMessage('<b>Service Error (impersonate):</b><br>'+payload.errorText);
 		return;
 	}
 
 	if (payload.results) {
-		this.bodyElement.innerHTML = JSON.stringify(payload.results);
+
+		// if (!this.results) {
+		this.bodyElement.innerHTML += "<br><b>Results returned: "+payload.results.length+"</b><br>";
+		// }
+
+		// this.bodyElement.innerHTML += JSON.stringify(payload.results);
+		this.bodyElement.innerHTML += "<pre>"+JSON.stringify(payload)+"</pre>";
+
+		this.results += payload.results.length;
+
+		if (payload.count > 10) {
+			if (this.request) this.request.cancel();
+			this.request = ImpostahService.impersonate(this.impersonateHandler, this.databaseOwner, this.setId,
+													   "find", {
+														   "count" : true,
+														   "query" : {
+															   "from" : this.databaseId,
+															   "limit" : 10,
+															   "page" : payload.next
+														   }
+													   });
+		}
+		else {
+			if (this.request) this.request.cancel();
+			this.request = false;
+			// stop button spinner xD
+			this.queryButton.mojo.deactivate();
+		}
 	}
 
 	// Mojo.Log.error('==============');
@@ -266,6 +297,7 @@ DatabaseExploreAssistant.prototype.activate = function(event)
 };
 DatabaseExploreAssistant.prototype.deactivate = function(event)
 {
+	
 };
 
 DatabaseExploreAssistant.prototype.errorMessage = function(msg)
@@ -299,6 +331,8 @@ DatabaseExploreAssistant.prototype.handleCommand = function(event)
 
 DatabaseExploreAssistant.prototype.cleanup = function(event)
 {
+	// cancel the last request
+	if (this.request) this.request.cancel();
 };
 
 // Local Variables:

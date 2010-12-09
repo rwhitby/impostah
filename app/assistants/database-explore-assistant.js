@@ -80,7 +80,9 @@ DatabaseExploreAssistant.prototype.setup = function()
 	this.controller.setupWidget
 	(
 		'queryButton',
-		{},
+		{
+			type: Mojo.Widget.activityButton
+		},
 		this.queryButtonModel =
 		{
 			buttonLabel: $L("Query"),
@@ -234,6 +236,9 @@ DatabaseExploreAssistant.prototype.queryTap = function(event)
 
 DatabaseExploreAssistant.prototype.impersonate = function(payload)
 {
+	// stop button spinner xD
+	this.queryButton.mojo.deactivate();
+	
 	if (payload.returnValue === false) {
 		this.errorMessage('<b>Service Error (impersonate):</b><br>'+payload.errorText);
 		return;

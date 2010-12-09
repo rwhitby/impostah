@@ -338,6 +338,8 @@ Mojo.Widget.BetterSubmenu = Class.create({
 		
 		this.textbox = this.controller.element.querySelector('div[x-mojo-element=TextField]');
 		this.spinner = this.controller.element.querySelector('div[x-mojo-element=Spinner]');
+		
+		this.listContainer = this.controller.element.querySelector('div[x-mojo-popup-elements-container]');
 
 		scroller = this.controller.element.querySelector('div[x-mojo-element=Scroller]');
 		if (scroller) {
@@ -836,6 +838,26 @@ Mojo.Widget.BetterSubmenu = Class.create({
 	_filter: function()
 	{
 		Mojo.Log.error('Filter: ', this.filterText);
+		
+		if (this.filterText != '')
+		{
+			var tmpItems = [];
+			
+			for(i = 0; i < this.controller.model.items.length; i++)
+			{
+				var item = this.controller.model.items[i];
+				if (item.value.toLowerCase().include(this.filterText.toLowerCase()))
+				{
+					tmpItems.push(item);
+				}
+			}
+			
+			this.listContainer.update(this.renderItems(tmpItems, this.controller.model.toggleCmd));
+		}
+		else
+		{
+			this.listContainer.update(this.renderItems(this.controller.model.items, this.controller.model.toggleCmd));
+		}
 		
 		if (this.filtering)
 		{

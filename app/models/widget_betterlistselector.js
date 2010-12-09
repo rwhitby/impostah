@@ -286,7 +286,6 @@ Mojo.Widget.BetterSubmenu = Class.create({
 	setup : function() {
 		var model = this.controller.model;
 		var itemsText;
-		var scroller;
 		var scrimClass = model.scrimClass || 'submenu-popup';
 		
 		this.filterText = '';
@@ -341,9 +340,9 @@ Mojo.Widget.BetterSubmenu = Class.create({
 		
 		this.listContainer = this.controller.element.querySelector('div[x-mojo-popup-elements-container]');
 
-		scroller = this.controller.element.querySelector('div[x-mojo-element=Scroller]');
-		if (scroller) {
-			scroller.mojo.validateScrollPosition();
+		this.scroller = this.controller.element.querySelector('div[x-mojo-element=Scroller]');
+		if (this.scroller) {
+			this.scroller.mojo.validateScrollPosition();
 		}
 
 		this.setPopupMaxHeight(this.controller.window.innerHeight);
@@ -421,10 +420,10 @@ Mojo.Widget.BetterSubmenu = Class.create({
 
 		// If toggleCmd has been specified, make sure that the selected item
 		// is actually visible by scrolling to it
-		if (scroller && model.toggleCmd !== undefined) {
-			var node = scroller.querySelector('.chosen');
+		if (this.scroller && model.toggleCmd !== undefined) {
+			var node = this.scroller.querySelector('.chosen');
 			if (node) {
-				scroller.mojo.revealElement(node);
+				this.scroller.mojo.revealElement(node);
 			}
 		}
 
@@ -845,7 +844,7 @@ Mojo.Widget.BetterSubmenu = Class.create({
 			
 			for(i = 0; i < this.controller.model.items.length; i++)
 			{
-				var item = this.controller.model.items[i];
+				var item = Object.clone(this.controller.model.items[i]);
 				if (item.value.toLowerCase().include(this.filterText.toLowerCase()))
 				{
 					item.label = item.label.replace(new RegExp('(' + this.filterText + ')', 'gi'), '<span class="highlight">$1</span>');
@@ -862,6 +861,7 @@ Mojo.Widget.BetterSubmenu = Class.create({
 		
 		if (this.filtering)
 		{
+			this.scroller.mojo.revealTop();
 			this.filtering = false;
 		}
 		

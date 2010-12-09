@@ -98,10 +98,9 @@ KeystoreExploreAssistant.prototype.keystoreKinds = function(payload)
 			var id = fields[0];
 			var owner = fields[1];
 			var name = fields[2];
-			// %%% FIXME %%% Truncate if necessary
 			var label = owner + ":" + name;
 			if (label.indexOf("com.palm.") == 0) {
-				label = "..." + label.slice(9);
+				label = label.slice(9);
 			}
 			this.keystoreKindsModel.choices.push({label:label, value:id});
 			this.keys[id] = {id: id, owner: owner, name: name};

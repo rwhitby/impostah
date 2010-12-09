@@ -162,9 +162,8 @@ ActivityExploreAssistant.prototype.activityKinds = function(payload)
 				((this.setId == "service-persist") && typeObj.persist && creatorObj.serviceId) ||
 				((this.setId == "service-temp")   && !typeObj.persist && creatorObj.serviceId)) {
 				if (creator.indexOf("com.palm.") == 0) {
-					creator = "..." + creator.slice(9);
+					creator = creator.slice(9);
 				}
-				// %%% FIXME %%% Truncate if necessary
 				this.activityKindsModel.choices.push({label:creator+":"+name, value:id});
 				if (id == oldKind) {
 					newKind = oldKind;

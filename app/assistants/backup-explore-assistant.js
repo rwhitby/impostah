@@ -93,8 +93,10 @@ BackupExploreAssistant.prototype.backupKinds = function(payload)
 		for (var a = 0; a < payload.stdOut.length; a++)
 		{
 			var id = payload.stdOut[a];
-			// %%% FIXME %%% Truncate if necessary
 			var label = payload.stdOut[a];
+			if (label.indexOf("com.palm.") == 0) {
+				label = label.slice(9);
+			}
 			this.backupKindsModel.choices.push({label:label, value:id});
 			if (id == oldKind) {
 				newKind = oldKind;

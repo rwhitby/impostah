@@ -847,9 +847,9 @@ Mojo.Widget.BetterSubmenu = Class.create({
 			for(i = 0; i < this.controller.model.items.length; i++)
 			{
 				var item = Object.clone(this.controller.model.items[i]);
-				if (item.value.toLowerCase().include(this.filterText.toLowerCase()))
+				if (item.value && item.value.toLowerCase().include(this.filterText.toLowerCase()))
 				{
-					item.label = item.label.replace(new RegExp('(' + this.filterText + ')', 'gi'), '<span class="highlight">$1</span>');
+					if (item.label) item.label = item.label.replace(new RegExp('(' + this.filterText + ')', 'gi'), '<span class="highlight">$1</span>');
 					tmpItems.push(item);
 				}
 			}

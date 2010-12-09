@@ -71,7 +71,7 @@ QueryDisplayAssistant.prototype.impersonate = function(payload)
 
 		for (var a = 0; a < payload.results.length; a++) {
 			this.mainModel.items[this.results] = {};
-			this.mainModel.items[this.results].label = payload.results[a]._id;
+			this.mainModel.items[this.results].name  = payload.results[a]._id;
 			this.mainModel.items[this.results].value = payload.results[a];
 			this.mainModel.items[this.results].text  = JSON.stringify(payload.results[a]);
 			this.results++;

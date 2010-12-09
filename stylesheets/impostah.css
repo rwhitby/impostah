@@ -110,6 +110,14 @@ body.palm-dark .palm-separator
 }
 
 /*
+ * list-explore scene styles
+ */
+.list-explore .palm-list-selector .title
+{
+	text-align: left;
+}
+
+/*
  * backup-explore scene styles
  */
 .backup-explore .palm-list-selector .title

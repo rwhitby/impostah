@@ -40,7 +40,6 @@ function DatabaseExploreAssistant()
 	this.databaseOwner = '';
 
 	this.request = false;
-	this.requestSize = 50;
 };
 
 DatabaseExploreAssistant.prototype.setup = function()
@@ -60,7 +59,6 @@ DatabaseExploreAssistant.prototype.setup = function()
     this.databaseKindHandler = 	this.databaseKind.bindAsEventListener(this);
 	this.databaseKindChangedHandler = this.databaseKindChanged.bindAsEventListener(this);
     this.queryTapHandler = 		this.queryTap.bindAsEventListener(this);
-    this.impersonateHandler = 	this.impersonate.bindAsEventListener(this);
 	
 	this.controller.setupWidget
 	(
@@ -82,9 +80,7 @@ DatabaseExploreAssistant.prototype.setup = function()
 	this.controller.setupWidget
 	(
 		'queryButton',
-		{
-			type: Mojo.Widget.activityButton
-		},
+		{ },
 		this.queryButtonModel =
 		{
 			label: $L("Query"),
@@ -98,10 +94,6 @@ DatabaseExploreAssistant.prototype.setup = function()
 	this.databaseKindsModel.value = "";
 	this.databaseKindsModel.disabled = true;
 	this.controller.modelChanged(this.databaseKindsModel);
-
-	this.queryButtonModel.label = $L("Query");
-	this.controller.modelChanged(this.queryButtonModel);
-    this.bodyElement.innerHTML = "";
 
 	this.setId = prefs.get().lastDatabaseSet;
 	if (this.setId == '') {
@@ -121,10 +113,6 @@ DatabaseExploreAssistant.prototype.databaseSetChanged = function(event)
 	
 	this.setId = event.value;
 
-	this.queryButtonModel.label = $L("Query");
-	this.controller.modelChanged(this.queryButtonModel);
-    this.bodyElement.innerHTML = "";
-	
 	// Disable the query button
 	this.queryButtonModel.disabled = true;
 	this.controller.modelChanged(this.queryButtonModel);
@@ -194,27 +182,23 @@ DatabaseExploreAssistant.prototype.databaseKindChanged = function(event)
 	
 	this.kindId = event.value;
 
-	this.queryButtonModel.label = $L("Query");
-	this.controller.modelChanged(this.queryButtonModel);
-    this.bodyElement.innerHTML = "";
-	
 	// Disable the query button
 	this.queryButtonModel.disabled = true;
 	this.controller.modelChanged(this.queryButtonModel);
 
+	this.query = {
+		"select" : [ "id", "owner" ],
+		"from" : "Kind:1",
+		"where" : [{
+				"prop" : "id",
+				"op" : "=",
+				"val" : this.kindId
+			}]
+	};
+
 	if (this.request) this.request.cancel();
 	this.request = ImpostahService.impersonate(this.databaseKindHandler, "com.palm.configurator", this.setId,
-											   "find", {
-												   "query" : {
-													   "select" : [ "id", "owner" ],
-													   "from" : "Kind:1",
-													   "where" : [{
-															   "prop" : "id",
-															   "op" : "=",
-															   "val" : this.kindId
-														   }]
-												   }
-											   });
+											   "find", { "query" : this.query });
 };
 
 DatabaseExploreAssistant.prototype.databaseKind = function(payload)
@@ -236,71 +220,9 @@ DatabaseExploreAssistant.prototype.databaseKind = function(payload)
 
 DatabaseExploreAssistant.prototype.queryTap = function(event)
 {
-	if (this.kindId && this.databaseOwner) {
-
-		this.results = 0;
-
-		this.queryButtonModel.label = $L("Query")+" 0/0";
-		this.controller.modelChanged(this.queryButtonModel);
-		this.bodyElement.innerHTML = "";
-		
-		if (this.request) this.request.cancel();
-		this.request = ImpostahService.impersonate(this.impersonateHandler, this.databaseOwner, this.setId,
-												   "find", {
-													   "count" : true,
-													   "query" : {
-														   "from" : this.databaseId,
-														   "limit" : this.requestSize
-													   }
-												   });
+	if (this.databaseOwner && this.setId && this.databaseId) {
+		this.controller.stageController.pushScene("list-explore", this.databaseOwner, this.setId, this.databaseId);
 	}
-};
-
-DatabaseExploreAssistant.prototype.impersonate = function(payload)
-{
-	if (payload.returnValue === false) {
-		this.errorMessage('<b>Service Error (impersonate):</b><br>'+payload.errorText);
-		return;
-	}
-
-	if (payload.results) {
-
-		this.bodyElement.innerHTML += JSON.stringify(payload.results);
-
-		this.results += payload.results.length;
-
-		if (payload.count > this.requestSize) {
-
-			this.queryButtonModel.label = $L("Query")+" "+this.results+"/"+(this.results +
-																				  payload.count -
-																				  payload.results.length);
-			this.controller.modelChanged(this.queryButtonModel);
-
-			if (this.request) this.request.cancel();
-			this.request = ImpostahService.impersonate(this.impersonateHandler, this.databaseOwner, this.setId,
-													   "find", {
-														   "count" : true,
-														   "query" : {
-															   "from" : this.databaseId,
-															   "limit" : this.requestSize,
-															   "page" : payload.next
-														   }
-													   }).defer;
-		}
-		else {
-
-			this.queryButtonModel.label = $L("Query")+" "+this.results+"/"+this.results;
-			this.controller.modelChanged(this.queryButtonModel);
-
-			if (this.request) this.request.cancel();
-			this.request = false;
-			// stop button spinner xD
-			this.queryButton.mojo.deactivate();
-		}
-	}
-
-	// Mojo.Log.error('==============');
-	// for (var p in payload) Mojo.Log.error(p, ': ', payload[p]);
 };
 
 DatabaseExploreAssistant.prototype.activate = function(event)

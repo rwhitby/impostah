@@ -44,5 +44,9 @@
     {
         "scenes": "activity-explore",
         "source": "app/assistants/activity-explore-assistant.js"
+    },
+    {
+        "scenes": "list-explore",
+        "source": "app/assistants/list-explore-assistant.js"
     }
 ]

@@ -221,7 +221,7 @@ DatabaseExploreAssistant.prototype.databaseKind = function(payload)
 DatabaseExploreAssistant.prototype.queryTap = function(event)
 {
 	if (this.databaseOwner && this.setId && this.databaseId) {
-		this.controller.stageController.pushScene("list-explore", this.databaseOwner, this.setId, this.databaseId);
+		this.controller.stageController.pushScene("query-display", this.databaseOwner, this.setId, this.databaseId);
 	}
 };
 

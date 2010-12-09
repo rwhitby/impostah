@@ -110,14 +110,6 @@ body.palm-dark .palm-separator
 }
 
 /*
- * list-explore scene styles
- */
-.list-explore .palm-list-selector .title
-{
-	text-align: left;
-}
-
-/*
  * backup-explore scene styles
  */
 .backup-explore .palm-list-selector .title
@@ -145,6 +137,22 @@ body.palm-dark .palm-separator
  * filecache-explore scene styles
  */
 .filecache-explore .palm-list-selector .title
+{
+	text-align: left;
+}
+
+/*
+ * query-display scene styles
+ */
+.query-display .palm-list-selector .title
+{
+	text-align: left;
+}
+
+/*
+ * item-display scene styles
+ */
+.item-display .palm-list-selector .title
 {
 	text-align: left;
 }

@@ -40,6 +40,7 @@ function DatabaseExploreAssistant()
 	this.databaseOwner = '';
 
 	this.request = false;
+	this.requestSize = 50;
 };
 
 DatabaseExploreAssistant.prototype.setup = function()
@@ -98,6 +99,8 @@ DatabaseExploreAssistant.prototype.setup = function()
 	this.databaseKindsModel.disabled = true;
 	this.controller.modelChanged(this.databaseKindsModel);
 
+	this.queryButtonModel.buttonLabel = $L("Query");
+	this.controller.modelChanged(this.queryButtonModel);
     this.bodyElement.innerHTML = "";
 
 	this.setId = prefs.get().lastDatabaseSet;
@@ -117,6 +120,9 @@ DatabaseExploreAssistant.prototype.databaseSetChanged = function(event)
 	var tmp = prefs.get(true);
 	
 	this.setId = event.value;
+
+	this.queryButtonModel.buttonLabel = $L("Query");
+	this.controller.modelChanged(this.queryButtonModel);
     this.bodyElement.innerHTML = "";
 	
 	// Disable the query button
@@ -187,6 +193,9 @@ DatabaseExploreAssistant.prototype.databaseKindChanged = function(event)
 	var tmp = prefs.get(true);
 	
 	this.kindId = event.value;
+
+	this.queryButtonModel.buttonLabel = $L("Query");
+	this.controller.modelChanged(this.queryButtonModel);
     this.bodyElement.innerHTML = "";
 	
 	// Disable the query button
@@ -228,14 +237,20 @@ DatabaseExploreAssistant.prototype.databaseKind = function(payload)
 DatabaseExploreAssistant.prototype.queryTap = function(event)
 {
 	if (this.kindId && this.databaseOwner) {
+
 		this.results = 0;
+
+		this.queryButtonModel.buttonLabel = $L("Query")+" 0/0";
+		this.controller.modelChanged(this.queryButtonModel);
+		this.bodyElement.innerHTML = "";
+		
 		if (this.request) this.request.cancel();
 		this.request = ImpostahService.impersonate(this.impersonateHandler, this.databaseOwner, this.setId,
 												   "find", {
 													   "count" : true,
 													   "query" : {
 														   "from" : this.databaseId,
-														   "limit" : 10
+														   "limit" : this.requestSize
 													   }
 												   });
 	}
@@ -250,28 +265,33 @@ DatabaseExploreAssistant.prototype.impersonate = function(payload)
 
 	if (payload.results) {
 
-		// if (!this.results) {
-		this.bodyElement.innerHTML += "<br><b>Results returned: "+payload.results.length+"</b><br>";
-		// }
-
-		// this.bodyElement.innerHTML += JSON.stringify(payload.results);
-		this.bodyElement.innerHTML += "<pre>"+JSON.stringify(payload)+"</pre>";
+		this.bodyElement.innerHTML += JSON.stringify(payload.results);
 
 		this.results += payload.results.length;
 
-		if (payload.count > 10) {
+		if (payload.count > this.requestSize) {
+
+			this.queryButtonModel.buttonLabel = $L("Query")+" "+this.results+"/"+(this.results +
+																				  payload.count -
+																				  payload.results.length);
+			this.controller.modelChanged(this.queryButtonModel);
+
 			if (this.request) this.request.cancel();
 			this.request = ImpostahService.impersonate(this.impersonateHandler, this.databaseOwner, this.setId,
 													   "find", {
 														   "count" : true,
 														   "query" : {
 															   "from" : this.databaseId,
-															   "limit" : 10,
+															   "limit" : this.requestSize,
 															   "page" : payload.next
 														   }
 													   });
 		}
 		else {
+
+			this.queryButtonModel.buttonLabel = $L("Query")+" "+this.results+"/"+this.results;
+			this.controller.modelChanged(this.queryButtonModel);
+
 			if (this.request) this.request.cancel();
 			this.request = false;
 			// stop button spinner xD

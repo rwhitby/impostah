@@ -87,7 +87,7 @@ DatabaseExploreAssistant.prototype.setup = function()
 		},
 		this.queryButtonModel =
 		{
-			buttonLabel: $L("Query"),
+			label: $L("Query"),
 			disabled: true
 		}
 	);
@@ -99,7 +99,7 @@ DatabaseExploreAssistant.prototype.setup = function()
 	this.databaseKindsModel.disabled = true;
 	this.controller.modelChanged(this.databaseKindsModel);
 
-	this.queryButtonModel.buttonLabel = $L("Query");
+	this.queryButtonModel.label = $L("Query");
 	this.controller.modelChanged(this.queryButtonModel);
     this.bodyElement.innerHTML = "";
 
@@ -121,7 +121,7 @@ DatabaseExploreAssistant.prototype.databaseSetChanged = function(event)
 	
 	this.setId = event.value;
 
-	this.queryButtonModel.buttonLabel = $L("Query");
+	this.queryButtonModel.label = $L("Query");
 	this.controller.modelChanged(this.queryButtonModel);
     this.bodyElement.innerHTML = "";
 	
@@ -194,7 +194,7 @@ DatabaseExploreAssistant.prototype.databaseKindChanged = function(event)
 	
 	this.kindId = event.value;
 
-	this.queryButtonModel.buttonLabel = $L("Query");
+	this.queryButtonModel.label = $L("Query");
 	this.controller.modelChanged(this.queryButtonModel);
     this.bodyElement.innerHTML = "";
 	
@@ -240,7 +240,7 @@ DatabaseExploreAssistant.prototype.queryTap = function(event)
 
 		this.results = 0;
 
-		this.queryButtonModel.buttonLabel = $L("Query")+" 0/0";
+		this.queryButtonModel.label = $L("Query")+" 0/0";
 		this.controller.modelChanged(this.queryButtonModel);
 		this.bodyElement.innerHTML = "";
 		
@@ -271,7 +271,7 @@ DatabaseExploreAssistant.prototype.impersonate = function(payload)
 
 		if (payload.count > this.requestSize) {
 
-			this.queryButtonModel.buttonLabel = $L("Query")+" "+this.results+"/"+(this.results +
+			this.queryButtonModel.label = $L("Query")+" "+this.results+"/"+(this.results +
 																				  payload.count -
 																				  payload.results.length);
 			this.controller.modelChanged(this.queryButtonModel);
@@ -289,7 +289,7 @@ DatabaseExploreAssistant.prototype.impersonate = function(payload)
 		}
 		else {
 
-			this.queryButtonModel.buttonLabel = $L("Query")+" "+this.results+"/"+this.results;
+			this.queryButtonModel.label = $L("Query")+" "+this.results+"/"+this.results;
 			this.controller.modelChanged(this.queryButtonModel);
 
 			if (this.request) this.request.cancel();

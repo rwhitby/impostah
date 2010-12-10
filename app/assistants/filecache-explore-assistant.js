@@ -1,31 +1,33 @@
 function FilecacheExploreAssistant()
 {
 	// setup menu
-	this.menuModel =
-	{
+	this.menuModel = {
 		visible: true,
 		items:
 		[
-			{
-				label: $L("Preferences"),
-				command: 'do-prefs'
-			},
-			{
-				label: $L("Help"),
-				command: 'do-help'
-			}
-		]
+	{
+		label: $L("Preferences"),
+		command: 'do-prefs'
+	},
+	{
+		label: $L("Help"),
+		command: 'do-help'
+	}
+		 ]
 	};
 	
-	this.filecacheKindsModel =
-	{
-		value: prefs.get().lastFilecacheKind,
+	this.filecacheKindsModel = {
+		value: '',
 		choices: [],
 		disabled: true
-	}
+	};
 
 	this.typeId = '';
 	
+	this.showButtonModel = {
+		label: $L("Show"),
+		disabled: true
+	};
 };
 
 FilecacheExploreAssistant.prototype.setup = function()
@@ -38,42 +40,20 @@ FilecacheExploreAssistant.prototype.setup = function()
 	this.showButton =			this.controller.get('showButton');
 	
 	// setup handlers
-    this.filecacheKindsHandler = 		this.filecacheKinds.bindAsEventListener(this);
-    this.filecacheKindHandler = 		this.filecacheKind.bindAsEventListener(this);
-	this.filecacheKindChangedHandler = this.filecacheKindChanged.bindAsEventListener(this);
-    this.showTapHandler = 		this.showTap.bindAsEventListener(this);
+	this.filecacheKindsHandler = 		this.filecacheKinds.bindAsEventListener(this);
+	this.filecacheKindHandler = 		this.filecacheKind.bindAsEventListener(this);
+	this.filecacheKindChangedHandler =	this.filecacheKindChanged.bindAsEventListener(this);
+	this.showTapHandler = 				this.showTap.bindAsEventListener(this);
 	
-	this.controller.setupWidget
-	(
-		'filecacheKind',
-		{ multiline: true },
-		this.filecacheKindsModel
-	);
-	
+	// setup widgets
+	this.controller.setupWidget('filecacheKind', { multiline: true }, this.filecacheKindsModel);
 	this.controller.listen(this.filecacheKindElement, Mojo.Event.propertyChange, this.filecacheKindChangedHandler);
-	
-	this.controller.setupWidget
-	(
-		'showButton',
-		{},
-		this.showButtonModel =
-		{
-			buttonLabel: $L("Show"),
-			disabled: true
-		}
-	);
-	
+	this.controller.setupWidget('showButton', { }, this.showButtonModel);
 	this.controller.listen(this.showButton,  Mojo.Event.tap, this.showTapHandler);
 	
-	this.filecacheKindsModel.choices = [];
-	this.filecacheKindsModel.value = "";
-	this.filecacheKindsModel.disabled = true;
-	this.controller.modelChanged(this.filecacheKindsModel);
-
+	// initialise the list
 	this.request = ImpostahService.impersonate(this.filecacheKindsHandler, "com.palm.filecache",
-											   "com.palm.filecache",
-											   "GetCacheTypes", { });
-	
+											   "com.palm.filecache", "GetCacheTypes", { });
 };
 
 FilecacheExploreAssistant.prototype.filecacheKinds = function(payload)
@@ -88,13 +68,10 @@ FilecacheExploreAssistant.prototype.filecacheKinds = function(payload)
 
 	var types = payload.types;
 
-	if (types && types.length > 0)
-	{
-		for (var a = 0; a < types.length; a++)
-		{
+	if (types && types.length > 0) {
+		for (var a = 0; a < types.length; a++) {
 			var id = types[a];
-			var label = id;
-			this.filecacheKindsModel.choices.push({label:label, value:id});
+			this.filecacheKindsModel.choices.push({label:id, value:id});
 			if (id == oldKind) {
 				newKind = oldKind;
 			}
@@ -125,8 +102,7 @@ FilecacheExploreAssistant.prototype.filecacheKindChanged = function(event)
 	// Enable the show button
 	this.showButtonModel.disabled = false;
 	this.controller.modelChanged(this.showButtonModel);
-
-}
+};
 
 FilecacheExploreAssistant.prototype.showTap = function(event)
 {
@@ -134,7 +110,6 @@ FilecacheExploreAssistant.prototype.showTap = function(event)
 		this.request = ImpostahService.impersonate(this.filecacheKindHandler, "com.palm.filecache",
 												   "com.palm.filecache",
 												   "GetCacheTypeStatus", { "typeName" : this.typeId });
-		// also DescribeType(typeName:string)
 	}
 };
 
@@ -148,53 +123,39 @@ FilecacheExploreAssistant.prototype.filecacheKind = function(payload)
 	this.controller.stageController.pushScene("item", "File Cache Type", payload);
 };
 
-FilecacheExploreAssistant.prototype.activate = function(event)
-{
-	
-	if (this.firstActivate)
-	{
-	}
-	else
-	{
-		
-	}
-	this.firstActivate = true;
-};
-FilecacheExploreAssistant.prototype.deactivate = function(event)
-{
-};
-
 FilecacheExploreAssistant.prototype.errorMessage = function(msg)
 {
-	this.controller.showAlertDialog(
-	{
-		allowHTMLMessage:	true,
-		preventCancel:		true,
-	    title:				'Impostah',
-	    message:			msg,
-	    choices:			[{label:$L("Ok"), value:'ok'}],
-	    onChoose:			function(e){}
-    });
-}
+	this.controller.showAlertDialog({
+			allowHTMLMessage:	true,
+			preventCancel:		true,
+			title:				'Impostah',
+			message:			msg,
+			choices:			[{label:$L("Ok"), value:'ok'}],
+			onChoose:			function(e){}
+		});
+};
+
 FilecacheExploreAssistant.prototype.handleCommand = function(event)
 {
-	if (event.type == Mojo.Event.command)
-	{
-		switch (event.command)
-		{
-			case 'do-prefs':
-				this.controller.stageController.pushScene('preferences');
-				break;
-				
-			case 'do-help':
-				this.controller.stageController.pushScene('help');
-				break;
+	if (event.type == Mojo.Event.command) {
+		switch (event.command) {
+		case 'do-prefs':
+		this.controller.stageController.pushScene('preferences');
+		break;
+		
+		case 'do-help':
+		this.controller.stageController.pushScene('help');
+		break;
 		}
 	}
 };
 
 FilecacheExploreAssistant.prototype.cleanup = function(event)
 {
+	this.controller.stopListening(this.filecacheKindElement, Mojo.Event.propertyChange,
+								  this.filecacheKindChangedHandler);
+	this.controller.stopListening(this.showButton,  Mojo.Event.tap,
+								  this.showTapHandler);
 };
 
 // Local Variables:

@@ -1,7 +1,7 @@
 function MainAssistant()
 {
 	// subtitle random list
-	this.randomSub = 
+	this.randomSub =
 		[
 		 {weight: 30, text: $L('This app is not what you think it is')},
 		 {weight: 6, text: $L("<a href=\"http://donate.webos-internals.org/\">Donated</a> To WebOS Internals Lately?")}
@@ -11,20 +11,18 @@ function MainAssistant()
 	this.mainModel = {items:[]};
 	
 	// setup menu
-	this.menuModel =
-	{
+	this.menuModel = {
 		visible: true,
-		items:
-		[
-			{
-				label: $L("Preferences"),
-				command: 'do-prefs'
-			},
-			{
-				label: $L("Help"),
-				command: 'do-help'
-			}
-		]
+		items: [
+	{
+		label: $L("Preferences"),
+		command: 'do-prefs'
+	},
+	{
+		label: $L("Help"),
+		command: 'do-help'
+	}
+				]
 	};
 	
 };
@@ -54,29 +52,29 @@ MainAssistant.prototype.setup = function()
     this.listTapHandler = this.listTap.bindAsEventListener(this);
 	
     this.mainModel.items.push({
-	    name:     $L('Database Exploration'),
-		scene:    'database-explore',
-		});
+			name:     $L('Database Exploration'),
+				scene:   'database-explore',
+				});
     
     this.mainModel.items.push({
-	    name:     $L('Activity Exploration'),
-		scene:    'activity-explore',
-		});
+			name:     $L('Activity Exploration'),
+				scene:   'activity-explore',
+				});
 
     this.mainModel.items.push({
-	    name:     $L('Key Store Exploration'),
-		scene:    'keystore-explore',
-		});
+			name:     $L('Key Store Exploration'),
+				scene:   'keystore-explore',
+				});
 
     this.mainModel.items.push({
-	    name:     $L('File Cache Exploration'),
-		scene:    'filecache-explore',
-		});
+			name:     $L('File Cache Exploration'),
+				scene:   'filecache-explore',
+				});
 
     this.mainModel.items.push({
-	    name:     $L('Backup Exploration'),
-		scene:    'backup-explore',
-		});
+			name:     $L('Backup Exploration'),
+				scene:   'backup-explore',
+				});
     
     // setup widget
     this.controller.setupWidget('mainList', {
@@ -87,36 +85,19 @@ MainAssistant.prototype.setup = function()
 MainAssistant.prototype.listTap = function(event)
 {
     if (event.item.scene === false || event.item.style == 'disabled') {
-	// no scene or its disabled, so we won't do anything
+		// no scene or its disabled, so we won't do anything
     }
     else {
-	// push the scene
-	this.controller.stageController.pushScene(event.item.scene, event.item);
+		// push the scene
+		this.controller.stageController.pushScene(event.item.scene, event.item);
     }
-};
-
-MainAssistant.prototype.activate = function(event)
-{
-	
-	if (this.firstActivate)
-	{
-	}
-	else
-	{
-		
-	}
-	this.firstActivate = true;
-};
-MainAssistant.prototype.deactivate = function(event)
-{
 };
 
 MainAssistant.prototype.getRandomSubTitle = function()
 {
 	// loop to get total weight value
 	var weight = 0;
-	for (var r = 0; r < this.randomSub.length; r++)
-	{
+	for (var r = 0; r < this.randomSub.length; r++) {
 		weight += this.randomSub[r].weight;
 	}
 	
@@ -125,14 +106,11 @@ MainAssistant.prototype.getRandomSubTitle = function()
 	//alert('rand: ' + rand + ' of ' + weight);
 	
 	// loop through to find the random title
-	for (var r = 0; r < this.randomSub.length; r++)
-	{
-		if (rand <= this.randomSub[r].weight)
-		{
+	for (var r = 0; r < this.randomSub.length; r++) {
+		if (rand <= this.randomSub[r].weight) {
 			return this.randomSub[r].text;
 		}
-		else
-		{
+		else {
 			rand -= this.randomSub[r].weight;
 		}
 	}
@@ -143,17 +121,15 @@ MainAssistant.prototype.getRandomSubTitle = function()
 
 MainAssistant.prototype.handleCommand = function(event)
 {
-	if (event.type == Mojo.Event.command)
-	{
-		switch (event.command)
-		{
-			case 'do-prefs':
-				this.controller.stageController.pushScene('preferences');
-				break;
-				
-			case 'do-help':
-				this.controller.stageController.pushScene('help');
-				break;
+	if (event.type == Mojo.Event.command) {
+		switch (event.command) {
+		case 'do-prefs':
+		this.controller.stageController.pushScene('preferences');
+		break;
+		
+		case 'do-help':
+		this.controller.stageController.pushScene('help');
+		break;
 		}
 	}
 };

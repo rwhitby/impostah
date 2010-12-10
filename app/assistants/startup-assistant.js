@@ -11,6 +11,9 @@ function StartupAssistant(changelog)
     this.newMessages =
 	[
 	 // Don't forget the comma on all but the last entry
+	 { version: '0.2.5', log: [ 'Fixed a bug in the query list' ] },
+	 { version: '0.2.4', log: [ 'Added a query and item display scenes' ] },
+	 { version: '0.2.3', log: [ 'Added a better list selector' ] },
 	 { version: '0.2.2', log: [ 'Added support for keystore exploration' ] },
 	 { version: '0.2.1', log: [ 'Revamped the activity exploration backend' ] },
 	 { version: '0.2.0', log: [ 'Revamped the database exploration backend' ] },

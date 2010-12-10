@@ -48,11 +48,6 @@ ItemAssistant.prototype.listTap = function(event)
 	// Do something here
 };
 
-ItemAssistant.prototype.deactivate = function(event) {
-	/* remove any event handlers you added in activate and do any other cleanup that should happen before
-	   this scene is popped or another scene is pushed on top */
-};
-
 ItemAssistant.prototype.errorMessage = function(msg)
 {
 	this.controller.showAlertDialog(
@@ -84,8 +79,7 @@ ItemAssistant.prototype.handleCommand = function(event)
 };
 
 ItemAssistant.prototype.cleanup = function(event) {
-	/* this function should do any cleanup needed before the scene is destroyed as 
-	   a result of being popped off the scene stack */
+    this.controller.stopListening(this.listElement, Mojo.Event.listTap, this.listTapHandler);
 };
 
 // Local Variables:

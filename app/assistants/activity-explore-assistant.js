@@ -1,43 +1,45 @@
 function ActivityExploreAssistant()
 {
 	// setup menu
-	this.menuModel =
-	{
+	this.menuModel = {
 		visible: true,
 		items:
 		[
-			{
-				label: $L("Preferences"),
-				command: 'do-prefs'
-			},
-			{
-				label: $L("Help"),
-				command: 'do-help'
-			}
-		]
+	{
+		label: $L("Preferences"),
+		command: 'do-prefs'
+	},
+	{
+		label: $L("Help"),
+		command: 'do-help'
+	}
+		 ]
 	};
 	
-	this.activitySetsModel =
-	{
+	this.activitySetsModel = {
 		value: prefs.get().lastActivitySet,
 		choices: [
-	{value:"app-persist",     label:"Application Persistent"},
-	{value:"app-temp",        label:"Application Temporary"},
+	{value:"app-persist",	  label:"Application Persistent"},
+	{value:"app-temp",		  label:"Application Temporary"},
 	{value:"service-persist", label:"Service Persistent"},
-	{value:"service-temp",    label:"Service Temporary"}
+	{value:"service-temp",	  label:"Service Temporary"}
 				  ],
 		disabled: false
 	}
 	this.setId = '';
 	
-	this.activityKindsModel =
-	{
-		value: prefs.get().lastActivityKind,
+	this.activityKindsModel = {
+		value: '',
 		choices: [],
 		disabled: true
 	}
 	this.activityId = '';
 	
+	this.showButtonModel = {
+		label: $L("Show"),
+		disabled: true
+	}
+
 };
 
 ActivityExploreAssistant.prototype.setup = function()
@@ -52,52 +54,24 @@ ActivityExploreAssistant.prototype.setup = function()
 	
 	// setup handlers
 	this.activitySetChangedHandler = this.activitySetChanged.bindAsEventListener(this);
-    this.activityKindsHandler = this.activityKinds.bindAsEventListener(this);
-    this.activityKindHandler = 	this.activityKind.bindAsEventListener(this);
+	this.activityKindsHandler = this.activityKinds.bindAsEventListener(this);
+	this.activityKindHandler =	this.activityKind.bindAsEventListener(this);
 	this.activityKindChangedHandler = this.activityKindChanged.bindAsEventListener(this);
-    this.showTapHandler = 		this.showTap.bindAsEventListener(this);
+	this.showTapHandler =		this.showTap.bindAsEventListener(this);
 	
-	this.controller.setupWidget
-	(
-		'activitySet', {},
-		this.activitySetsModel
-	);
-	
+	// setup wigets
+	this.controller.setupWidget('activitySet', {}, this.activitySetsModel);
 	this.controller.listen(this.activitySetElement, Mojo.Event.propertyChange, this.activitySetChangedHandler);
-	
-	this.controller.setupWidget
-	(
-		'activityKind',
-		{ multiline: true },
-		this.activityKindsModel
-	);
-	
+	this.controller.setupWidget('activityKind', { multiline: true }, this.activityKindsModel);
 	this.controller.listen(this.activityKindElement, Mojo.Event.propertyChange, this.activityKindChangedHandler);
-
-	this.controller.setupWidget
-	(
-		'showButton',
-		{},
-		this.showButtonModel =
-		{
-			buttonLabel: $L("Show"),
-			disabled: true
-		}
-	);
+	this.controller.setupWidget('showButton', {}, this.showButtonModel);
+	this.controller.listen(this.showButton,	 Mojo.Event.tap, this.showTapHandler);
 	
-	this.controller.listen(this.showButton,  Mojo.Event.tap, this.showTapHandler);
-	
-	this.activityKindsModel.choices = [];
-	this.activityKindsModel.value = "";
-	this.activityKindsModel.disabled = true;
-	this.controller.modelChanged(this.activityKindsModel);
-
 	this.setId = prefs.get().lastActivitySet;
 	if (this.setId == '') {
 		this.setId = this.activitySetsModel.choices[0].value;
 	}
 	this.activitySetChanged({value: this.setId});
-
 };
 
 ActivityExploreAssistant.prototype.activitySetChanged = function(event)
@@ -125,7 +99,7 @@ ActivityExploreAssistant.prototype.activitySetChanged = function(event)
 											   "list", {"details":true});
 }
 
-ActivityExploreAssistant.prototype.activityKinds = function(payload)
+	ActivityExploreAssistant.prototype.activityKinds = function(payload)
 {
 	if (payload.returnValue === false) {
 		this.errorMessage('<b>Service Error (activityKinds):</b><br>'+payload.errorText);
@@ -137,10 +111,8 @@ ActivityExploreAssistant.prototype.activityKinds = function(payload)
 
 	var activities = payload.activities;
 
-	if (activities && activities.length > 0)
-	{
-		for (var a = 0; a < activities.length; a++)
-		{
+	if (activities && activities.length > 0) {
+		for (var a = 0; a < activities.length; a++) {
 			var id = activities[a].activityId;
 			var name = activities[a].name;
 			var creatorObj = activities[a].creator;
@@ -153,10 +125,10 @@ ActivityExploreAssistant.prototype.activityKinds = function(payload)
 				creator = creatorObj.serviceId;
 			}
 			if (creator &&
-				((this.setId == "app-persist")     && typeObj.persist && creatorObj.appId) ||
-				((this.setId == "app-temp")       && !typeObj.persist && creatorObj.appId) ||
+				((this.setId == "app-persist")	   && typeObj.persist && creatorObj.appId) ||
+				((this.setId == "app-temp")		  && !typeObj.persist && creatorObj.appId) ||
 				((this.setId == "service-persist") && typeObj.persist && creatorObj.serviceId) ||
-				((this.setId == "service-temp")   && !typeObj.persist && creatorObj.serviceId)) {
+				((this.setId == "service-temp")	  && !typeObj.persist && creatorObj.serviceId)) {
 				if (creator.indexOf("com.palm.") == 0) {
 					creator = creator.slice(9);
 				}
@@ -193,7 +165,7 @@ ActivityExploreAssistant.prototype.activityKindChanged = function(event)
 	this.showButtonModel.disabled = false;
 	this.controller.modelChanged(this.showButtonModel);
 
-}
+};
 
 ActivityExploreAssistant.prototype.showTap = function(event)
 {
@@ -217,53 +189,38 @@ ActivityExploreAssistant.prototype.activityKind = function(payload)
 
 };
 
-ActivityExploreAssistant.prototype.activate = function(event)
-{
-	
-	if (this.firstActivate)
-	{
-	}
-	else
-	{
-		
-	}
-	this.firstActivate = true;
-};
-ActivityExploreAssistant.prototype.deactivate = function(event)
-{
-};
-
 ActivityExploreAssistant.prototype.errorMessage = function(msg)
 {
-	this.controller.showAlertDialog(
-	{
-		allowHTMLMessage:	true,
-		preventCancel:		true,
-	    title:				'Impostah',
-	    message:			msg,
-	    choices:			[{label:$L("Ok"), value:'ok'}],
-	    onChoose:			function(e){}
-    });
-}
+	this.controller.showAlertDialog({
+			allowHTMLMessage:	true,
+			preventCancel:		true,
+			title:				'Impostah',
+			message:			msg,
+			choices:			[{label:$L("Ok"), value:'ok'}],
+			onChoose:			function(e){}
+		});
+};
+
 ActivityExploreAssistant.prototype.handleCommand = function(event)
 {
-	if (event.type == Mojo.Event.command)
-	{
-		switch (event.command)
-		{
-			case 'do-prefs':
-				this.controller.stageController.pushScene('preferences');
-				break;
-				
-			case 'do-help':
-				this.controller.stageController.pushScene('help');
-				break;
+	if (event.type == Mojo.Event.command) {
+		switch (event.command) {
+		case 'do-prefs':
+		this.controller.stageController.pushScene('preferences');
+		break;
+		
+		case 'do-help':
+		this.controller.stageController.pushScene('help');
+		break;
 		}
 	}
 };
 
 ActivityExploreAssistant.prototype.cleanup = function(event)
 {
+	this.controller.stopListening(this.activitySetElement, Mojo.Event.propertyChange, this.activitySetChangedHandler);
+	this.controller.stopListening(this.activityKindElement, Mojo.Event.propertyChange, this.activityKindChangedHandler);
+	this.controller.stopListening(this.showButton,	Mojo.Event.tap, this.showTapHandler);
 };
 
 // Local Variables:

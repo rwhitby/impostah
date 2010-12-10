@@ -45,10 +45,6 @@ QueryAssistant.prototype.setup = function() {
 			itemTemplate: "query/rowTemplate", swipeToDelete: false, reorderable: false }, this.mainModel);
     this.controller.listen(this.listElement, Mojo.Event.listTap, this.listTapHandler);
 
-};
-
-QueryAssistant.prototype.activate = function(event) {
-
 	this.query = {
 		"from" : this.database,
 		"limit" : this.requestSize
@@ -113,11 +109,6 @@ QueryAssistant.prototype.listTap = function(event)
 	this.controller.stageController.pushScene("item", "Database Record", event.item.value);
 };
 
-QueryAssistant.prototype.deactivate = function(event) {
-	/* remove any event handlers you added in activate and do any other cleanup that should happen before
-	   this scene is popped or another scene is pushed on top */
-};
-
 QueryAssistant.prototype.errorMessage = function(msg)
 {
 	this.controller.showAlertDialog(
@@ -149,8 +140,7 @@ QueryAssistant.prototype.handleCommand = function(event)
 };
 
 QueryAssistant.prototype.cleanup = function(event) {
-	/* this function should do any cleanup needed before the scene is destroyed as 
-	   a result of being popped off the scene stack */
+    this.controller.stopListening(this.listElement, Mojo.Event.listTap, this.listTapHandler);
 };
 
 // Local Variables:

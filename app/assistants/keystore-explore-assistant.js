@@ -1,25 +1,23 @@
 function KeystoreExploreAssistant()
 {
 	// setup menu
-	this.menuModel =
-	{
+	this.menuModel = {
 		visible: true,
 		items:
 		[
-			{
-				label: $L("Preferences"),
-				command: 'do-prefs'
-			},
-			{
-				label: $L("Help"),
-				command: 'do-help'
-			}
-		]
+	{
+		label: $L("Preferences"),
+		command: 'do-prefs'
+	},
+	{
+		label: $L("Help"),
+		command: 'do-help'
+	}
+		 ]
 	};
 	
-	this.keystoreKindsModel =
-	{
-		value: prefs.get().lastKeystoreKind,
+	this.keystoreKindsModel = {
+		value: '',
 		choices: [],
 		disabled: true
 	}
@@ -27,6 +25,11 @@ function KeystoreExploreAssistant()
 	this.keyId = '';
 	this.keys = {};
 	
+	this.showButtonModel = {
+		label: $L("Show"),
+		disabled: true
+	}
+
 };
 
 KeystoreExploreAssistant.prototype.setup = function()
@@ -39,38 +42,17 @@ KeystoreExploreAssistant.prototype.setup = function()
 	this.showButton =			this.controller.get('showButton');
 	
 	// setup handlers
-    this.keystoreKindsHandler = 		this.keystoreKinds.bindAsEventListener(this);
-    this.keystoreKindHandler = 		this.keystoreKind.bindAsEventListener(this);
+	this.keystoreKindsHandler =			this.keystoreKinds.bindAsEventListener(this);
+	this.keystoreKindHandler =		this.keystoreKind.bindAsEventListener(this);
 	this.keystoreKindChangedHandler = this.keystoreKindChanged.bindAsEventListener(this);
-    this.showTapHandler = 		this.showTap.bindAsEventListener(this);
+	this.showTapHandler =		this.showTap.bindAsEventListener(this);
 	
-	this.controller.setupWidget
-	(
-		'keystoreKind',
-		{ multiline: true },
-		this.keystoreKindsModel
-	);
-	
+	// setup widgets
+	this.controller.setupWidget('keystoreKind', { multiline: true }, this.keystoreKindsModel);
 	this.controller.listen(this.keystoreKindElement, Mojo.Event.propertyChange, this.keystoreKindChangedHandler);
+	this.controller.setupWidget('showButton', {}, this.showButtonModel);
+	this.controller.listen(this.showButton,	 Mojo.Event.tap, this.showTapHandler);
 	
-	this.controller.setupWidget
-	(
-		'showButton',
-		{},
-		this.showButtonModel =
-		{
-			buttonLabel: $L("Show"),
-			disabled: true
-		}
-	);
-	
-	this.controller.listen(this.showButton,  Mojo.Event.tap, this.showTapHandler);
-	
-	this.keystoreKindsModel.choices = [];
-	this.keystoreKindsModel.value = "";
-	this.keystoreKindsModel.disabled = true;
-	this.controller.modelChanged(this.keystoreKindsModel);
-
 	this.request = ImpostahService.listKeys(this.keystoreKindsHandler, false);
 	
 };
@@ -87,10 +69,8 @@ KeystoreExploreAssistant.prototype.keystoreKinds = function(payload)
 
 	this.keys = {};
 
-	if (payload.stdOut && payload.stdOut.length > 0)
-	{
-		for (var a = 0; a < payload.stdOut.length; a++)
-		{
+	if (payload.stdOut && payload.stdOut.length > 0) {
+		for (var a = 0; a < payload.stdOut.length; a++) {
 			var fields = payload.stdOut[a].split('|');
 			var id = fields[0];
 			var owner = fields[1];
@@ -132,12 +112,12 @@ KeystoreExploreAssistant.prototype.keystoreKindChanged = function(event)
 	this.showButtonModel.disabled = false;
 	this.controller.modelChanged(this.showButtonModel);
 
-}
+};
 
 KeystoreExploreAssistant.prototype.showTap = function(event)
 {
 	if (this.keyId) {
-		var id    = this.keys[this.keyId].id;
+		var id	  = this.keys[this.keyId].id;
 		var owner = this.keys[this.keyId].owner;
 		var name  = this.keys[this.keyId].name;
 
@@ -157,53 +137,37 @@ KeystoreExploreAssistant.prototype.keystoreKind = function(payload)
 	this.controller.stageController.pushScene("item", "Key Store Record", payload);
 };
 
-KeystoreExploreAssistant.prototype.activate = function(event)
-{
-	
-	if (this.firstActivate)
-	{
-	}
-	else
-	{
-		
-	}
-	this.firstActivate = true;
-};
-KeystoreExploreAssistant.prototype.deactivate = function(event)
-{
-};
-
 KeystoreExploreAssistant.prototype.errorMessage = function(msg)
 {
-	this.controller.showAlertDialog(
-	{
-		allowHTMLMessage:	true,
-		preventCancel:		true,
-	    title:				'Impostah',
-	    message:			msg,
-	    choices:			[{label:$L("Ok"), value:'ok'}],
-	    onChoose:			function(e){}
-    });
-}
+	this.controller.showAlertDialog({
+			allowHTMLMessage:	true,
+			preventCancel:		true,
+			title:				'Impostah',
+			message:			msg,
+			choices:			[{label:$L("Ok"), value:'ok'}],
+			onChoose:			function(e){}
+		});
+};
+
 KeystoreExploreAssistant.prototype.handleCommand = function(event)
 {
-	if (event.type == Mojo.Event.command)
-	{
-		switch (event.command)
-		{
-			case 'do-prefs':
-				this.controller.stageController.pushScene('preferences');
-				break;
-				
-			case 'do-help':
-				this.controller.stageController.pushScene('help');
-				break;
+	if (event.type == Mojo.Event.command) {
+		switch (event.command) {
+		case 'do-prefs':
+		this.controller.stageController.pushScene('preferences');
+		break;
+		
+		case 'do-help':
+		this.controller.stageController.pushScene('help');
+		break;
 		}
 	}
 };
 
 KeystoreExploreAssistant.prototype.cleanup = function(event)
 {
+	this.controller.stopListening(this.keystoreKindElement, Mojo.Event.propertyChange, this.keystoreKindChangedHandler);
+	this.controller.stopListening(this.showButton,	Mojo.Event.tap, this.showTapHandler);
 };
 
 // Local Variables:

@@ -1,30 +1,32 @@
 function BackupExploreAssistant()
 {
 	// setup menu
-	this.menuModel =
-	{
+	this.menuModel = {
 		visible: true,
 		items:
 		[
-			{
-				label: $L("Preferences"),
-				command: 'do-prefs'
-			},
-			{
-				label: $L("Help"),
-				command: 'do-help'
-			}
-		]
+	{
+		label: $L("Preferences"),
+		command: 'do-prefs'
+	},
+	{
+		label: $L("Help"),
+		command: 'do-help'
+	}
+		 ]
 	};
 	
-	this.backupKindsModel =
-	{
-		value: prefs.get().lastBackupKind,
+	this.backupKindsModel = {
+		value: '',
 		choices: [],
 		disabled: true
 	}
 	this.kindId = '';
 	
+	this.showButtonModel = {
+		label: $L("Show"),
+		disabled: true
+	}
 };
 
 BackupExploreAssistant.prototype.setup = function()
@@ -38,40 +40,17 @@ BackupExploreAssistant.prototype.setup = function()
 	this.bodyElement =			this.controller.get('body');
 	
 	// setup handlers
-    this.backupKindsHandler = 		this.backupKinds.bindAsEventListener(this);
-    this.backupKindHandler = 		this.backupKind.bindAsEventListener(this);
+	this.backupKindsHandler =		this.backupKinds.bindAsEventListener(this);
+	this.backupKindHandler =		this.backupKind.bindAsEventListener(this);
 	this.backupKindChangedHandler = this.backupKindChanged.bindAsEventListener(this);
-    this.showTapHandler = 		this.showTap.bindAsEventListener(this);
+	this.showTapHandler =		this.showTap.bindAsEventListener(this);
 	
-	this.controller.setupWidget
-	(
-		'backupKind',
-		{ multiline: true },
-		this.backupKindsModel
-	);
-	
+	// setup widgets
+	this.controller.setupWidget('backupKind', { multiline: true }, this.backupKindsModel);
 	this.controller.listen(this.backupKindElement, Mojo.Event.propertyChange, this.backupKindChangedHandler);
+	this.controller.setupWidget('showButton', {}, this.showButtonModel);
+	this.controller.listen(this.showButton,	 Mojo.Event.tap, this.showTapHandler);
 	
-	this.controller.setupWidget
-	(
-		'showButton',
-		{},
-		this.showButtonModel =
-		{
-			buttonLabel: $L("Show"),
-			disabled: true
-		}
-	);
-	
-	this.controller.listen(this.showButton,  Mojo.Event.tap, this.showTapHandler);
-	
-	this.backupKindsModel.choices = [];
-	this.backupKindsModel.value = "";
-	this.backupKindsModel.disabled = true;
-	this.controller.modelChanged(this.backupKindsModel);
-
-    this.bodyElement.innerHTML = "";
-
 	this.request = ImpostahService.listBackups(this.backupKindsHandler, false);
 	
 };
@@ -86,12 +65,10 @@ BackupExploreAssistant.prototype.backupKinds = function(payload)
 	var oldKind = prefs.get().lastBackupKind;
 	var newKind = false;
 
-	if (payload.stdOut && payload.stdOut.length > 0)
-	{
+	if (payload.stdOut && payload.stdOut.length > 0) {
 		payload.stdOut.sort();
 		
-		for (var a = 0; a < payload.stdOut.length; a++)
-		{
+		for (var a = 0; a < payload.stdOut.length; a++) {
 			var id = payload.stdOut[a];
 			var label = payload.stdOut[a];
 			if (label.indexOf("com.palm.") == 0) {
@@ -124,10 +101,10 @@ BackupExploreAssistant.prototype.backupKindChanged = function(event)
 	var tmp = prefs.get(true);
 	
 	this.kindId = '';
-    this.bodyElement.innerHTML = "";
+	this.bodyElement.innerHTML = "";
 	
 	this.request = ImpostahService.getBackup(this.backupKindHandler, event.value);
-}
+};
 
 BackupExploreAssistant.prototype.backupKind = function(payload)
 {
@@ -179,56 +156,40 @@ BackupExploreAssistant.prototype.backupKind = function(payload)
 
 BackupExploreAssistant.prototype.showTap = function(event)
 {
-    this.bodyElement.innerHTML = this.rawData;
-};
-
-BackupExploreAssistant.prototype.activate = function(event)
-{
-	
-	if (this.firstActivate)
-	{
-	}
-	else
-	{
-		
-	}
-	this.firstActivate = true;
-};
-BackupExploreAssistant.prototype.deactivate = function(event)
-{
+	this.bodyElement.innerHTML = this.rawData;
 };
 
 BackupExploreAssistant.prototype.errorMessage = function(msg)
 {
-	this.controller.showAlertDialog(
-	{
-		allowHTMLMessage:	true,
-		preventCancel:		true,
-	    title:				'Impostah',
-	    message:			msg,
-	    choices:			[{label:$L("Ok"), value:'ok'}],
-	    onChoose:			function(e){}
-    });
-}
+	this.controller.showAlertDialog({
+			allowHTMLMessage:	true,
+			preventCancel:		true,
+			title:				'Impostah',
+			message:			msg,
+			choices:			[{label:$L("Ok"), value:'ok'}],
+			onChoose:			function(e){}
+		});
+};
+
 BackupExploreAssistant.prototype.handleCommand = function(event)
 {
-	if (event.type == Mojo.Event.command)
-	{
-		switch (event.command)
-		{
-			case 'do-prefs':
-				this.controller.stageController.pushScene('preferences');
-				break;
-				
-			case 'do-help':
-				this.controller.stageController.pushScene('help');
-				break;
+	if (event.type == Mojo.Event.command) {
+		switch (event.command) {
+		case 'do-prefs':
+		this.controller.stageController.pushScene('preferences');
+		break;
+		
+		case 'do-help':
+		this.controller.stageController.pushScene('help');
+		break;
 		}
 	}
 };
 
 BackupExploreAssistant.prototype.cleanup = function(event)
 {
+	this.controller.stopListening(this.backupKindElement, Mojo.Event.propertyChange, this.backupKindChangedHandler);
+	this.controller.stopListening(this.showButton,	Mojo.Event.tap, this.showTapHandler);
 };
 
 // Local Variables:

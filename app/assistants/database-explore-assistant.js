@@ -1,36 +1,32 @@
 function DatabaseExploreAssistant()
 {
 	// setup menu
-	this.menuModel =
-	{
+	this.menuModel = {
 		visible: true,
-		items:
-		[
-			{
-				label: $L("Preferences"),
-				command: 'do-prefs'
-			},
-			{
-				label: $L("Help"),
-				command: 'do-help'
-			}
-		]
+		items: [
+	{
+		label: $L("Preferences"),
+		command: 'do-prefs'
+	},
+	{
+		label: $L("Help"),
+		command: 'do-help'
+	}
+				]
 	};
 	
-	this.databaseSetsModel =
-	{
+	this.databaseSetsModel = {
 		value: prefs.get().lastDatabaseSet,
 		choices: [
-	{value:"com.palm.db",     label:"Persistent"},
+	{value:"com.palm.db",	  label:"Persistent"},
 	{value:"com.palm.tempdb", label:"Temporary"}
 				  ],
 		disabled: false
 	}
 	this.setId = '';
 	
-	this.databaseKindsModel =
-	{
-		value: prefs.get().lastDatabaseKind,
+	this.databaseKindsModel = {
+		value: '',
 		choices: [],
 		disabled: true
 	}
@@ -38,6 +34,11 @@ function DatabaseExploreAssistant()
 	
 	this.databaseId = '';
 	this.databaseOwner = '';
+
+	this.queryButtonModel = {
+		label: $L("Query"),
+		disabled: true
+	}
 
 	this.request = false;
 };
@@ -54,47 +55,20 @@ DatabaseExploreAssistant.prototype.setup = function()
 	this.bodyElement =			this.controller.get('body');
 	
 	// setup handlers
-	this.databaseSetChangedHandler = this.databaseSetChanged.bindAsEventListener(this);
-    this.databaseKindsHandler = this.databaseKinds.bindAsEventListener(this);
-    this.databaseKindHandler = 	this.databaseKind.bindAsEventListener(this);
+	this.databaseSetChangedHandler =  this.databaseSetChanged.bindAsEventListener(this);
+	this.databaseKindsHandler =		  this.databaseKinds.bindAsEventListener(this);
+	this.databaseKindHandler =		  this.databaseKind.bindAsEventListener(this);
 	this.databaseKindChangedHandler = this.databaseKindChanged.bindAsEventListener(this);
-    this.queryTapHandler = 		this.queryTap.bindAsEventListener(this);
+	this.queryTapHandler =			  this.queryTap.bindAsEventListener(this);
 	
-	this.controller.setupWidget
-	(
-		'databaseSet', {},
-		this.databaseSetsModel
-	);
-	
+	// setup widgets
+	this.controller.setupWidget('databaseSet', {}, this.databaseSetsModel);
 	this.controller.listen(this.databaseSetElement, Mojo.Event.propertyChange, this.databaseSetChangedHandler);
-	
-	this.controller.setupWidget
-	(
-		'databaseKind',
-		{ multiline: true },
-		this.databaseKindsModel
-	);
-	
+	this.controller.setupWidget('databaseKind', { multiline: true }, this.databaseKindsModel);
 	this.controller.listen(this.databaseKindElement, Mojo.Event.propertyChange, this.databaseKindChangedHandler);
-	
-	this.controller.setupWidget
-	(
-		'queryButton',
-		{ },
-		this.queryButtonModel =
-		{
-			label: $L("Query"),
-			disabled: true
-		}
-	);
-	
+	this.controller.setupWidget('queryButton', { }, this.queryButtonModel);
 	this.controller.listen(this.queryButton,  Mojo.Event.tap, this.queryTapHandler);
 	
-	this.databaseKindsModel.choices = [];
-	this.databaseKindsModel.value = "";
-	this.databaseKindsModel.disabled = true;
-	this.controller.modelChanged(this.databaseKindsModel);
-
 	this.setId = prefs.get().lastDatabaseSet;
 	if (this.setId == '') {
 		this.setId = this.databaseSetsModel.choices[0].value;
@@ -131,7 +105,7 @@ DatabaseExploreAssistant.prototype.databaseSetChanged = function(event)
 													   "from" : "Kind:1"
 												   }
 											   });
-}
+};
 
 DatabaseExploreAssistant.prototype.databaseKinds = function(payload)
 {
@@ -145,10 +119,8 @@ DatabaseExploreAssistant.prototype.databaseKinds = function(payload)
 
 	var databases = payload.results;
 
-	if (databases && databases.length > 0)
-	{
-		for (var a = 0; a < databases.length; a++)
-		{
+	if (databases && databases.length > 0) {
+		for (var a = 0; a < databases.length; a++) {
 			var id = databases[a].id;
 			var label = databases[a].id;
 			if (label.indexOf("com.palm.") == 0) {
@@ -164,7 +136,7 @@ DatabaseExploreAssistant.prototype.databaseKinds = function(payload)
 			newKind = databases[0].id;
 		}
 	}
-
+	
 	// Enable the drop-down list
 	this.databaseKindsModel.disabled = false;
 	this.databaseKindsModel.value = newKind;
@@ -225,48 +197,29 @@ DatabaseExploreAssistant.prototype.queryTap = function(event)
 	}
 };
 
-DatabaseExploreAssistant.prototype.activate = function(event)
-{
-	
-	if (this.firstActivate)
-	{
-	}
-	else
-	{
-		
-	}
-	this.firstActivate = true;
-};
-DatabaseExploreAssistant.prototype.deactivate = function(event)
-{
-	
-};
-
 DatabaseExploreAssistant.prototype.errorMessage = function(msg)
 {
-	this.controller.showAlertDialog(
-	{
-		allowHTMLMessage:	true,
-		preventCancel:		true,
-	    title:				'Impostah',
-	    message:			msg,
-	    choices:			[{label:$L("Ok"), value:'ok'}],
-	    onChoose:			function(e){}
-    });
-}
+	this.controller.showAlertDialog({
+			allowHTMLMessage:	true,
+			preventCancel:		true,
+			title:				'Impostah',
+			message:			msg,
+			choices:			[{label:$L("Ok"), value:'ok'}],
+			onChoose:			function(e){}
+		});
+};
+
 DatabaseExploreAssistant.prototype.handleCommand = function(event)
 {
-	if (event.type == Mojo.Event.command)
-	{
-		switch (event.command)
-		{
-			case 'do-prefs':
-				this.controller.stageController.pushScene('preferences');
-				break;
-				
-			case 'do-help':
-				this.controller.stageController.pushScene('help');
-				break;
+	if (event.type == Mojo.Event.command) {
+		switch (event.command) {
+		case 'do-prefs':
+		this.controller.stageController.pushScene('preferences');
+		break;
+		
+		case 'do-help':
+		this.controller.stageController.pushScene('help');
+		break;
 		}
 	}
 };
@@ -275,6 +228,10 @@ DatabaseExploreAssistant.prototype.cleanup = function(event)
 {
 	// cancel the last request
 	if (this.request) this.request.cancel();
+
+	this.controller.stopListening(this.databaseSetElement, Mojo.Event.propertyChange, this.databaseSetChangedHandler);
+	this.controller.stopListening(this.databaseKindElement, Mojo.Event.propertyChange, this.databaseKindChangedHandler);
+	this.controller.stopListening(this.queryButton,	 Mojo.Event.tap, this.queryTapHandler);
 };
 
 // Local Variables:

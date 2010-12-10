@@ -132,7 +132,7 @@ ActivityExploreAssistant.prototype.activitySetChanged = function(event)
 				if (creator.indexOf("com.palm.") == 0) {
 					creator = creator.slice(9);
 				}
-				this.activityKindsModel.choices.push({label:creator+":"+name, value:id});
+				this.activityKindsModel.choices.push({label:creator+" : "+name, value:id});
 				if (id == oldKind) {
 					newKind = oldKind;
 				}

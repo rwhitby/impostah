@@ -75,7 +75,7 @@ KeystoreExploreAssistant.prototype.keystoreKinds = function(payload)
 			var id = fields[0];
 			var owner = fields[1];
 			var name = fields[2];
-			var label = owner + ":" + name;
+			var label = owner + " : " + name;
 			if (label.indexOf("com.palm.") == 0) {
 				label = label.slice(9);
 			}

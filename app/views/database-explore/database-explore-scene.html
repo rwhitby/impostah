@@ -1,44 +1,45 @@
 <div class="database-explore">
-	
-	<div class="scene-fade-top" x-mojo-scroll-fade="top"></div>
+  
+  <div class="scene-fade-top" x-mojo-scroll-fade="top"></div>
 
-	<div class="palm-page-header">
-		<div class="palm-page-header-wrapper">
-			<div class="icon"></div>
-			<div class="title" id="help-title">Database Exploration</div>
-		</div>
+  <div class="palm-page-header">
+    <div class="palm-page-header-wrapper">
+      <div class="icon" id="icon"></div>
+      <div class="spinner" id="spinner" x-mojo-element="Spinner"></div>
+      <div class="title" id="title">Database Exploration</div>
+    </div>
+  </div>
+  
+  <div class="palm-group">
+    <div class="palm-group-title">Database Set</div>
+    <div class="palm-list">
+      
+      <div class="palm-row single">
+	<div class="palm-row-wrapper">
+	  <div id="databaseSet" x-mojo-element="ListSelector"></div>
 	</div>
-	
-	<div class="palm-group">
-		<div class="palm-group-title">Database Set</div>
-		<div class="palm-list">
-			
-			<div class="palm-row single">
-				<div class="palm-row-wrapper">
-					<div id="databaseSet" x-mojo-element="ListSelector"></div>
-				</div>
-			</div>
-			
-		</div>
+      </div>
+      
+    </div>
+  </div>
+  
+  <div class="palm-group">
+    <div class="palm-group-title">Database Kind</div>
+    <div class="palm-list">
+      
+      <div class="palm-row single">
+	<div class="palm-row-wrapper">
+	  <div id="databaseKind" x-mojo-element="BetterListSelector"></div>
 	</div>
-	
-	<div class="palm-group">
-		<div class="palm-group-title">Database Kind</div>
-		<div class="palm-list">
-			
-			<div class="palm-row single">
-				<div class="palm-row-wrapper">
-					<div id="databaseKind" x-mojo-element="BetterListSelector"></div>
-				</div>
-			</div>
-			
-		</div>
-	</div>
-	
-	<div x-mojo-element="Button" id="queryButton"></div>
-	
-	<div id="body" class="palm-body-text"></div>
-	
-	<div class="scene-fade-bottom" x-mojo-scroll-fade="bottom"></div>
-	
+      </div>
+      
+    </div>
+  </div>
+  
+  <div x-mojo-element="Button" id="queryButton"></div>
+  
+  <div id="body" class="palm-body-text"></div>
+  
+  <div class="scene-fade-bottom" x-mojo-scroll-fade="bottom"></div>
+  
 </div>

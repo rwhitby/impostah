@@ -48,6 +48,9 @@ ActivityExploreAssistant.prototype.setup = function()
 	this.controller.setupWidget(Mojo.Menu.appMenu, { omitDefaultItems: true }, this.menuModel);
 	
 	// get elements
+	this.iconElement =			this.controller.get('icon');
+	this.iconElement.style.display = 'none';
+	this.spinnerElement = 		this.controller.get('spinner');
 	this.activitySetElement =	this.controller.get('activitySet');
 	this.activityKindElement =	this.controller.get('activityKind');
 	this.showButton =			this.controller.get('showButton');
@@ -60,6 +63,8 @@ ActivityExploreAssistant.prototype.setup = function()
 	this.activityKindHandler =	this.activityKind.bindAsEventListener(this);
 	
 	// setup wigets
+	this.spinnerModel = {spinning: true};
+	this.controller.setupWidget('spinner', {spinnerSize: 'small'}, this.spinnerModel);
 	this.controller.setupWidget('activitySet', {}, this.activitySetsModel);
 	this.controller.listen(this.activitySetElement, Mojo.Event.propertyChange, this.activitySetChangedHandler);
 	this.controller.setupWidget('activityKind', { multiline: true }, this.activityKindsModel);
@@ -95,6 +100,10 @@ ActivityExploreAssistant.prototype.activitySetChanged = function(event)
 	this.activityKindsModel.value = "";
 	this.activityKindsModel.disabled = true;
 	this.controller.modelChanged(this.activityKindsModel);
+
+	this.iconElement.style.display = 'none';
+	this.spinnerModel.spinning = true;
+	this.controller.modelChanged(this.spinnerModel);
 
 	this.request = ImpostahService.impersonate(this.activityKindsHandler, "com.palm.configurator",
 											   "com.palm.activitymanager",
@@ -151,6 +160,10 @@ ActivityExploreAssistant.prototype.activityKinds = function(payload)
 	this.activityKindsModel.value = newKind;
 	this.controller.modelChanged(this.activityKindsModel);
 	this.activityKindChanged({value: newKind});
+
+	this.iconElement.style.display = 'inline';
+	this.spinnerModel.spinning = false;
+	this.controller.modelChanged(this.spinnerModel);
 };
 
 ActivityExploreAssistant.prototype.activityKindChanged = function(event)
@@ -172,6 +185,11 @@ ActivityExploreAssistant.prototype.activityKindChanged = function(event)
 ActivityExploreAssistant.prototype.showTap = function(event)
 {
 	if (this.activityId) {
+
+		this.iconElement.style.display = 'none';
+		this.spinnerModel.spinning = true;
+		this.controller.modelChanged(this.spinnerModel);
+
 		this.request = ImpostahService.impersonate(this.activityKindHandler, "com.palm.configurator",
 												   "com.palm.activitymanager",
 												   "getDetails", { "activityId" : this.activityId });
@@ -184,6 +202,10 @@ ActivityExploreAssistant.prototype.activityKind = function(payload)
 		this.errorMessage('<b>Service Error (activityKind):</b><br>'+payload.errorText);
 		return;
 	}
+
+	this.iconElement.style.display = 'inline';
+	this.spinnerModel.spinning = false;
+	this.controller.modelChanged(this.spinnerModel);
 
 	if (payload.activity) {
 		this.controller.stageController.pushScene("item", "Activity Record", payload.activity);

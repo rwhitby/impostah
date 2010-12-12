@@ -43,6 +43,9 @@ AccountExploreAssistant.prototype.setup = function()
 	this.controller.setupWidget(Mojo.Menu.appMenu, { omitDefaultItems: true }, this.menuModel);
 	
 	// get elements
+	this.iconElement =			this.controller.get('icon');
+	this.iconElement.style.display = 'none';
+	this.spinnerElement = 		this.controller.get('spinner');
 	this.accountSetElement =	this.controller.get('accountSet');
 	this.accountKindElement =	this.controller.get('accountKind');
 	this.showButton =			this.controller.get('showButton');
@@ -56,6 +59,8 @@ AccountExploreAssistant.prototype.setup = function()
 	this.accountKindHandler =	this.accountKind.bindAsEventListener(this);
 	
 	// setup wigets
+	this.spinnerModel = {spinning: true};
+	this.controller.setupWidget('spinner', {spinnerSize: 'small'}, this.spinnerModel);
 	this.controller.setupWidget('accountSet', {}, this.accountSetsModel);
 	this.controller.listen(this.accountSetElement, Mojo.Event.propertyChange, this.accountSetChangedHandler);
 	this.controller.setupWidget('accountKind', {}, this.accountKindsModel);
@@ -102,6 +107,11 @@ AccountExploreAssistant.prototype.accountSets = function(payload)
 		this.controller.modelChanged(this.accountSetsModel);
 		this.accountSetChanged({value: newSet});
 	}
+	else {
+		this.iconElement.style.display = 'inline';
+		this.spinnerModel.spinning = false;
+		this.controller.modelChanged(this.spinnerModel);
+	}
 };
 
 AccountExploreAssistant.prototype.accountSetChanged = function(event)
@@ -123,6 +133,10 @@ AccountExploreAssistant.prototype.accountSetChanged = function(event)
 	this.accountKindsModel.value = "";
 	this.accountKindsModel.disabled = true;
 	this.controller.modelChanged(this.accountKindsModel);
+
+	this.iconElement.style.display = 'none';
+	this.spinnerModel.spinning = true;
+	this.controller.modelChanged(this.spinnerModel);
 
 	this.request = ImpostahService.impersonate(this.accountKindsHandler, "com.palm.configurator",
 											   "com.palm.service.accounts",
@@ -162,6 +176,10 @@ AccountExploreAssistant.prototype.accountKinds = function(payload)
 		this.controller.modelChanged(this.accountKindsModel);
 		this.accountKindChanged({value: newKind});
 	}
+
+	this.iconElement.style.display = 'inline';
+	this.spinnerModel.spinning = false;
+	this.controller.modelChanged(this.spinnerModel);
 };
 
 AccountExploreAssistant.prototype.accountKindChanged = function(event)
@@ -183,6 +201,11 @@ AccountExploreAssistant.prototype.accountKindChanged = function(event)
 AccountExploreAssistant.prototype.showTap = function(event)
 {
 	if (this.accountId) {
+
+		this.iconElement.style.display = 'none';
+		this.spinnerModel.spinning = true;
+		this.controller.modelChanged(this.spinnerModel);
+
 		this.request = ImpostahService.impersonate(this.accountKindHandler, "com.palm.configurator",
 												   "com.palm.service.accounts",
 												   "getAccountInfo", { "accountId" : this.accountId });
@@ -196,10 +219,13 @@ AccountExploreAssistant.prototype.accountKind = function(payload)
 		return;
 	}
 
+	this.iconElement.style.display = 'inline';
+	this.spinnerModel.spinning = false;
+	this.controller.modelChanged(this.spinnerModel);
+
 	if (payload.result) {
 		this.controller.stageController.pushScene("item", "Account Record", payload.result);
 	}
-
 };
 
 AccountExploreAssistant.prototype.errorMessage = function(msg)

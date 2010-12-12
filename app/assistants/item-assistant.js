@@ -36,12 +36,10 @@ ItemAssistant.prototype.setup = function() {
 	this.mainModel.items[0] = {};
 	this.mainModel.items[0].label = JSON.stringify(this.item);
 
-    // setup widget
+    // setup widgets
     this.controller.setupWidget('mainList', {
 			itemTemplate: "item/rowTemplate", swipeToDelete: false, reorderable: false }, this.mainModel);
     this.controller.listen(this.listElement, Mojo.Event.listTap, this.listTapHandler);
-	
-	this.controller.setupWidget('spinner', {spinnerSize: 'small'}, {spinning: true});
 
 };
 

@@ -47,6 +47,9 @@ ApplicationExploreAssistant.prototype.setup = function()
 	this.controller.setupWidget(Mojo.Menu.appMenu, { omitDefaultItems: true }, this.menuModel);
 	
 	// get elements
+	this.iconElement = this.controller.get('icon');
+	this.iconElement.style.display = 'none';
+	this.spinnerElement = 		this.controller.get('spinner');
 	this.applicationSetElement =	this.controller.get('applicationSet');
 	this.applicationKindElement =	this.controller.get('applicationKind');
 	this.showButton =			this.controller.get('showButton');
@@ -58,6 +61,8 @@ ApplicationExploreAssistant.prototype.setup = function()
 	this.showTapHandler =		this.showTap.bindAsEventListener(this);
 	
 	// setup wigets
+	this.spinnerModel = {spinning: true};
+	this.controller.setupWidget('spinner', {spinnerSize: 'small'}, this.spinnerModel);
 	this.controller.setupWidget('applicationSet', {}, this.applicationSetsModel);
 	this.controller.listen(this.applicationSetElement, Mojo.Event.propertyChange, this.applicationSetChangedHandler);
 	this.controller.setupWidget('applicationKind', { multiline: true }, this.applicationKindsModel);
@@ -93,6 +98,10 @@ ApplicationExploreAssistant.prototype.applicationSetChanged = function(event)
 	this.applicationKindsModel.value = "";
 	this.applicationKindsModel.disabled = true;
 	this.controller.modelChanged(this.applicationKindsModel);
+
+	this.iconElement.style.display = 'none';
+	this.spinnerModel.spinning = true;
+	this.controller.modelChanged(this.spinnerModel);
 
 	this.request = ImpostahService.impersonate(this.applicationKindsHandler, "com.palm.configurator",
 											   "com.palm.applicationManager",
@@ -143,6 +152,10 @@ ApplicationExploreAssistant.prototype.applicationKinds = function(payload)
 	this.applicationKindsModel.value = newKind;
 	this.controller.modelChanged(this.applicationKindsModel);
 	this.applicationKindChanged({value: newKind});
+
+	this.iconElement.style.display = 'inline';
+	this.spinnerModel.spinning = false;
+	this.controller.modelChanged(this.spinnerModel);
 };
 
 ApplicationExploreAssistant.prototype.applicationKindChanged = function(event)

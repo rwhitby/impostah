@@ -32,13 +32,19 @@ QueryAssistant.prototype.setup = function() {
 	
 	// get elements
 	this.titleElement = this.controller.get('title');
+	this.titleElement.innerHTML = this.database;
+	this.iconElement = this.controller.get('icon');
+	this.iconElement.style.display = 'none';
+	this.spinnerElement = this.controller.get('spinner');
 	this.listElement = this.controller.get('mainList');
 
     // handlers
     this.listTapHandler = this.listTap.bindAsEventListener(this);
     this.impersonateHandler = this.impersonate.bindAsEventListener(this);
 	
-    // setup widget
+    // setup widgets
+	this.spinnerModel = {spinning: true};
+	this.controller.setupWidget('spinner', {spinnerSize: 'small'}, this.spinnerModel);
     this.controller.setupWidget('mainList', {
 			itemTemplate: "query/rowTemplate", swipeToDelete: false, reorderable: false }, this.mainModel);
     this.controller.listen(this.listElement, Mojo.Event.listTap, this.listTapHandler);
@@ -47,8 +53,6 @@ QueryAssistant.prototype.setup = function() {
 		"from" : this.database,
 		"limit" : this.requestSize
 	};
-
-	this.titleElement.innerHTML = "0/0: "+this.database;
 
 	if (this.request) this.request.cancel();
 	this.request = ImpostahService.impersonate(this.impersonateHandler, this.owner, this.service,
@@ -82,9 +86,7 @@ QueryAssistant.prototype.impersonate = function(payload)
 
 		var total = this.results + payload.count - payload.results.length;
 
-		if (payload.count > this.requestSize) {
-
-			this.titleElement.innerHTML = this.results+"/"+total+": "+this.database;
+		if (this.results < total) {
 
 			if (this.request) this.request.cancel();
 			this.request = ImpostahService.impersonate(this.impersonateHandler, this.owner, this.service,
@@ -98,11 +100,12 @@ QueryAssistant.prototype.impersonate = function(payload)
 													   });
 		}
 		else {
-
-			this.titleElement.innerHTML = total+"/"+total+": "+this.database;
-
 			if (this.request) this.request.cancel();
 			this.request = false;
+
+			this.iconElement.style.display = 'inline';
+			this.spinnerModel.spinning = false;
+			this.controller.modelChanged(this.spinnerModel);
 		}
 	}
 

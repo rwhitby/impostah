@@ -117,6 +117,9 @@ DatabaseExploreAssistant.prototype.setup = function()
 	this.controller.setupWidget(Mojo.Menu.appMenu, { omitDefaultItems: true }, this.menuModel);
 	
 	// get elements
+	this.iconElement = this.controller.get('icon');
+	this.iconElement.style.display = 'none';
+	this.spinnerElement = 		this.controller.get('spinner');
 	this.databaseSetElement =	this.controller.get('databaseSet');
 	this.databaseKindElement =	this.controller.get('databaseKind');
 	this.queryButton =			this.controller.get('queryButton');
@@ -130,6 +133,8 @@ DatabaseExploreAssistant.prototype.setup = function()
 	this.queryTapHandler =			  this.queryTap.bindAsEventListener(this);
 	
 	// setup widgets
+	this.spinnerModel = {spinning: true};
+	this.controller.setupWidget('spinner', {spinnerSize: 'small'}, this.spinnerModel);
 	this.controller.setupWidget('databaseSet', {}, this.databaseSetsModel);
 	this.controller.listen(this.databaseSetElement, Mojo.Event.propertyChange, this.databaseSetChangedHandler);
 	this.controller.setupWidget('databaseKind', { multiline: true }, this.databaseKindsModel);
@@ -166,6 +171,10 @@ DatabaseExploreAssistant.prototype.databaseSetChanged = function(event)
 	this.databaseKindsModel.value = "";
 	this.databaseKindsModel.disabled = true;
 	this.controller.modelChanged(this.databaseKindsModel);
+
+	this.iconElement.style.display = 'none';
+	this.spinnerModel.spinning = true;
+	this.controller.modelChanged(this.spinnerModel);
 
 	if (this.request) this.request.cancel();
 	this.request = ImpostahService.impersonate(this.databaseKindsHandler, "com.palm.configurator", this.setId,
@@ -242,6 +251,10 @@ DatabaseExploreAssistant.prototype.databaseKindChanged = function(event)
 			}]
 	};
 
+	this.iconElement.style.display = 'none';
+	this.spinnerModel.spinning = true;
+	this.controller.modelChanged(this.spinnerModel);
+
 	if (this.request) this.request.cancel();
 	this.request = ImpostahService.impersonate(this.databaseKindHandler, "com.palm.configurator", this.setId,
 											   "find", { "query" : this.query });
@@ -262,6 +275,10 @@ DatabaseExploreAssistant.prototype.databaseKind = function(payload)
 		this.queryButtonModel.disabled = false;
 		this.controller.modelChanged(this.queryButtonModel);
 	}
+
+	this.iconElement.style.display = 'inline';
+	this.spinnerModel.spinning = false;
+	this.controller.modelChanged(this.spinnerModel);
 };
 
 DatabaseExploreAssistant.prototype.queryTap = function(event)

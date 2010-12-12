@@ -101,12 +101,18 @@ body.palm-dark .palm-separator
 }
 
 
+
+
 /*
  * database-explore scene styles
  */
 .database-explore .palm-list-selector .title
 {
 	text-align: left;
+}
+.better-list-selector .title.uninteresting
+{
+	color: #666;
 }
 
 /*

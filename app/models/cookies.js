@@ -24,6 +24,8 @@ preferenceCookie.prototype.get = function(reload)
 				lastActivityKind: '',
 				lastAccountSet: '',
 				lastAccountKind: '',
+				lastApplicationSet: '',
+				lastApplicationKind: '',
 				lastKeystoreKind: '',
 				lastBackupKind: '',
 				

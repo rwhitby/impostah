@@ -50,6 +50,10 @@
         "source": "app/assistants/account-explore-assistant.js"
     },
     {
+        "scenes": "application-explore",
+        "source": "app/assistants/application-explore-assistant.js"
+    },
+    {
         "scenes": "query",
         "source": "app/assistants/query-assistant.js"
     },

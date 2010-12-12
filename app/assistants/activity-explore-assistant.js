@@ -17,7 +17,7 @@ function ActivityExploreAssistant()
 	};
 	
 	this.activitySetsModel = {
-		value: prefs.get().lastActivitySet,
+		value: '',
 		choices: [
 	{value:"app-persist",	  label:"Application Persistent"},
 	{value:"app-temp",		  label:"Application Temporary"},
@@ -68,7 +68,7 @@ ActivityExploreAssistant.prototype.setup = function()
 	this.controller.listen(this.showButton,	 Mojo.Event.tap, this.showTapHandler);
 	
 	this.setId = prefs.get().lastActivitySet;
-	if (this.setId == '') {
+	if (!this.setId || this.setId == '') {
 		this.setId = this.activitySetsModel.choices[0].value;
 	}
 	this.activitySetChanged({value: this.setId});

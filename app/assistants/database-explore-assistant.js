@@ -16,7 +16,7 @@ function DatabaseExploreAssistant()
 	};
 	
 	this.databaseSetsModel = {
-		value: prefs.get().lastDatabaseSet,
+		value: '',
 		choices: [
 	{value:"com.palm.db",	  label:"Persistent"},
 	{value:"com.palm.tempdb", label:"Temporary"}
@@ -138,7 +138,7 @@ DatabaseExploreAssistant.prototype.setup = function()
 	this.controller.listen(this.queryButton,  Mojo.Event.tap, this.queryTapHandler);
 	
 	this.setId = prefs.get().lastDatabaseSet;
-	if (this.setId == '') {
+	if (!this.setId || this.setId == '') {
 		this.setId = this.databaseSetsModel.choices[0].value;
 	}
 	this.databaseSetChanged({value: this.setId});

@@ -195,8 +195,8 @@ DatabaseExploreAssistant.prototype.databaseKinds = function(payload)
 				label = label.slice(9);
 			}
 			var rowClass = '';
-			if (this.names[this.database]) {
-				rowClass = 'interesting';
+			if (!this.names[databases[a].id]) {
+				rowClass = 'uninteresting';
 			}
 			this.databaseKindsModel.choices.push({label:label, value:id, rowClass: rowClass});
 			if (id == oldKind) {

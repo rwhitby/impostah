@@ -40,6 +40,8 @@ ItemAssistant.prototype.setup = function() {
     this.controller.setupWidget('mainList', {
 			itemTemplate: "item/rowTemplate", swipeToDelete: false, reorderable: false }, this.mainModel);
     this.controller.listen(this.listElement, Mojo.Event.listTap, this.listTapHandler);
+	
+	this.controller.setupWidget('spinner', {spinnerSize: 'small'}, {spinning: true});
 
 };
 

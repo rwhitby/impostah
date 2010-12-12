@@ -39,6 +39,18 @@ body.palm-dark .palm-separator
 {
   background: url(../images/palm-dark/list-separator-dark.png) bottom left repeat-x;
 }
+.palm-header
+{
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	overflow: hidden;
+}
+.palm-page-header.multi-line .spinner
+{
+	position: absolute;
+	top: 10px;
+	left: 12px;
+}
 
 
 /*

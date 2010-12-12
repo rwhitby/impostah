@@ -41,6 +41,74 @@ function DatabaseExploreAssistant()
 	}
 
 	this.request = false;
+
+	this.names = $H();
+
+	this.names['com.palm.account:1'] = function(item) {
+		return item.templateId+' : '+item.username;
+	};
+	this.names['com.palm.activity:1'] = function(item) {
+		var creator = '';
+		if (item.creator.serviceId) creator = item.creator.serviceId;
+		if (item.creator.appId) creator = item.creator.appId;
+		return creator+' : '+item.name;
+	};
+	this.names['com.palm.browserbookmarks:1'] = function(item) {
+		return item.title;
+	};
+	this.names['com.palm.browserhistory:1'] = function(item) {
+		return item.title;
+	};
+	this.names['com.palm.calendar:1'] = function(item) {
+		return item.name;
+	};
+	this.names['com.palm.carrierdb.settings.current:1'] = function(item) {
+		return item.qOperatorLongName;
+	};
+	this.names['com.palm.chatthread:1'] = function(item) {
+		return item.displayName;
+	};
+	this.names['com.palm.contact:1'] = function(item) {
+		return item.nickname || item.name.givenName+" "+item.name.familyName;
+	};
+	this.names['com.palm.contextupload:1'] = function(item) {
+		return item.appid+" : "+item.event;
+	};
+	this.names['com.palm.email:1'] = function(item) {
+		return item.subject;
+	};
+	this.names['com.palm.folder:1'] = function(item) {
+		return item.displayName;
+	};
+	this.names['com.palm.imap.account:1'] = function(item) {
+		return item.server+" : "+item.username;
+	};
+	this.names['com.palm.imloginstate:1'] = function(item) {
+		return item.serviceName+" : "+item.username;
+	};
+	this.names['com.palm.immessage:1'] = function(item) {
+		return item.messageText;
+	};
+	this.names['com.palm.message:1'] = function(item) {
+		return item.messageText;
+	};
+	this.names['com.palm.note:1'] = function(item) {
+		return item.title;
+	};
+	this.names['com.palm.palmprofile:1'] = function(item) {
+		return item.alias;
+	};
+	this.names['com.palm.person:1'] = function(item) {
+		return item.name.givenName+" "+item.name.familyName;
+	};
+	this.names['com.palm.phonecall:1'] = function(item) {
+		if (item.type == "incoming") {
+			return item.from.name || item.from.addr;
+		}
+		else {
+			return item.to[0].name || item.to[0].addr;
+		}
+	};
 };
 
 DatabaseExploreAssistant.prototype.setup = function()
@@ -126,7 +194,11 @@ DatabaseExploreAssistant.prototype.databaseKinds = function(payload)
 			if (label.indexOf("com.palm.") == 0) {
 				label = label.slice(9);
 			}
-			this.databaseKindsModel.choices.push({label:label, value:id});
+			var rowClass = '';
+			if (this.names[this.database]) {
+				rowClass = 'interesting';
+			}
+			this.databaseKindsModel.choices.push({label:label, value:id, rowClass: rowClass});
 			if (id == oldKind) {
 				newKind = oldKind;
 			}
@@ -193,7 +265,8 @@ DatabaseExploreAssistant.prototype.databaseKind = function(payload)
 DatabaseExploreAssistant.prototype.queryTap = function(event)
 {
 	if (this.databaseOwner && this.setId && this.databaseId) {
-		this.controller.stageController.pushScene("query", this.databaseOwner, this.setId, this.databaseId);
+		this.controller.stageController.pushScene("query", this.databaseOwner, this.setId, this.databaseId,
+												  this.names[this.databaseId]);
 	}
 };
 

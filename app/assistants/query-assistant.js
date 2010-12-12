@@ -1,16 +1,14 @@
-function QueryAssistant(owner, service, database) {
+function QueryAssistant(owner, service, database, labelfunc) {
 	this.owner = owner;
 	this.service = service;
 	this.database = database;
+	this.labelfunc = labelfunc;
 
 	this.results = 0;
 
 	this.request = false;
-	this.requestSize = 10;
+	this.requestSize = 50;
 
-	// setup header model
-	this.headerModel = {value: 0};
-	
 	// setup list model
 	this.mainModel = {items:[]};
 	
@@ -25,73 +23,6 @@ function QueryAssistant(owner, service, database) {
 				]
 	};
 
-	this.names = $H();
-
-	this.names['com.palm.account:1'] = function(item) {
-		return item.templateId+' : '+item.username;
-	};
-	this.names['com.palm.activity:1'] = function(item) {
-		var creator = '';
-		if (item.creator.serviceId) creator = item.creator.serviceId;
-		if (item.creator.appId) creator = item.creator.appId;
-		return creator+' : '+item.name;
-	};
-	this.names['com.palm.browserbookmarks:1'] = function(item) {
-		return item.title;
-	};
-	this.names['com.palm.browserhistory:1'] = function(item) {
-		return item.title;
-	};
-	this.names['com.palm.calendar:1'] = function(item) {
-		return item.name;
-	};
-	this.names['com.palm.carrierdb.settings.current:1'] = function(item) {
-		return item.qOperatorLongName;
-	};
-	this.names['com.palm.chatthread:1'] = function(item) {
-		return item.displayName;
-	};
-	this.names['com.palm.contact:1'] = function(item) {
-		return item.nickname || item.name.givenName+" "+item.name.familyName;
-	};
-	this.names['com.palm.contextupload:1'] = function(item) {
-		return item.appid+" : "+item.event;
-	};
-	this.names['com.palm.email:1'] = function(item) {
-		return item.subject;
-	};
-	this.names['com.palm.folder:1'] = function(item) {
-		return item.displayName;
-	};
-	this.names['com.palm.imap.account:1'] = function(item) {
-		return item.server+" : "+item.username;
-	};
-	this.names['com.palm.imloginstate:1'] = function(item) {
-		return item.serviceName+" : "+item.username;
-	};
-	this.names['com.palm.immessage:1'] = function(item) {
-		return item.messageText;
-	};
-	this.names['com.palm.message:1'] = function(item) {
-		return item.messageText;
-	};
-	this.names['com.palm.note:1'] = function(item) {
-		return item.title;
-	};
-	this.names['com.palm.palmprofile:1'] = function(item) {
-		return item.alias;
-	};
-	this.names['com.palm.person:1'] = function(item) {
-		return item.name.givenName+" "+item.name.familyName;
-	};
-	this.names['com.palm.phonecall:1'] = function(item) {
-		if (item.type == "incoming") {
-			return item.from.name || item.from.addr;
-		}
-		else {
-			return item.to[0].name || item.to[0].addr;
-		}
-	};
 }
 
 QueryAssistant.prototype.setup = function() {
@@ -100,6 +31,7 @@ QueryAssistant.prototype.setup = function() {
 	this.controller.setupWidget(Mojo.Menu.appMenu, { omitDefaultItems: true }, this.menuModel);
 	
 	// get elements
+	this.titleElement = this.controller.get('title');
 	this.listElement = this.controller.get('mainList');
 
     // handlers
@@ -107,7 +39,6 @@ QueryAssistant.prototype.setup = function() {
     this.impersonateHandler = this.impersonate.bindAsEventListener(this);
 	
     // setup widget
-    this.controller.setupWidget('header', {title: this.database}, this.headerModel);
     this.controller.setupWidget('mainList', {
 			itemTemplate: "query/rowTemplate", swipeToDelete: false, reorderable: false }, this.mainModel);
     this.controller.listen(this.listElement, Mojo.Event.listTap, this.listTapHandler);
@@ -116,6 +47,8 @@ QueryAssistant.prototype.setup = function() {
 		"from" : this.database,
 		"limit" : this.requestSize
 	};
+
+	this.titleElement.innerHTML = "0/0: "+this.database;
 
 	if (this.request) this.request.cancel();
 	this.request = ImpostahService.impersonate(this.impersonateHandler, this.owner, this.service,
@@ -137,9 +70,9 @@ QueryAssistant.prototype.impersonate = function(payload)
 			this.mainModel.items[this.results].id    = payload.results[a]._id;
 			this.mainModel.items[this.results].value = payload.results[a];
 			this.mainModel.items[this.results].label = payload.results[a]._id;
-			if (this.names[this.database]) {
+			if (this.labelfunc) {
 				try {
-					this.mainModel.items[this.results].label = this.names[this.database](payload.results[a]);
+					this.mainModel.items[this.results].label = this.labelfunc(payload.results[a]);
 				} catch (e) { }
 			}
 				
@@ -147,10 +80,11 @@ QueryAssistant.prototype.impersonate = function(payload)
 		}
 		this.controller.modelChanged(this.mainModel);
 
+		var total = this.results + payload.count - payload.results.length;
+
 		if (payload.count > this.requestSize) {
 
-			this.headerModel.value = (this.results / (this.results + payload.count - payload.results.length));
-			this.controller.modelChanged(this.headerModel);
+			this.titleElement.innerHTML = this.results+"/"+total+": "+this.database;
 
 			if (this.request) this.request.cancel();
 			this.request = ImpostahService.impersonate(this.impersonateHandler, this.owner, this.service,
@@ -165,8 +99,7 @@ QueryAssistant.prototype.impersonate = function(payload)
 		}
 		else {
 
-			this.headerModel.value = 1;
-			this.controller.modelChanged(this.headerModel);
+			this.titleElement.innerHTML = total+"/"+total+": "+this.database;
 
 			if (this.request) this.request.cancel();
 			this.request = false;

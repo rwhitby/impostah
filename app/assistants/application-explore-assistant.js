@@ -69,6 +69,8 @@ ApplicationExploreAssistant.prototype.setup = function()
 	if (!this.setId || this.setId == '') {
 		this.setId = this.applicationSetsModel.choices[0].value;
 	}
+	this.applicationSetsModel.value = this.setId;
+	this.controller.modelChanged(this.applicationSetsModel);
 	this.applicationSetChanged({value: this.setId});
 };
 

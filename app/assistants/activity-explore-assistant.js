@@ -71,6 +71,8 @@ ActivityExploreAssistant.prototype.setup = function()
 	if (!this.setId || this.setId == '') {
 		this.setId = this.activitySetsModel.choices[0].value;
 	}
+	this.activitySetsModel.value = this.setId;
+	this.controller.modelChanged(this.activitySetsModel);
 	this.activitySetChanged({value: this.setId});
 };
 

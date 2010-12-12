@@ -141,6 +141,8 @@ DatabaseExploreAssistant.prototype.setup = function()
 	if (!this.setId || this.setId == '') {
 		this.setId = this.databaseSetsModel.choices[0].value;
 	}
+	this.databaseSetsModel.value = this.setId;
+	this.controller.modelChanged(this.databaseSetsModel);
 	this.databaseSetChanged({value: this.setId});
 
 };

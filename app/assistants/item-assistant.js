@@ -25,10 +25,10 @@ ItemAssistant.prototype.setup = function() {
 	this.controller.setupWidget(Mojo.Menu.appMenu, { omitDefaultItems: true }, this.menuModel);
 	
 	// get elements
-	this.headerElement = this.controller.get('header');
+	this.titleElement = this.controller.get('title');
 	this.listElement = this.controller.get('mainList');
 
-	this.headerElement.innerHTML = this.label;
+	this.titleElement.innerHTML = this.label;
 
     // handlers
     this.listTapHandler = this.listTap.bindAsEventListener(this);

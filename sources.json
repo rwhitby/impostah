@@ -46,6 +46,10 @@
         "source": "app/assistants/activity-explore-assistant.js"
     },
     {
+        "scenes": "account-explore",
+        "source": "app/assistants/account-explore-assistant.js"
+    },
+    {
         "scenes": "query",
         "source": "app/assistants/query-assistant.js"
     },

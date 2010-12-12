@@ -126,6 +126,14 @@ body.palm-dark .palm-separator
 }
 
 /*
+ * account-explore scene styles
+ */
+.account-explore .palm-list-selector .title
+{
+	text-align: left;
+}
+
+/*
  * keystore-explore scene styles
  */
 .keystore-explore .palm-list-selector .title

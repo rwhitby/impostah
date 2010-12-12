@@ -57,6 +57,11 @@ MainAssistant.prototype.setup = function()
 				});
     
     this.mainModel.items.push({
+			name:     $L('Account Exploration'),
+				scene:   'account-explore',
+				});
+
+    this.mainModel.items.push({
 			name:     $L('Activity Exploration'),
 				scene:   'activity-explore',
 				});

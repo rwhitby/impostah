@@ -55,9 +55,9 @@ ActivityExploreAssistant.prototype.setup = function()
 	// setup handlers
 	this.activitySetChangedHandler = this.activitySetChanged.bindAsEventListener(this);
 	this.activityKindsHandler = this.activityKinds.bindAsEventListener(this);
-	this.activityKindHandler =	this.activityKind.bindAsEventListener(this);
 	this.activityKindChangedHandler = this.activityKindChanged.bindAsEventListener(this);
 	this.showTapHandler =		this.showTap.bindAsEventListener(this);
+	this.activityKindHandler =	this.activityKind.bindAsEventListener(this);
 	
 	// setup wigets
 	this.controller.setupWidget('activitySet', {}, this.activitySetsModel);
@@ -97,9 +97,9 @@ ActivityExploreAssistant.prototype.activitySetChanged = function(event)
 	this.request = ImpostahService.impersonate(this.activityKindsHandler, "com.palm.configurator",
 											   "com.palm.activitymanager",
 											   "list", {"details":true});
-}
+};
 
-	ActivityExploreAssistant.prototype.activityKinds = function(payload)
+ActivityExploreAssistant.prototype.activityKinds = function(payload)
 {
 	if (payload.returnValue === false) {
 		this.errorMessage('<b>Service Error (activityKinds):</b><br>'+payload.errorText);

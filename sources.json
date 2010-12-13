@@ -54,6 +54,10 @@
         "source": "app/assistants/application-explore-assistant.js"
     },
     {
+        "scenes": "permission-explore",
+        "source": "app/assistants/permission-explore-assistant.js"
+    },
+    {
         "scenes": "query",
         "source": "app/assistants/query-assistant.js"
     },

@@ -11,6 +11,7 @@ function StartupAssistant(changelog)
     this.newMessages =
 	[
 	 // Don't forget the comma on all but the last entry
+	 { version: '0.2.8', log: [ 'Added support for permission exploration' ] },
 	 { version: '0.2.7', log: [ 'Added support for application exploration' ] },
 	 { version: '0.2.6', log: [ 'Added support for account exploration' ] },
 	 { version: '0.2.5', log: [ 'Fixed a bug in the query list' ] },

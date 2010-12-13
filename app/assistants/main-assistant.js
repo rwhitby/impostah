@@ -4,6 +4,7 @@ function MainAssistant()
 	this.randomSub =
 		[
 		 {weight: 30, text: $L('This app is not what you think it is')},
+		 {weight: 10, text: $L('More information than you can handle')},
 		 {weight: 6, text: $L("<a href=\"http://donate.webos-internals.org/\">Donated</a> To WebOS Internals Lately?")}
 		 ];
 	
@@ -52,6 +53,16 @@ MainAssistant.prototype.setup = function()
     this.listTapHandler = this.listTap.bindAsEventListener(this);
 	
     this.mainModel.items.push({
+			name:     $L('Permission Exploration'),
+				scene:   'permission-explore',
+				});
+
+    this.mainModel.items.push({
+			name:     $L('Application Exploration'),
+				scene:   'application-explore',
+				});
+
+    this.mainModel.items.push({
 			name:     $L('Database Exploration'),
 				scene:   'database-explore',
 				});
@@ -64,11 +75,6 @@ MainAssistant.prototype.setup = function()
     this.mainModel.items.push({
 			name:     $L('Activity Exploration'),
 				scene:   'activity-explore',
-				});
-
-    this.mainModel.items.push({
-			name:     $L('Application Exploration'),
-				scene:   'application-explore',
 				});
 
     this.mainModel.items.push({

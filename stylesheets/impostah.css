@@ -160,6 +160,14 @@ body.palm-dark .palm-separator
 }
 
 /*
+ * permission-explore scene styles
+ */
+.permission-explore .palm-list-selector .title
+{
+	text-align: left;
+}
+
+/*
  * keystore-explore scene styles
  */
 .keystore-explore .palm-list-selector .title

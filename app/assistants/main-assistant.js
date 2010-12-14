@@ -53,45 +53,45 @@ MainAssistant.prototype.setup = function()
     this.listTapHandler = this.listTap.bindAsEventListener(this);
 	
     this.mainModel.items.push({
-			name:     $L('Permission Exploration'),
+			name:     $L('Permissions'),
 				scene:   'permission-explore',
 				});
 
     this.mainModel.items.push({
-			name:     $L('Application Exploration'),
+			name:     $L('Applications'),
 				scene:   'application-explore',
 				});
 
     this.mainModel.items.push({
-			name:     $L('Database Exploration'),
+			name:     $L('Databases'),
 				scene:   'database-explore',
 				});
     
     this.mainModel.items.push({
-			name:     $L('Account Exploration'),
+			name:     $L('Accounts'),
 				scene:   'account-explore',
 				});
 
     this.mainModel.items.push({
-			name:     $L('Activity Exploration'),
+			name:     $L('Activities'),
 				scene:   'activity-explore',
 				});
 
     this.mainModel.items.push({
-			name:     $L('Key Store Exploration'),
+			name:     $L('Backups'),
+				scene:   'backup-explore',
+				});
+    
+    this.mainModel.items.push({
+			name:     $L('Key Store'),
 				scene:   'keystore-explore',
 				});
 
     this.mainModel.items.push({
-			name:     $L('File Cache Exploration'),
+			name:     $L('File Cache'),
 				scene:   'filecache-explore',
 				});
 
-    this.mainModel.items.push({
-			name:     $L('Backup Exploration'),
-				scene:   'backup-explore',
-				});
-    
     // setup widget
     this.controller.setupWidget('mainList', {
 			itemTemplate: "main/rowTemplate", swipeToDelete: false, reorderable: false }, this.mainModel);

@@ -111,7 +111,12 @@ body.palm-dark .palm-separator
 	padding-top: 0px;
 	margin-top: 0px;
 }
-
+.main .palm-list .palm-row
+{
+	clear: none;
+	float: left;
+	width: 160px;
+}
 
 
 

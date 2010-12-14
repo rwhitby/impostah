@@ -4,7 +4,7 @@ function MainAssistant()
 	this.randomSub =
 		[
 		 {weight: 30, text: $L('This app is not what you think it is')},
-		 {weight: 10, text: $L('More information than you can handle')},
+		 {weight: 10, text: $L('More information than WikiLeaks')},
 		 {weight: 6, text: $L("<a href=\"http://donate.webos-internals.org/\">Donated</a> To WebOS Internals Lately?")}
 		 ];
 	

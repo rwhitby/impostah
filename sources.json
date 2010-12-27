@@ -46,6 +46,10 @@
         "source": "app/assistants/filecache-explore-assistant.js"
     },
     {
+        "scenes": "device-explore",
+        "source": "app/assistants/device-explore-assistant.js"
+    },
+    {
         "scenes": "activity-explore",
         "source": "app/assistants/activity-explore-assistant.js"
     },

@@ -53,29 +53,27 @@ MainAssistant.prototype.setup = function()
     this.listTapHandler = this.listTap.bindAsEventListener(this);
 	
     this.mainModel.items.push({
-			name:     $L('Permissions'),
-				scene:   'permission-explore',
-				});
-
-    this.mainModel.items.push({
-			name:     $L('Applications'),
-				scene:   'application-explore',
-				});
-
-    this.mainModel.items.push({
-			name:     $L('Databases'),
-				scene:   'database-explore',
-				});
-    
-    this.mainModel.items.push({
-			name:     $L('Connections'),
-				scene:   'connection-explore',
+			name:     $L('Device Profile'),
+				scene:   'device-explore',
 				});
     this.mainModel.items.push({
 			name:     $L('Accounts'),
 				scene:   'account-explore',
 				});
 
+    this.mainModel.items.push({
+			name:     $L('Databases'),
+				scene:   'database-explore',
+				});
+    this.mainModel.items.push({
+			name:     $L('Applications'),
+				scene:   'application-explore',
+				});
+    
+    this.mainModel.items.push({
+			name:     $L('Connections'),
+				scene:   'connection-explore',
+				});
     this.mainModel.items.push({
 			name:     $L('Activities'),
 				scene:   'activity-explore',
@@ -85,6 +83,11 @@ MainAssistant.prototype.setup = function()
 			name:     $L('Key Store'),
 				scene:   'keystore-explore',
 				});
+    this.mainModel.items.push({
+			name:     $L('Permissions'),
+				scene:   'permission-explore',
+				});
+
 
     this.mainModel.items.push({
 			name:     $L('File Cache'),

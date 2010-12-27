@@ -30,6 +30,7 @@ preferenceCookie.prototype.get = function(reload)
 				lastPermissionCaller: '',
 				lastKeystoreKind: '',
 				lastBackupKind: '',
+				lastConnectionKind: '',
 				
 			};
 			

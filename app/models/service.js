@@ -13,6 +13,17 @@ ImpostahService.listKeys = function(callback, set)
     return request;
 };
 
+ImpostahService.listConnections = function(callback, set)
+{
+    var request = new Mojo.Service.Request(ImpostahService.identifier,
+	{
+	    method: 'listConnections',
+	    onSuccess: callback,
+	    onFailure: callback
+	});
+    return request;
+};
+
 ImpostahService.listBackups = function(callback)
 {
     var request = new Mojo.Service.Request(ImpostahService.identifier,

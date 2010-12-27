@@ -62,6 +62,9 @@ function DatabaseExploreAssistant()
 	this.names['com.palm.calendar:1'] = function(item) {
 		return item.name;
 	};
+	this.names['com.palm.calendarevent:1'] = function(item) {
+		return item.subject;
+	};
 	this.names['com.palm.carrierdb.settings.current:1'] = function(item) {
 		return item.qOperatorLongName;
 	};

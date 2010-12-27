@@ -517,6 +517,24 @@ bool getFilecacheType_method(LSHandle* lshandle, LSMessage *message, void *ctx) 
   return false;
 }
 
+bool listConnections_method(LSHandle* lshandle, LSMessage *message, void *ctx) {
+  LSError lserror;
+  LSErrorInit(&lserror);
+
+  // Local buffer to store the command
+  char command[MAXLINLEN];
+
+  sprintf(command, "cat /proc/net/nf_conntrack 2>&1");
+
+  return simple_command(lshandle, message, command);
+
+ error:
+  LSErrorPrint(&lserror, stderr);
+  LSErrorFree(&lserror);
+ end:
+  return false;
+}
+
 //
 // Handler for the impersonate service.
 //
@@ -610,6 +628,8 @@ LSMethod luna_methods[] = {
 
   { "listFilecacheTypes",	listFilecacheTypes_method },
   { "getFilecacheType",		getFilecacheType_method },
+
+  { "listConnections",		listConnections_method },
 
   { "impersonate",		impersonate_method },
 

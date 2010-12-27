@@ -68,6 +68,10 @@ MainAssistant.prototype.setup = function()
 				});
     
     this.mainModel.items.push({
+			name:     $L('Connections'),
+				scene:   'connection-explore',
+				});
+    this.mainModel.items.push({
 			name:     $L('Accounts'),
 				scene:   'account-explore',
 				});
@@ -78,11 +82,6 @@ MainAssistant.prototype.setup = function()
 				});
 
     this.mainModel.items.push({
-			name:     $L('Backups'),
-				scene:   'backup-explore',
-				});
-    
-    this.mainModel.items.push({
 			name:     $L('Key Store'),
 				scene:   'keystore-explore',
 				});
@@ -91,6 +90,11 @@ MainAssistant.prototype.setup = function()
 			name:     $L('File Cache'),
 				scene:   'filecache-explore',
 				});
+    this.mainModel.items.push({
+			name:     $L('Backups'),
+				scene:   'backup-explore',
+				});
+    
 
     // setup widget
     this.controller.setupWidget('mainList', {

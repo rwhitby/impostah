@@ -50,6 +50,10 @@
         "source": "app/assistants/device-explore-assistant.js"
     },
     {
+        "scenes": "appcat-explore",
+        "source": "app/assistants/appcat-explore-assistant.js"
+    },
+    {
         "scenes": "activity-explore",
         "source": "app/assistants/activity-explore-assistant.js"
     },

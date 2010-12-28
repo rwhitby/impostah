@@ -4,7 +4,9 @@ function MainAssistant()
 	this.randomSub =
 		[
 		 {weight: 30, text: $L('This app is not what you think it is')},
+		 {weight: 20, text: $L('Sneaky stuff from inside your device')},
 		 {weight: 10, text: $L('More information than WikiLeaks')},
+		 {weight: 10, text: $L('All your base are belong to us')},
 		 {weight: 6, text: $L("<a href=\"http://donate.webos-internals.org/\">Donated</a> To WebOS Internals Lately?")}
 		 ];
 	
@@ -53,46 +55,51 @@ MainAssistant.prototype.setup = function()
     this.listTapHandler = this.listTap.bindAsEventListener(this);
 	
     this.mainModel.items.push({
+			name:     $L('App Catalog'),
+				scene:   'appcat-explore',
+				});
+    this.mainModel.items.push({
 			name:     $L('Device'),
 				scene:   'device-explore',
 				});
-    this.mainModel.items.push({
-			name:     $L('Accounts'),
-				scene:   'account-explore',
-				});
 
-    this.mainModel.items.push({
-			name:     $L('Databases'),
-				scene:   'database-explore',
-				});
     this.mainModel.items.push({
 			name:     $L('Applications'),
 				scene:   'application-explore',
 				});
+    this.mainModel.items.push({
+			name:     $L('Databases'),
+				scene:   'database-explore',
+				});
     
     this.mainModel.items.push({
-			name:     $L('Connections'),
-				scene:   'connection-explore',
-				});
-    this.mainModel.items.push({
-			name:     $L('Activities'),
-				scene:   'activity-explore',
-				});
-
-    this.mainModel.items.push({
-			name:     $L('Key Store'),
-				scene:   'keystore-explore',
+			name:     $L('Accounts'),
+				scene:   'account-explore',
 				});
     this.mainModel.items.push({
 			name:     $L('Permissions'),
 				scene:   'permission-explore',
 				});
 
+    this.mainModel.items.push({
+			name:     $L('Activities'),
+				scene:   'activity-explore',
+				});
+    this.mainModel.items.push({
+			name:     $L('Connections'),
+				scene:   'connection-explore',
+				});
 
+
+    this.mainModel.items.push({
+			name:     $L('Key Store'),
+				scene:   'keystore-explore',
+				});
     this.mainModel.items.push({
 			name:     $L('File Cache'),
 				scene:   'filecache-explore',
 				});
+
     this.mainModel.items.push({
 			name:     $L('Backups'),
 				scene:   'backup-explore',

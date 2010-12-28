@@ -11,6 +11,7 @@ function StartupAssistant(changelog)
     this.newMessages =
 	[
 	 // Don't forget the comma on all but the last entry
+	 { version: '0.3.3', log: [ 'Added support for app catalog exploration' ] },
 	 { version: '0.3.2', log: [ 'Added support for reporting the telephony platform' ] },
 	 { version: '0.3.1', log: [ 'Added support for reporting the device profile' ] },
 	 { version: '0.3.0', log: [ 'Added support for connection exploration' ] },

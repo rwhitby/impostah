@@ -53,7 +53,7 @@ MainAssistant.prototype.setup = function()
     this.listTapHandler = this.listTap.bindAsEventListener(this);
 	
     this.mainModel.items.push({
-			name:     $L('Device Profile'),
+			name:     $L('Device'),
 				scene:   'device-explore',
 				});
     this.mainModel.items.push({

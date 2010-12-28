@@ -16,6 +16,10 @@ function DeviceExploreAssistant()
 		 ]
 	};
 	
+	this.deviceProfileButtonModel = {
+		label: $L("Device Profile"),
+		disabled: true
+	};
 };
 
 DeviceExploreAssistant.prototype.setup = function()
@@ -27,31 +31,46 @@ DeviceExploreAssistant.prototype.setup = function()
 	this.iconElement =			this.controller.get('icon');
 	this.iconElement.style.display = 'none';
 	this.spinnerElement = 		this.controller.get('spinner');
+	this.deviceProfileButton = this.controller.get('deviceProfileButton');
 	
 	// setup handlers
-	this.deviceKindHandler =	this.deviceKind.bindAsEventListener(this);
+	this.deviceProfileTapHandler = this.deviceProfileTap.bindAsEventListener(this);
+	this.getDeviceProfileHandler =	this.getDeviceProfile.bindAsEventListener(this);
 	
 	// setup wigets
 	this.spinnerModel = {spinning: true};
 	this.controller.setupWidget('spinner', {spinnerSize: 'small'}, this.spinnerModel);
+	this.controller.setupWidget('deviceProfileButton', { }, this.deviceProfileButtonModel);
+	this.controller.listen(this.deviceProfileButton,  Mojo.Event.tap, this.deviceProfileTapHandler);
 	
-	this.request = ImpostahService.impersonate(this.deviceKindHandler, "com.palm.configurator",
+	this.deviceProfile = {};
+	this.request = ImpostahService.impersonate(this.getDeviceProfileHandler, "com.palm.configurator",
 											   "com.palm.deviceprofile",
 											   "getDeviceProfile", {});
 };
 
-DeviceExploreAssistant.prototype.deviceKind = function(payload)
+DeviceExploreAssistant.prototype.getDeviceProfile = function(payload)
 {
 	if (payload.returnValue === false) {
-		this.errorMessage('<b>Service Error (deviceKind):</b><br>'+payload.errorText);
+		this.errorMessage('<b>Service Error (getDeviceProfile):</b><br>'+payload.errorText);
 		return;
 	}
+
+	this.deviceProfile = payload.deviceInfo;
 
 	this.iconElement.style.display = 'inline';
 	this.spinnerModel.spinning = false;
 	this.controller.modelChanged(this.spinnerModel);
 
-	this.controller.stageController.swapScene("item", "Device Profile", payload.deviceInfo);
+	this.deviceProfileButtonModel.disabled = false;
+	this.controller.modelChanged(this.deviceProfileButtonModel);
+};
+
+DeviceExploreAssistant.prototype.deviceProfileTap = function(event)
+{
+	if (this.deviceProfile) {
+		this.controller.stageController.pushScene("item", "Device Profile", this.deviceProfile);
+	}
 };
 
 DeviceExploreAssistant.prototype.errorMessage = function(msg)
@@ -83,6 +102,8 @@ DeviceExploreAssistant.prototype.handleCommand = function(event)
 
 DeviceExploreAssistant.prototype.cleanup = function(event)
 {
+	this.controller.stopListening(this.deviceProfileButton,  Mojo.Event.tap,
+								  this.deviceProfileTapHandler);
 };
 
 // Local Variables:

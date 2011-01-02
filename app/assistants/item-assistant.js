@@ -37,7 +37,7 @@ ItemAssistant.prototype.setup = function() {
 	{
 		for (var n = 0; n < this.item.length; n++)
 		{
-			this.listData('#'+n, this.item[n]);
+			this.listData('# '+n, this.item[n]);
 		}
 	}
 	else if ((typeof this.item) == 'object')
@@ -72,16 +72,16 @@ ItemAssistant.prototype.listData = function(label, value)
 		case 'object':
 			if (Object.isArray(value))
 			{
-				this.mainModel.items.push({label: label, title: '[...]', labelClass: 'left', titleClass: 'right', item: value});
+				this.mainModel.items.push({label: label, title: '<i>Array [ ... ]</i>', labelClass: 'left', titleClass: 'right', item: value});
 			}
 			else
 			{
-				this.mainModel.items.push({label: label, title: '{...}', labelClass: 'left', titleClass: 'right', item: value});
+				this.mainModel.items.push({label: label, title: '<i>Object { ... }</i>', labelClass: 'left', titleClass: 'right', item: value});
 			}
 			break;
 			
 		case 'function':
-			this.mainModel.items.push({label: label, title: 'Function ...', labelClass: 'left', titleClass: 'right', item: value});
+			this.mainModel.items.push({label: label, title: '<i>Function ...</i>', labelClass: 'left', titleClass: 'right', item: value});
 			break;
 			
 		default:

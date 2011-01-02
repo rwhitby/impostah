@@ -70,13 +70,20 @@ ItemAssistant.prototype.listData = function(label, value)
 			break;
 			
 		case 'object':
-			if (Object.isArray(value))
+			if (value)
 			{
-				this.mainModel.items.push({label: label, title: '<i>Array [ ... ]</i>', labelClass: 'left', titleClass: 'right', item: value});
+				if (Object.isArray(value))
+				{
+					this.mainModel.items.push({label: label, title: '<i>Array [ ... ]</i>', labelClass: 'left', titleClass: 'right', item: value});
+				}
+				else
+				{
+					this.mainModel.items.push({label: label, title: '<i>Object { ... }</i>', labelClass: 'left', titleClass: 'right', item: value});
+				}
 			}
 			else
 			{
-				this.mainModel.items.push({label: label, title: '<i>Object { ... }</i>', labelClass: 'left', titleClass: 'right', item: value});
+				this.mainModel.items.push({label: label, title: '<i>null</i>', labelClass: 'left', titleClass: 'right'});
 			}
 			break;
 			
@@ -84,8 +91,12 @@ ItemAssistant.prototype.listData = function(label, value)
 			this.mainModel.items.push({label: label, title: '<i>Function ...</i>', labelClass: 'left', titleClass: 'right', item: value});
 			break;
 			
+		case 'undefined':
+			this.mainModel.items.push({label: label, title: '<i>undefined</i>', labelClass: 'left', titleClass: 'right'});
+			break;
+			
 		default:
-			this.mainModel.items.push({label: label, title: '<strong>'+(typeof value)+'</strong> needs handler - '+value, labelClass: 'left', titleClass: 'right'});
+			this.mainModel.items.push({label: label, title: '<strong>'+(typeof value)+'</strong>? '+value, labelClass: 'left', titleClass: 'right'});
 			break;
 	}
 }

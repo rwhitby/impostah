@@ -33,8 +33,36 @@ ItemAssistant.prototype.setup = function() {
     // handlers
     this.listTapHandler = this.listTap.bindAsEventListener(this);
 	
-	this.mainModel.items[0] = {};
-	this.mainModel.items[0].label = JSON.stringify(this.item);
+	for (i in this.item)
+	{
+		switch (typeof this.item[i])
+		{
+			case 'string':
+			case 'number':
+			case 'boolean':
+				this.mainModel.items.push({label: i, title: this.item[i]});
+				break;
+				
+			case 'object':
+				if (Object.isArray(this.item[i]))
+				{
+					this.mainModel.items.push({label: i, title: '[...]', item: this.item[i]});
+				}
+				else
+				{
+					this.mainModel.items.push({label: i, title: '{...}', item: this.item[i]});
+				}
+				break;
+				
+			case 'function':
+				this.mainModel.items.push({label: i, title: 'Function () {...}'});
+				break;
+				
+			default:
+				this.mainModel.items.push({label: i, title: '*'+(typeof this.item[i])+' needs handler - '+this.item[i]});
+				break;
+		}
+	}
 
     // setup widgets
     this.controller.setupWidget('mainList', {
@@ -45,7 +73,7 @@ ItemAssistant.prototype.setup = function() {
 
 ItemAssistant.prototype.listTap = function(event)
 {
-	// Do something here
+	if (event.item.item) this.controller.stageController.pushScene("item", this.label+' - '+event.item.label, event.item.item);
 };
 
 ItemAssistant.prototype.errorMessage = function(msg)

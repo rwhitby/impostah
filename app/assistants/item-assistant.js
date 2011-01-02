@@ -33,35 +33,23 @@ ItemAssistant.prototype.setup = function() {
     // handlers
     this.listTapHandler = this.listTap.bindAsEventListener(this);
 	
-	for (i in this.item)
+	if ((typeof this.item) == 'object' && Object.isArray(this.item))
 	{
-		switch (typeof this.item[i])
+		for (var n = 0; n < this.item.length; n++)
 		{
-			case 'string':
-			case 'number':
-			case 'boolean':
-				this.mainModel.items.push({label: i, title: this.item[i]});
-				break;
-				
-			case 'object':
-				if (Object.isArray(this.item[i]))
-				{
-					this.mainModel.items.push({label: i, title: '[...]', item: this.item[i]});
-				}
-				else
-				{
-					this.mainModel.items.push({label: i, title: '{...}', item: this.item[i]});
-				}
-				break;
-				
-			case 'function':
-				this.mainModel.items.push({label: i, title: 'Function () {...}'});
-				break;
-				
-			default:
-				this.mainModel.items.push({label: i, title: '*'+(typeof this.item[i])+' needs handler - '+this.item[i]});
-				break;
+			this.listData('#'+n, this.item[n]);
 		}
+	}
+	else if ((typeof this.item) == 'object')
+	{
+		for (i in this.item)
+		{
+			this.listData(i, this.item[i]);
+		}
+	}
+	else
+	{
+		this.mainModel.items.push({title: this.item});
 	}
 
     // setup widgets
@@ -70,6 +58,37 @@ ItemAssistant.prototype.setup = function() {
     this.controller.listen(this.listElement, Mojo.Event.listTap, this.listTapHandler);
 
 };
+
+ItemAssistant.prototype.listData = function(label, value)
+{
+	switch (typeof value)
+	{
+		case 'string':
+		case 'number':
+		case 'boolean':
+			this.mainModel.items.push({label: label, title: value, labelClass: 'left', titleClass: 'right'});
+			break;
+			
+		case 'object':
+			if (Object.isArray(value))
+			{
+				this.mainModel.items.push({label: label, title: '[...]', labelClass: 'left', titleClass: 'right', item: value});
+			}
+			else
+			{
+				this.mainModel.items.push({label: label, title: '{...}', labelClass: 'left', titleClass: 'right', item: value});
+			}
+			break;
+			
+		case 'function':
+			this.mainModel.items.push({label: label, title: 'Function ...', labelClass: 'left', titleClass: 'right', item: value});
+			break;
+			
+		default:
+			this.mainModel.items.push({label: label, title: '<strong>'+(typeof value)+'</strong> needs handler - '+value, labelClass: 'left', titleClass: 'right'});
+			break;
+	}
+}
 
 ItemAssistant.prototype.listTap = function(event)
 {

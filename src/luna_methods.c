@@ -536,6 +536,155 @@ bool listConnections_method(LSHandle* lshandle, LSMessage *message, void *ctx) {
 }
 
 //
+// Dump the contents of an sqlite3 database table
+//
+static bool dump_sqlite(LSHandle* lshandle, LSMessage *message, char *database, char *table) {
+  LSError lserror;
+  LSErrorInit(&lserror);
+
+  char buffer[MAXBUFLEN];
+  char esc_buffer[MAXBUFLEN];
+
+  char line[MAXLINLEN];
+
+  // Local buffer to store the command
+  char command[MAXLINLEN];
+
+  sprintf(command, "sqlite3 %s .dump 2>&1", database);
+
+  // Is this the first line of output?
+  bool first = true;
+
+  // Was there an error in accessing any of the files?
+  bool error = false;
+
+  // Length of buffer before the last command
+  int lastlen = 0;
+
+  // Start execution of the command to list the config files.
+  FILE *fp = popen(command, "r");
+
+  // If the command cannot be started
+  if (!fp) {
+
+    // then report the error to webOS.
+    if (!report_command_failure(lshandle, message, command, NULL, NULL)) goto end;
+
+    // The error report has been sent, so return to webOS.
+    return true;
+  }
+
+  if (!LSMessageReply(lshandle, message, "{\"stage\": \"start\", \"returnValue\": true}", &lserror)) goto error;
+
+  // Initialise the output message.
+  strcpy(buffer, "{");
+  lastlen = strlen(buffer);
+
+  // Loop through the list of files in the scripts directory.
+  while (fgets( line, sizeof line, fp)) {
+
+    // Chomp the newline
+    char *nl = strchr(line,'\n'); if (nl) *nl = 0;
+
+    if ((strlen(line) <= 13+strlen(table)+9) ||
+	strncmp(line, "INSERT INTO \"", 13) ||
+	strncmp(line+13, table, strlen(table)) ||
+	strncmp(line+13+strlen(table), "\" VALUES(", 9) ||
+	strncmp(line+strlen(line)-2, ");", 2)) {
+      continue;
+    }
+
+    *(line+strlen(line)-2) = 0;
+
+    // Push out a partial chunk
+    if (strlen(buffer) >= CHUNKSIZE) {
+
+      // Terminate the JSON array
+      if (!first) {
+	strcat(buffer, "], ");
+      }
+
+      strcat(buffer, "\"stage\": \"middle\", ");
+
+      // Check the error status, and return the current error status
+      if (error) {
+	strcat(buffer, "\"returnValue\": false}");
+      }
+      else {
+	strcat(buffer, "\"returnValue\": true}");
+      }
+      
+      fprintf(stderr, "Message is %s\n", buffer);
+
+      // Return the results to webOS.
+      if (!LSMessageReply(lshandle, message, buffer, &lserror)) goto error;
+
+      // This is now the first line of output
+      first = true;
+
+      // Initialise the output message.
+      strcpy(buffer, "{");
+      lastlen = strlen(buffer);
+    }
+
+    // Start or continue the JSON array
+    if (first) {
+      strcat(buffer, "\"contents\": [");
+      lastlen = strlen(buffer);
+      first = false;
+    }
+    else if (strlen(buffer) > lastlen) {
+      strcat(buffer, ", ");
+      lastlen = strlen(buffer);
+    }
+
+    // Store the command output (the contents of the file)
+    strcat(buffer, "[");
+    strcat(buffer, json_escape_str(line+13+strlen(table)+9, esc_buffer));
+    strcat(buffer, "]");
+  }
+
+  // Terminate the JSON array
+  if (!first) {
+    strcat(buffer, "], ");
+  }
+
+  strcat(buffer, "\"stage\": \"end\", ");
+
+  // Check the close status of the process, and return the combined error status
+  if (pclose(fp) || error) {
+    strcat(buffer, "\"returnValue\": false}");
+  }
+  else {
+    strcat(buffer, "\"returnValue\": true}");
+  }
+
+  fprintf(stderr, "Message is %s\n", buffer);
+
+  // Return the results to webOS.
+  if (!LSMessageReply(lshandle, message, buffer, &lserror)) goto error;
+
+  return true;
+ error:
+  LSErrorPrint(&lserror, stderr);
+  LSErrorFree(&lserror);
+ end:
+  return false;
+}
+
+bool listAppDatabases_method(LSHandle* lshandle, LSMessage *message, void *ctx) {
+  return dump_sqlite(lshandle, message, "/var/palm/data/Databases.db", "Databases");
+}
+
+bool listAppCookies_method(LSHandle* lshandle, LSMessage *message, void *ctx) {
+  return dump_sqlite(lshandle, message, "/var/palm/data/cookies.db", "Cookies");
+}
+
+bool listWebCookies_method(LSHandle* lshandle, LSMessage *message, void *ctx) {
+  return dump_sqlite(lshandle, message, "/var/palm/data/browser-cookies.db", "Cookies");
+}
+
+//
 // Handler for the impersonate service.
 //
 bool impersonate_handler(LSHandle* lshandle, LSMessage *reply, void *ctx) {
@@ -630,6 +779,10 @@ LSMethod luna_methods[] = {
   { "getFilecacheType",		getFilecacheType_method },
 
   { "listConnections",		listConnections_method },
+
+  { "listAppDatabases",		listAppDatabases_method },
+  { "listAppCookies",		listAppCookies_method },
+  { "listWebCookies",		listWebCookies_method },
 
   { "impersonate",		impersonate_method },
 

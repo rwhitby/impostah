@@ -50,6 +50,39 @@ ImpostahService.getBackup = function(callback, id)
     return request;
 };
 
+ImpostahService.listAppDatabases = function(callback, set)
+{
+    var request = new Mojo.Service.Request(ImpostahService.identifier,
+	{
+	    method: 'listAppDatabases',
+	    onSuccess: callback,
+	    onFailure: callback
+	});
+    return request;
+};
+
+ImpostahService.listAppCookies = function(callback, set)
+{
+    var request = new Mojo.Service.Request(ImpostahService.identifier,
+	{
+	    method: 'listAppCookies',
+	    onSuccess: callback,
+	    onFailure: callback
+	});
+    return request;
+};
+
+ImpostahService.listWebCookies = function(callback, set)
+{
+    var request = new Mojo.Service.Request(ImpostahService.identifier,
+	{
+	    method: 'listWebCookies',
+	    onSuccess: callback,
+	    onFailure: callback
+	});
+    return request;
+};
+
 ImpostahService.impersonate = function(callback, id, service, method, params)
 {
     var request = new Mojo.Service.Request(ImpostahService.identifier,

@@ -78,8 +78,8 @@
         "source": "app/assistants/app-cookie-explore-assistant.js"
     },
     {
-        "scenes": "app-database-explore",
-        "source": "app/assistants/app-database-explore-assistant.js"
+        "scenes": "app-data-explore",
+        "source": "app/assistants/app-data-explore-assistant.js"
     },
     {
         "scenes": "query",

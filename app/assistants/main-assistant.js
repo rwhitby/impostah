@@ -93,7 +93,7 @@ MainAssistant.prototype.setup = function()
 
     this.mainModel.items.push({
 			name:     $L('App Data'),
-				scene:   'app-database-explore',
+				scene:   'app-data-explore',
 				});
     this.mainModel.items.push({
 			name:     $L('App Cookies'),

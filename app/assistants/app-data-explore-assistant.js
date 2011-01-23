@@ -1,4 +1,4 @@
-function AppDatabaseExploreAssistant()
+function AppDataExploreAssistant()
 {
 	// setup menu
 	this.menuModel = {
@@ -40,7 +40,7 @@ function AppDatabaseExploreAssistant()
 	this.request = false;
 };
 
-AppDatabaseExploreAssistant.prototype.setup = function()
+AppDataExploreAssistant.prototype.setup = function()
 {
 	// setup menu
 	this.controller.setupWidget(Mojo.Menu.appMenu, { omitDefaultItems: true }, this.menuModel);
@@ -72,7 +72,7 @@ AppDatabaseExploreAssistant.prototype.setup = function()
 	this.request = ImpostahService.listAppDatabases(this.appIdsHandler);
 };
 
-AppDatabaseExploreAssistant.prototype.appIds = function(payload)
+AppDataExploreAssistant.prototype.appIds = function(payload)
 {
 	if (payload.returnValue === false) {
 		this.errorMessage('<b>Service Error (appIds):</b><br>'+payload.errorText);
@@ -144,7 +144,7 @@ AppDatabaseExploreAssistant.prototype.appIds = function(payload)
 	}
 };
 
-AppDatabaseExploreAssistant.prototype.appIdChanged = function(event)
+AppDataExploreAssistant.prototype.appIdChanged = function(event)
 {
 	var cookie = new preferenceCookie();
 	var tprefs = cookie.get();
@@ -185,7 +185,7 @@ AppDatabaseExploreAssistant.prototype.appIdChanged = function(event)
 	}
 };
 
-AppDatabaseExploreAssistant.prototype.dbNameChanged = function(event)
+AppDataExploreAssistant.prototype.dbNameChanged = function(event)
 {
 	var cookie = new preferenceCookie();
 	var tprefs = cookie.get();
@@ -215,14 +215,14 @@ AppDatabaseExploreAssistant.prototype.dbNameChanged = function(event)
 	}
 };
 
-AppDatabaseExploreAssistant.prototype.showTap = function(event)
+AppDataExploreAssistant.prototype.showTap = function(event)
 {
 	if (this.appId && this.dbName && this.database) {
 		this.controller.stageController.pushScene("item", "App Database", this.database);
 	}
 };
 
-AppDatabaseExploreAssistant.prototype.errorMessage = function(msg)
+AppDataExploreAssistant.prototype.errorMessage = function(msg)
 {
 	this.controller.showAlertDialog({
 			allowHTMLMessage:	true,
@@ -234,7 +234,7 @@ AppDatabaseExploreAssistant.prototype.errorMessage = function(msg)
 		});
 };
 
-AppDatabaseExploreAssistant.prototype.handleCommand = function(event)
+AppDataExploreAssistant.prototype.handleCommand = function(event)
 {
 	if (event.type == Mojo.Event.command) {
 		switch (event.command) {
@@ -249,7 +249,7 @@ AppDatabaseExploreAssistant.prototype.handleCommand = function(event)
 	}
 };
 
-AppDatabaseExploreAssistant.prototype.cleanup = function(event)
+AppDataExploreAssistant.prototype.cleanup = function(event)
 {
 	// cancel the last request
 	if (this.request) this.request.cancel();

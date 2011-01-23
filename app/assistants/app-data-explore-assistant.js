@@ -167,7 +167,7 @@ AppDataExploreAssistant.prototype.appIdChanged = function(event)
 	if (databases && databases.length > 0) {
 		for (var a = 0; a < databases.length; a++) {
 			var name = databases[a].name;
-			var label = databases[a].displayName;
+			var label = databases[a].displayName || databases[a].name;
 			this.dbNamesModel.choices.push({label:label, value:name});
 			if (name == oldName) {
 				this.dbNamesModel.value = oldName;

@@ -31,7 +31,11 @@ preferenceCookie.prototype.get = function(reload)
 				lastKeystoreKind: '',
 				lastBackupKind: '',
 				lastConnectionKind: '',
-				
+				lastWebCookieUrl: '',
+				lastWebCookieName: '',
+				lastAppCookieAppId: '',
+				lastAppCookieName: ''
+
 			};
 			
 			// uncomment to delete cookie for testing

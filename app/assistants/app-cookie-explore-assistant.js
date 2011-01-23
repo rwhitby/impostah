@@ -1,4 +1,4 @@
-function WebCookieExploreAssistant()
+function AppCookieExploreAssistant()
 {
 	// setup menu
 	this.menuModel = {
@@ -15,7 +15,7 @@ function WebCookieExploreAssistant()
 				]
 	};
 	
-	this.cookieUrlsModel = {
+	this.cookieAppIdsModel = {
 		value: '',
 		choices: [],
 		disabled: true
@@ -40,7 +40,7 @@ function WebCookieExploreAssistant()
 	this.request = false;
 };
 
-WebCookieExploreAssistant.prototype.setup = function()
+AppCookieExploreAssistant.prototype.setup = function()
 {
 	// setup menu
 	this.controller.setupWidget(Mojo.Menu.appMenu, { omitDefaultItems: true }, this.menuModel);
@@ -49,42 +49,42 @@ WebCookieExploreAssistant.prototype.setup = function()
 	this.iconElement = this.controller.get('icon');
 	this.iconElement.style.display = 'none';
 	this.spinnerElement = 		this.controller.get('spinner');
-	this.cookieUrlElement =		this.controller.get('cookieUrl');
+	this.cookieAppIdElement =		this.controller.get('cookieAppId');
 	this.cookieNameElement =	this.controller.get('cookieName');
 	this.showButton =			this.controller.get('showButton');
 	
 	// setup handlers
-	this.cookieUrlsHandler =		  this.cookieUrls.bindAsEventListener(this);
-	this.cookieUrlChangedHandler =	  this.cookieUrlChanged.bindAsEventListener(this);
+	this.cookieAppIdsHandler =		  this.cookieAppIds.bindAsEventListener(this);
+	this.cookieAppIdChangedHandler =	  this.cookieAppIdChanged.bindAsEventListener(this);
 	this.cookieNameChangedHandler =	  this.cookieNameChanged.bindAsEventListener(this);
 	this.showTapHandler =			  this.showTap.bindAsEventListener(this);
 	
 	// setup widgets
 	this.spinnerModel = {spinning: true};
 	this.controller.setupWidget('spinner', {spinnerSize: 'small'}, this.spinnerModel);
-	this.controller.setupWidget('cookieUrl', {}, this.cookieUrlsModel);
-	this.controller.listen(this.cookieUrlElement, Mojo.Event.propertyChange, this.cookieUrlChangedHandler);
+	this.controller.setupWidget('cookieAppId', {}, this.cookieAppIdsModel);
+	this.controller.listen(this.cookieAppIdElement, Mojo.Event.propertyChange, this.cookieAppIdChangedHandler);
 	this.controller.setupWidget('cookieName', { multiline: true }, this.cookieNamesModel);
 	this.controller.listen(this.cookieNameElement, Mojo.Event.propertyChange, this.cookieNameChangedHandler);
 	this.controller.setupWidget('showButton', { }, this.showButtonModel);
 	this.controller.listen(this.showButton,  Mojo.Event.tap, this.showTapHandler);
 	
-	this.request = ImpostahService.listWebCookies(this.cookieUrlsHandler);
+	this.request = ImpostahService.listAppCookies(this.cookieAppIdsHandler);
 };
 
-WebCookieExploreAssistant.prototype.cookieUrls = function(payload)
+AppCookieExploreAssistant.prototype.cookieAppIds = function(payload)
 {
 	if (payload.returnValue === false) {
-		this.errorMessage('<b>Service Error (cookieUrls):</b><br>'+payload.errorText);
+		this.errorMessage('<b>Service Error (cookieAppIds):</b><br>'+payload.errorText);
 		return;
 	}
 
 	if (payload.stage == "start") {
 		this.cookies = {};
-		this.cookieUrlsModel.value = "";
+		this.cookieAppIdsModel.value = "";
 	}
 
-	var oldUrl = prefs.get().lastWebCookieUrl;
+	var oldAppId = prefs.get().lastAppCookieAppId;
 
 	var results = payload.results;
 
@@ -102,16 +102,26 @@ WebCookieExploreAssistant.prototype.cookieUrls = function(payload)
 				cookie.value = entry[4];
 				cookie.expires = entry[5];
 				cookie.secure = entry[6];
-				var url = cookie.domain_head + cookie.domain_tail + cookie.path;
+				var url = cookie.domain_head + cookie.domain_tail;
+				var label = url;
+				if (label.indexOf(".media.cryptofs.apps") == 0) {
+					label = label.slice(20);
+				}
+				if (label.indexOf(".usr.palm.applications") == 0) {
+					label = label.slice(22);
+				}
+				if (label.indexOf(".") == 0) {
+					label = label.slice(1);
+				}
 				if (url in this.cookies) {
 					this.cookies[url].push(cookie);
 				}
 				else {
-					this.cookieUrlsModel.choices.push({label:url, value:url});
+					this.cookieAppIdsModel.choices.push({label:label, value:url});
 					this.cookies[url] = [cookie];
 				}
-				if (url == oldUrl) {
-					this.cookieUrlsModel.value = oldUrl;
+				if (url == oldAppId) {
+					this.cookieAppIdsModel.value = oldAppId;
 				}
 			}
 		}
@@ -119,8 +129,8 @@ WebCookieExploreAssistant.prototype.cookieUrls = function(payload)
 
 	if (payload.stage == "end") {
 
-		if (this.cookieUrlsModel.value == "") {
-			this.cookieUrlsModel.value = this.cookieUrlsModel.choices[0].value;
+		if (this.cookieAppIdsModel.value == "") {
+			this.cookieAppIdsModel.value = this.cookieAppIdsModel.choices[0].value;
 		}
 
 		// Stop the spinner
@@ -129,23 +139,23 @@ WebCookieExploreAssistant.prototype.cookieUrls = function(payload)
 		this.controller.modelChanged(this.spinnerModel);
 
 		// Enable the drop-down list
-		this.cookieUrlsModel.disabled = false;
-		this.controller.modelChanged(this.cookieUrlsModel);
-		this.cookieUrlChanged({value: this.cookieUrlsModel.value});
+		this.cookieAppIdsModel.disabled = false;
+		this.controller.modelChanged(this.cookieAppIdsModel);
+		this.cookieAppIdChanged({value: this.cookieAppIdsModel.value});
 	}
 };
 
-WebCookieExploreAssistant.prototype.cookieUrlChanged = function(event)
+AppCookieExploreAssistant.prototype.cookieAppIdChanged = function(event)
 {
 	var cookie = new preferenceCookie();
 	var tprefs = cookie.get();
-	tprefs.lastWebCookieUrl = event.value;
+	tprefs.lastAppCookieAppId = event.value;
 	cookie.put(tprefs);
 	var tmp = prefs.get(true);
 	
 	this.url = event.value;
 
-	var oldName = prefs.get().lastWebCookieName;
+	var oldName = prefs.get().lastAppCookieName;
 
 	// Disable the cookie names list
 	this.cookieNamesModel.choices = [];
@@ -158,7 +168,10 @@ WebCookieExploreAssistant.prototype.cookieUrlChanged = function(event)
 	if (cookies && cookies.length > 0) {
 		for (var a = 0; a < cookies.length; a++) {
 			var name = cookies[a].name;
-			var label = cookies[a].name;
+			var label = name;
+			if (label.indexOf("mojo_cookie_") == 0) {
+				label = label.slice(12);
+			}
 			this.cookieNamesModel.choices.push({label:label, value:name});
 			if (name == oldName) {
 				this.cookieNamesModel.value = oldName;
@@ -176,11 +189,11 @@ WebCookieExploreAssistant.prototype.cookieUrlChanged = function(event)
 	}
 };
 
-WebCookieExploreAssistant.prototype.cookieNameChanged = function(event)
+AppCookieExploreAssistant.prototype.cookieNameChanged = function(event)
 {
 	var cookie = new preferenceCookie();
 	var tprefs = cookie.get();
-	tprefs.lastWebCookieName = event.value;
+	tprefs.lastAppCookieName = event.value;
 	cookie.put(tprefs);
 	var tmp = prefs.get(true);
 	
@@ -206,14 +219,14 @@ WebCookieExploreAssistant.prototype.cookieNameChanged = function(event)
 	}
 };
 
-WebCookieExploreAssistant.prototype.showTap = function(event)
+AppCookieExploreAssistant.prototype.showTap = function(event)
 {
 	if (this.url && this.name && this.cookie) {
-		this.controller.stageController.pushScene("item", "Web Cookie", this.cookie);
+		this.controller.stageController.pushScene("item", "App Cookie", this.cookie);
 	}
 };
 
-WebCookieExploreAssistant.prototype.errorMessage = function(msg)
+AppCookieExploreAssistant.prototype.errorMessage = function(msg)
 {
 	this.controller.showAlertDialog({
 			allowHTMLMessage:	true,
@@ -225,7 +238,7 @@ WebCookieExploreAssistant.prototype.errorMessage = function(msg)
 		});
 };
 
-WebCookieExploreAssistant.prototype.handleCommand = function(event)
+AppCookieExploreAssistant.prototype.handleCommand = function(event)
 {
 	if (event.type == Mojo.Event.command) {
 		switch (event.command) {
@@ -240,12 +253,12 @@ WebCookieExploreAssistant.prototype.handleCommand = function(event)
 	}
 };
 
-WebCookieExploreAssistant.prototype.cleanup = function(event)
+AppCookieExploreAssistant.prototype.cleanup = function(event)
 {
 	// cancel the last request
 	if (this.request) this.request.cancel();
 
-	this.controller.stopListening(this.cookieUrlElement, Mojo.Event.propertyChange, this.cookieUrlChangedHandler);
+	this.controller.stopListening(this.cookieAppIdElement, Mojo.Event.propertyChange, this.cookieAppIdChangedHandler);
 	this.controller.stopListening(this.cookieNameElement, Mojo.Event.propertyChange, this.cookieNameChangedHandler);
 	this.controller.stopListening(this.showButton,	 Mojo.Event.tap, this.showTapHandler);
 };

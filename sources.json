@@ -74,6 +74,10 @@
         "source": "app/assistants/web-cookie-explore-assistant.js"
     },
     {
+        "scenes": "app-cookie-explore",
+        "source": "app/assistants/app-cookie-explore-assistant.js"
+    },
+    {
         "scenes": "query",
         "source": "app/assistants/query-assistant.js"
     },

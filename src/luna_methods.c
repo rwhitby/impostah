@@ -22,6 +22,7 @@
 #include <unistd.h>
 #include <pthread.h>
 #include <syslog.h>
+#include <sys/stat.h>
 
 #include "luna_service.h"
 #include "luna_methods.h"
@@ -629,7 +630,7 @@ static bool dump_sqlite(LSHandle* lshandle, LSMessage *message, char *database, 
 
     // Start or continue the JSON array
     if (first) {
-      strcat(buffer, "\"contents\": [");
+      strcat(buffer, "\"results\": [");
       lastlen = strlen(buffer);
       first = false;
     }
@@ -638,10 +639,10 @@ static bool dump_sqlite(LSHandle* lshandle, LSMessage *message, char *database, 
       lastlen = strlen(buffer);
     }
 
-    // Store the command output (the contents of the file)
-    strcat(buffer, "[");
+    // Store the command output
+    strcat(buffer, "\"");
     strcat(buffer, json_escape_str(line+13+strlen(table)+9, esc_buffer));
-    strcat(buffer, "]");
+    strcat(buffer, "\"");
   }
 
   // Terminate the JSON array
@@ -673,7 +674,14 @@ static bool dump_sqlite(LSHandle* lshandle, LSMessage *message, char *database, 
 }
 
 bool listAppDatabases_method(LSHandle* lshandle, LSMessage *message, void *ctx) {
-  return dump_sqlite(lshandle, message, "/var/palm/data/Databases.db", "Databases");
+  struct stat statbuf;
+  char *filename = "/home/root/html5-databases/Databases.db";
+
+  if (stat(filename, &statbuf) == -1) {
+    filename = "/var/palm/data/Databases.db";
+  }
+
+  return dump_sqlite(lshandle, message, filename, "Databases");
 }
 
 bool listAppCookies_method(LSHandle* lshandle, LSMessage *message, void *ctx) {

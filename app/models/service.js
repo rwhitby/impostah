@@ -2,7 +2,7 @@ ImpostahService.identifier = 'palm://org.webosinternals.impostah';
 
 function ImpostahService(){};
 
-ImpostahService.listKeys = function(callback, set)
+ImpostahService.listKeys = function(callback)
 {
     var request = new Mojo.Service.Request(ImpostahService.identifier,
 	{
@@ -13,7 +13,7 @@ ImpostahService.listKeys = function(callback, set)
     return request;
 };
 
-ImpostahService.listConnections = function(callback, set)
+ImpostahService.listConnections = function(callback)
 {
     var request = new Mojo.Service.Request(ImpostahService.identifier,
 	{
@@ -50,7 +50,7 @@ ImpostahService.getBackup = function(callback, id)
     return request;
 };
 
-ImpostahService.listAppDatabases = function(callback, set)
+ImpostahService.listAppDatabases = function(callback)
 {
     var request = new Mojo.Service.Request(ImpostahService.identifier,
 	{
@@ -61,7 +61,7 @@ ImpostahService.listAppDatabases = function(callback, set)
     return request;
 };
 
-ImpostahService.listAppCookies = function(callback, set)
+ImpostahService.listAppCookies = function(callback)
 {
     var request = new Mojo.Service.Request(ImpostahService.identifier,
 	{
@@ -72,7 +72,7 @@ ImpostahService.listAppCookies = function(callback, set)
     return request;
 };
 
-ImpostahService.listWebCookies = function(callback, set)
+ImpostahService.listWebCookies = function(callback)
 {
     var request = new Mojo.Service.Request(ImpostahService.identifier,
 	{

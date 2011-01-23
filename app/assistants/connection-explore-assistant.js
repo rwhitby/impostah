@@ -52,7 +52,7 @@ ConnectionExploreAssistant.prototype.setup = function()
 	this.controller.setupWidget('showButton', {}, this.showButtonModel);
 	this.controller.listen(this.showButton,	 Mojo.Event.tap, this.showTapHandler);
 	
-	this.request = ImpostahService.listConnections(this.connectionKindsHandler, false);
+	this.request = ImpostahService.listConnections(this.connectionKindsHandler);
 	
 };
 

@@ -11,6 +11,8 @@ function StartupAssistant(changelog)
     this.newMessages =
 	[
 	 // Don't forget the comma on all but the last entry
+	 { version: '0.3.6', log: [ 'Added support for web cookies' ] },
+	 { version: '0.3.5', log: [ 'Do not capitalise JSON field names' ] },
 	 { version: '0.3.4', log: [ 'Added structured display of JSON data' ] },
 	 { version: '0.3.3', log: [ 'Added support for app catalog exploration' ] },
 	 { version: '0.3.2', log: [ 'Added support for reporting the telephony platform' ] },

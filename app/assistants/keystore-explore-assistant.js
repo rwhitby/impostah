@@ -53,7 +53,7 @@ KeystoreExploreAssistant.prototype.setup = function()
 	this.controller.setupWidget('showButton', {}, this.showButtonModel);
 	this.controller.listen(this.showButton,	 Mojo.Event.tap, this.showTapHandler);
 	
-	this.request = ImpostahService.listKeys(this.keystoreKindsHandler, false);
+	this.request = ImpostahService.listKeys(this.keystoreKindsHandler);
 	
 };
 

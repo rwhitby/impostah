@@ -70,6 +70,10 @@
         "source": "app/assistants/permission-explore-assistant.js"
     },
     {
+        "scenes": "web-cookie-explore",
+        "source": "app/assistants/web-cookie-explore-assistant.js"
+    },
+    {
         "scenes": "query",
         "source": "app/assistants/query-assistant.js"
     },

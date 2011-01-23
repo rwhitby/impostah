@@ -126,7 +126,6 @@ DatabaseExploreAssistant.prototype.setup = function()
 	this.databaseSetElement =	this.controller.get('databaseSet');
 	this.databaseKindElement =	this.controller.get('databaseKind');
 	this.queryButton =			this.controller.get('queryButton');
-	this.bodyElement =			this.controller.get('body');
 	
 	// setup handlers
 	this.databaseSetChangedHandler =  this.databaseSetChanged.bindAsEventListener(this);

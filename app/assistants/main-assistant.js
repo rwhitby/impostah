@@ -59,7 +59,7 @@ MainAssistant.prototype.setup = function()
 				scene:   'appcat-explore',
 				});
     this.mainModel.items.push({
-			name:     $L('Device'),
+			name:     $L('Device Info'),
 				scene:   'device-explore',
 				});
 
@@ -92,17 +92,30 @@ MainAssistant.prototype.setup = function()
 
 
     this.mainModel.items.push({
+			name:     $L('App Data'),
+				scene:   'app-data-explore',
+				});
+    this.mainModel.items.push({
+			name:     $L('App Cookies'),
+				scene:   'app-cookie-explore',
+				});
+
+    this.mainModel.items.push({
 			name:     $L('Key Store'),
 				scene:   'keystore-explore',
 				});
     this.mainModel.items.push({
-			name:     $L('File Cache'),
-				scene:   'filecache-explore',
+			name:     $L('Web Cookies'),
+				scene:   'web-cookie-explore',
 				});
 
     this.mainModel.items.push({
 			name:     $L('Backups'),
 				scene:   'backup-explore',
+				});
+    this.mainModel.items.push({
+			name:     $L('File Cache'),
+				scene:   'filecache-explore',
 				});
     
 

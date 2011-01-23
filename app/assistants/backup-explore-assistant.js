@@ -51,7 +51,7 @@ BackupExploreAssistant.prototype.setup = function()
 	this.controller.setupWidget('showButton', {}, this.showButtonModel);
 	this.controller.listen(this.showButton,	 Mojo.Event.tap, this.showTapHandler);
 	
-	this.request = ImpostahService.listBackups(this.backupKindsHandler, false);
+	this.request = ImpostahService.listBackups(this.backupKindsHandler);
 	
 };
 

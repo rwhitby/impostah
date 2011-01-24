@@ -38,8 +38,8 @@ static bool access_denied(LSHandle* lshandle, LSMessage *message) {
   LSError lserror;
   LSErrorInit(&lserror);
 
-  if (!LSMessageGetApplicationID(message) ||
-      strncmp(LSMessageGetApplicationID(message), "org.webosinternals.impostah ", 28)) {
+  const char *appId = LSMessageGetApplicationID(message);
+  if (!appId || strncmp(appId, "org.webosinternals.impostah", 27) || ((strlen(appId) > 27) && (*(appId+27) != ' '))) {
     if (!LSMessageReply(lshandle, message, "{\"returnValue\": false, \"errorText\": \"Unauthorised access\"}", &lserror)) {
       LSErrorPrint(&lserror, stderr);
       LSErrorFree(&lserror);

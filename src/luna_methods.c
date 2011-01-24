@@ -34,6 +34,23 @@
 static char file_buffer[CHUNKSIZE+CHUNKSIZE+1];
 static char file_esc_buffer[MAXBUFLEN];
 
+static bool access_denied(LSHandle* lshandle, LSMessage *message) {
+  LSError lserror;
+  LSErrorInit(&lserror);
+
+  if (!LSMessageGetApplicationID(message) ||
+      strncmp(LSMessageGetApplicationID(message), "org.webosinternals.impostah ", 28)) {
+    if (!LSMessageReply(lshandle, message, "{\"returnValue\": false, \"errorText\": \"Unauthorised access\"}", &lserror)) {
+      LSErrorPrint(&lserror, stderr);
+      LSErrorFree(&lserror);
+    }
+    return true;
+  }
+
+  return false;
+}
+
+
 //
 // Escape a string so that it can be used directly in a JSON response.
 // In general, this means escaping quotes, backslashes and control chars.
@@ -134,6 +151,8 @@ bool dummy_method(LSHandle* lshandle, LSMessage *message, void *ctx) {
   LSError lserror;
   LSErrorInit(&lserror);
 
+  if (access_denied(lshandle, message)) return true;
+
   if (!LSMessageReply(lshandle, message, "{\"returnValue\": true}", &lserror)) goto error;
 
   return true;
@@ -151,6 +170,8 @@ bool dummy_method(LSHandle* lshandle, LSMessage *message, void *ctx) {
 bool version_method(LSHandle* lshandle, LSMessage *message, void *ctx) {
   LSError lserror;
   LSErrorInit(&lserror);
+
+  if (access_denied(lshandle, message)) return true;
 
   if (!LSMessageReply(lshandle, message, "{\"returnValue\": true, \"version\": \"" VERSION "\", \"apiVersion\": \"" API_VERSION "\"}", &lserror)) goto error;
 
@@ -414,6 +435,8 @@ bool listKeys_method(LSHandle* lshandle, LSMessage *message, void *ctx) {
   LSError lserror;
   LSErrorInit(&lserror);
 
+  if (access_denied(lshandle, message)) return true;
+
   // Local buffer to store the command
   char command[MAXLINLEN];
 
@@ -432,6 +455,8 @@ bool listBackups_method(LSHandle* lshandle, LSMessage *message, void *ctx) {
   LSError lserror;
   LSErrorInit(&lserror);
 
+  if (access_denied(lshandle, message)) return true;
+
   // Local buffer to store the command
   char command[MAXLINLEN];
 
@@ -449,6 +474,8 @@ bool listBackups_method(LSHandle* lshandle, LSMessage *message, void *ctx) {
 bool getBackup_method(LSHandle* lshandle, LSMessage *message, void *ctx) {
   LSError lserror;
   LSErrorInit(&lserror);
+
+  if (access_denied(lshandle, message)) return true;
 
   char filename[MAXLINLEN];
 
@@ -477,6 +504,8 @@ bool listFilecacheTypes_method(LSHandle* lshandle, LSMessage *message, void *ctx
   LSError lserror;
   LSErrorInit(&lserror);
 
+  if (access_denied(lshandle, message)) return true;
+
   // Local buffer to store the command
   char command[MAXLINLEN];
 
@@ -494,6 +523,8 @@ bool listFilecacheTypes_method(LSHandle* lshandle, LSMessage *message, void *ctx
 bool getFilecacheType_method(LSHandle* lshandle, LSMessage *message, void *ctx) {
   LSError lserror;
   LSErrorInit(&lserror);
+
+  if (access_denied(lshandle, message)) return true;
 
   char filename[MAXLINLEN];
 
@@ -521,6 +552,8 @@ bool getFilecacheType_method(LSHandle* lshandle, LSMessage *message, void *ctx) 
 bool listConnections_method(LSHandle* lshandle, LSMessage *message, void *ctx) {
   LSError lserror;
   LSErrorInit(&lserror);
+
+  if (access_denied(lshandle, message)) return true;
 
   // Local buffer to store the command
   char command[MAXLINLEN];
@@ -615,7 +648,7 @@ static bool dump_sqlite(LSHandle* lshandle, LSMessage *message, char *database, 
 	strcat(buffer, "\"returnValue\": true}");
       }
       
-      fprintf(stderr, "Message is %s\n", buffer);
+      // fprintf(stderr, "Message is %s\n", buffer);
 
       // Return the results to webOS.
       if (!LSMessageReply(lshandle, message, buffer, &lserror)) goto error;
@@ -660,7 +693,7 @@ static bool dump_sqlite(LSHandle* lshandle, LSMessage *message, char *database, 
     strcat(buffer, "\"returnValue\": true}");
   }
 
-  fprintf(stderr, "Message is %s\n", buffer);
+  // fprintf(stderr, "Message is %s\n", buffer);
 
   // Return the results to webOS.
   if (!LSMessageReply(lshandle, message, buffer, &lserror)) goto error;
@@ -681,15 +714,18 @@ bool listAppDatabases_method(LSHandle* lshandle, LSMessage *message, void *ctx) 
     filename = "/var/palm/data/Databases.db";
   }
 
-  return dump_sqlite(lshandle, message, filename, "Databases");
+  return access_denied(lshandle, message) || \
+    dump_sqlite(lshandle, message, filename, "Databases");
 }
 
 bool listAppCookies_method(LSHandle* lshandle, LSMessage *message, void *ctx) {
-  return dump_sqlite(lshandle, message, "/var/palm/data/cookies.db", "Cookies");
+  return access_denied(lshandle, message) || \
+    dump_sqlite(lshandle, message, "/var/palm/data/cookies.db", "Cookies");
 }
 
 bool listWebCookies_method(LSHandle* lshandle, LSMessage *message, void *ctx) {
-  return dump_sqlite(lshandle, message, "/var/palm/data/browser-cookies.db", "Cookies");
+  return access_denied(lshandle, message) || \
+    dump_sqlite(lshandle, message, "/var/palm/data/browser-cookies.db", "Cookies");
 }
 
 //
@@ -717,6 +753,8 @@ bool impersonate_method(LSHandle* lshandle, LSMessage *message, void *ctx) {
   LSError lserror;
   LSErrorInit(&lserror);
   LSMessageRef(message);
+
+  if (access_denied(lshandle, message)) return true;
 
   // Extract the method argument from the message
   json_t *object = json_parse_document(LSMessageGetPayload(message));

@@ -138,6 +138,10 @@ body.palm-dark .main .palm-list .palm-row.selected
 {
 	text-align: center;
 }
+.main .palm-row-wrapper.disabled .title
+{
+	color: #999;
+}
 
 
 

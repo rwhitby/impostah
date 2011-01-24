@@ -3,7 +3,7 @@ function StartupAssistant(changelog)
 	this.justChangelog = changelog;
 	
     // on first start, this message is displayed, along with the current version message from below
-    this.firstMessage = $L('Here are some tips for first-timers:<ul><li>Impostah has no tips yet</li></ul>');
+    this.firstMessage = $L('Here are some tips for first-timers:<ul><li>Many Impostah features are only available on webOS 2.0</li></ul>');
 	
     this.secondMessage = $L('We hope you enjoy being able to impersonate other applications to access the secrets inside your device.<br>Please consider making a <a href=http://donate.webos-internals.org/>donation</a> if you wish to show your appreciation.');
 	
@@ -11,6 +11,7 @@ function StartupAssistant(changelog)
     this.newMessages =
 	[
 	 // Don't forget the comma on all but the last entry
+	 { version: '0.4.0', log: [ 'Enable a subset of features for webOS 1.4.5' ] },
 	 { version: '0.3.8', log: [ 'Added support for app databases' ] },
 	 { version: '0.3.7', log: [ 'Added support for app cookies' ] },
 	 { version: '0.3.6', log: [ 'Added support for web cookies' ] },

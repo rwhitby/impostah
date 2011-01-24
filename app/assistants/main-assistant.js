@@ -57,6 +57,7 @@ MainAssistant.prototype.setup = function()
     this.mainModel.items.push({
 			name:     $L('App Catalog'),
 				scene:   'appcat-explore',
+				disabled: (Mojo.Environment.DeviceInfo.platformVersionMajor == 1)
 				});
     this.mainModel.items.push({
 			name:     $L('Device Info'),
@@ -66,24 +67,29 @@ MainAssistant.prototype.setup = function()
     this.mainModel.items.push({
 			name:     $L('Applications'),
 				scene:   'application-explore',
+				disabled: (Mojo.Environment.DeviceInfo.platformVersionMajor == 1)
 				});
     this.mainModel.items.push({
 			name:     $L('Databases'),
 				scene:   'database-explore',
+				disabled: (Mojo.Environment.DeviceInfo.platformVersionMajor == 1)
 				});
     
     this.mainModel.items.push({
 			name:     $L('Accounts'),
 				scene:   'account-explore',
+				disabled: (Mojo.Environment.DeviceInfo.platformVersionMajor == 1)
 				});
     this.mainModel.items.push({
 			name:     $L('Permissions'),
 				scene:   'permission-explore',
+				disabled: (Mojo.Environment.DeviceInfo.platformVersionMajor == 1)
 				});
 
     this.mainModel.items.push({
 			name:     $L('Activities'),
 				scene:   'activity-explore',
+				disabled: (Mojo.Environment.DeviceInfo.platformVersionMajor == 1)
 				});
     this.mainModel.items.push({
 			name:     $L('Connections'),
@@ -103,6 +109,7 @@ MainAssistant.prototype.setup = function()
     this.mainModel.items.push({
 			name:     $L('Key Store'),
 				scene:   'keystore-explore',
+				disabled: (Mojo.Environment.DeviceInfo.platformVersionMajor == 1)
 				});
     this.mainModel.items.push({
 			name:     $L('Web Cookies'),
@@ -112,12 +119,21 @@ MainAssistant.prototype.setup = function()
     this.mainModel.items.push({
 			name:     $L('Backups'),
 				scene:   'backup-explore',
+				disabled: (Mojo.Environment.DeviceInfo.platformVersionMajor == 1)
 				});
     this.mainModel.items.push({
 			name:     $L('File Cache'),
 				scene:   'filecache-explore',
+				disabled: (Mojo.Environment.DeviceInfo.platformVersionMajor == 1)
 				});
     
+
+	// Dim the disabled items
+	for (var i = 0; i < this.mainModel.items.length; i++) {
+		if (this.mainModel.items[i].disabled) {
+			this.mainModel.items[i].style = 'disabled';
+		}
+	}
 
     // setup widget
     this.controller.setupWidget('mainList', {
@@ -127,7 +143,7 @@ MainAssistant.prototype.setup = function()
 
 MainAssistant.prototype.listTap = function(event)
 {
-    if (event.item.scene === false || event.item.style == 'disabled') {
+    if (event.item.scene === false || event.item.disabled == true) {
 		// no scene or its disabled, so we won't do anything
     }
     else {

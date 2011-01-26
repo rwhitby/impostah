@@ -222,6 +222,15 @@ AppCookieExploreAssistant.prototype.cookieNameChanged = function(event)
 AppCookieExploreAssistant.prototype.showTap = function(event)
 {
 	if (this.url && this.name && this.cookie) {
+		try
+		{
+			var newValue = decodeURIComponent(this.cookie.value).evalJSON();
+		}
+		catch (e)
+		{
+			var newValue = decodeURIComponent(this.cookie.value);
+		}
+		this.cookie.value = newValue;
 		this.controller.stageController.pushScene("item", "App Cookie", this.cookie);
 	}
 };

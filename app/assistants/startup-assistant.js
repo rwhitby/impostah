@@ -11,6 +11,7 @@ function StartupAssistant(changelog)
     this.newMessages =
 	[
 	 // Don't forget the comma on all but the last entry
+	 { version: '0.4.2', log: [ 'Added support for better display of app cookies' ] },
 	 { version: '0.4.1', log: [ 'Implemented access authorisation checking' ] },
 	 { version: '0.4.0', log: [ 'Enable a subset of features for webOS 1.4.5' ] },
 	 { version: '0.3.8', log: [ 'Added support for app databases' ] },

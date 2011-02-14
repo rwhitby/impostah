@@ -759,7 +759,7 @@ bool impersonate_method(LSHandle* lshandle, LSMessage *message, void *ctx) {
   // Extract the method argument from the message
   json_t *object = json_parse_document(LSMessageGetPayload(message));
   json_t *id = json_find_first_label(object, "id");               
-  if (!id || (id->child->type != JSON_STRING) || (strspn(id->child->text, ALLOWED_CHARS) != strlen(id->child->text))) {
+  if (!id || (id->child->type != JSON_STRING)) {
     if (!LSMessageReply(lshandle, message,
 			"{\"returnValue\": false, \"errorCode\": -1, \"errorText\": \"Invalid or missing id\"}",
 			&lserror)) goto error;
@@ -769,7 +769,7 @@ bool impersonate_method(LSHandle* lshandle, LSMessage *message, void *ctx) {
   // Extract the service argument from the message
   object = json_parse_document(LSMessageGetPayload(message));
   json_t *service = json_find_first_label(object, "service");               
-  if (!service || (service->child->type != JSON_STRING) || (strspn(service->child->text, ALLOWED_CHARS) != strlen(service->child->text))) {
+  if (!service || (service->child->type != JSON_STRING)) {
     if (!LSMessageReply(lshandle, message,
 			"{\"returnValue\": false, \"errorCode\": -1, \"errorText\": \"Invalid or missing service\"}",
 			&lserror)) goto error;
@@ -779,7 +779,7 @@ bool impersonate_method(LSHandle* lshandle, LSMessage *message, void *ctx) {
   // Extract the method argument from the message
   object = json_parse_document(LSMessageGetPayload(message));
   json_t *method = json_find_first_label(object, "method");               
-  if (!method || (method->child->type != JSON_STRING) || (strspn(method->child->text, ALLOWED_CHARS) != strlen(method->child->text))) {
+  if (!method || (method->child->type != JSON_STRING)) {
     if (!LSMessageReply(lshandle, message,
 			"{\"returnValue\": false, \"errorCode\": -1, \"errorText\": \"Invalid or missing method\"}",
 			&lserror)) goto error;

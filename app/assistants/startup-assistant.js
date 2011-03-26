@@ -11,6 +11,7 @@ function StartupAssistant(changelog)
     this.newMessages =
 	[
 	 // Don't forget the comma on all but the last entry
+	 { version: '0.4.4', log: [ 'Added Palm Profile to Device Info scene' ] },
 	 { version: '0.4.3', log: [ 'Removed allowed character restrictions on impersonate method parameters' ] },
 	 { version: '0.4.2', log: [ 'Added support for better display of app cookies' ] },
 	 { version: '0.4.1', log: [ 'Implemented access authorisation checking' ] },

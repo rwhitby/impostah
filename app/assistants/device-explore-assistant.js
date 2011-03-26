@@ -79,15 +79,20 @@ DeviceExploreAssistant.prototype.setup = function()
 	this.deviceProfile = false;
 	this.palmProfile = false;
 
-	this.request1 = ImpostahService.impersonate(this.getTelephonyPlatformHandler, "com.palm.configurator",
-											   "com.palm.telephony",
-											   "platformQuery", {});
-	this.request2 = ImpostahService.impersonate(this.getDeviceProfileHandler, "com.palm.configurator",
-											   "com.palm.deviceprofile",
-											   "getDeviceProfile", {});
-	this.request3 = ImpostahService.impersonate(this.getPalmProfileHandler, "com.palm.configurator",
-											   "com.palm.db",
-												"get", {"ids":["com.palm.palmprofile.token"]});
+	this.requestTelephonyPlatform = ImpostahService.impersonate(this.getTelephonyPlatformHandler,
+																"com.palm.configurator",
+																"com.palm.telephony",
+																"platformQuery", {});
+	this.requestDeviceProfile = ImpostahService.impersonate(this.getDeviceProfileHandler,
+															"com.palm.configurator",
+															"com.palm.deviceprofile",
+															"getDeviceProfile", {});
+	this.requestPalmProfile = ImpostahService.impersonate(this.getPalmProfileHandler,
+														  "com.palm.configurator",
+														  "com.palm.db",
+														  "get", {"ids":["com.palm.palmprofile.token"]});
+
+	this.updateSpinner();
 };
 
 DeviceExploreAssistant.prototype.getTelephonyPlatform = function(payload)
@@ -97,15 +102,12 @@ DeviceExploreAssistant.prototype.getTelephonyPlatform = function(payload)
 		return;
 	}
 
-	if (this.request1) this.request1.cancel();
+	if (this.requestTelephonyPlatform) this.requestTelephonyPlatform.cancel();
+	this.requestTelephonyPlatform = false;
+
+	this.updateSpinner();
 
 	this.telephonyPlatform = payload.extended;
-
-	if (this.telephonyPlatform && this.deviceProfile && this.palmProfile) {
-		this.iconElement.style.display = 'inline';
-		this.spinnerModel.spinning = false;
-		this.controller.modelChanged(this.spinnerModel);
-	}
 
 	this.telephonyPlatformButtonModel.disabled = false;
 	this.controller.modelChanged(this.telephonyPlatformButtonModel);
@@ -125,15 +127,12 @@ DeviceExploreAssistant.prototype.getDeviceProfile = function(payload)
 		return;
 	}
 
-	if (this.request2) this.request2.cancel();
+	if (this.requestDeviceProfile) this.requestDeviceProfile.cancel();
+	this.requestDeviceProfile = false;
+
+	this.updateSpinner();
 
 	this.deviceProfile = payload.deviceInfo;
-
-	if (this.telephonyPlatform && this.deviceProfile && this.palmProfile) {
-		this.iconElement.style.display = 'inline';
-		this.spinnerModel.spinning = false;
-		this.controller.modelChanged(this.spinnerModel);
-	}
 
 	this.deviceProfileButtonModel.disabled = false;
 	this.controller.modelChanged(this.deviceProfileButtonModel);
@@ -153,21 +152,20 @@ DeviceExploreAssistant.prototype.getPalmProfile = function(payload)
 		return;
 	}
 
-	if (this.request3) this.request3.cancel();
+	if (this.requestPalmProfile) this.requestPalmProfile.cancel();
+	this.requestPalmProfile = false;
+
+	this.updateSpinner();
 
 	this.palmProfile = payload.results[0];
 
-	if (this.telephonyPlatform && this.deviceProfile && this.palmProfile) {
-		this.iconElement.style.display = 'inline';
-		this.spinnerModel.spinning = false;
-		this.controller.modelChanged(this.spinnerModel);
+	if (this.palmProfile) {
+		this.palmProfileButtonModel.disabled = false;
+		this.controller.modelChanged(this.palmProfileButtonModel);
+
+		this.resetFirstUseButtonModel.disabled = false;
+		this.controller.modelChanged(this.resetFirstUseButtonModel);
 	}
-
-	this.palmProfileButtonModel.disabled = false;
-	this.controller.modelChanged(this.palmProfileButtonModel);
-
-	this.resetFirstUseButtonModel.disabled = false;
-	this.controller.modelChanged(this.resetFirstUseButtonModel);
 };
 
 DeviceExploreAssistant.prototype.palmProfileTap = function(event)
@@ -179,19 +177,18 @@ DeviceExploreAssistant.prototype.palmProfileTap = function(event)
 
 DeviceExploreAssistant.prototype.resetFirstUseTap = function(event)
 {
+	this.requestPalmProfile = ImpostahService.impersonate(this.palmProfileDeletedHandler,
+														  "com.palm.configurator",
+														  "com.palm.db",
+														  "del", {"ids":["com.palm.palmprofile.token"], "purge":true});
+
+	this.updateSpinner();
+
 	this.palmProfileButtonModel.disabled = true;
 	this.controller.modelChanged(this.palmProfileButtonModel);
 
 	this.resetFirstUseButtonModel.disabled = true;
 	this.controller.modelChanged(this.resetFirstUseButtonModel);
-
-	this.iconElement.style.display = 'none';
-	this.spinnerModel.spinning = true;
-	this.controller.modelChanged(this.spinnerModel);
-
-	this.request4 = ImpostahService.impersonate(this.palmProfileDeletedHandler, "com.palm.configurator",
-											   "com.palm.db",
-												"del", {"ids":["com.palm.palmprofile.token"]});
 };
 
 DeviceExploreAssistant.prototype.palmProfileDeleted = function(payload)
@@ -201,7 +198,12 @@ DeviceExploreAssistant.prototype.palmProfileDeleted = function(payload)
 		return;
 	}
 
-	if (this.request4) this.request4.cancel();
+	if (this.requestPalmProfile) this.requestPalmProfile.cancel();
+	this.requestPalmProfile = false;
+
+	this.updateSpinner();
+
+	this.palmProfile = false;
 
 	this.controller.showAlertDialog({
 			allowHTMLMessage:	true,
@@ -215,9 +217,26 @@ DeviceExploreAssistant.prototype.palmProfileDeleted = function(payload)
 
 DeviceExploreAssistant.prototype.palmProfileDeletionAck = function(value)
 {
-	this.request3 = ImpostahService.impersonate(this.getPalmProfileHandler, "com.palm.configurator",
-											   "com.palm.db",
-												"get", {"ids":["com.palm.palmprofile.token"]});
+	this.requestPalmProfile = ImpostahService.impersonate(this.getPalmProfileHandler,
+														  "com.palm.configurator",
+														  "com.palm.db",
+														  "get", {"ids":["com.palm.palmprofile.token"]});
+
+	this.updateSpinner();
+};
+
+DeviceExploreAssistant.prototype.updateSpinner = function()
+{
+	if (this.requestTelephonyPlatform || this.requestDeviceProfile || this.requestPalmProfile) {
+		this.iconElement.style.display = 'none';
+		this.spinnerModel.spinning = true;
+		this.controller.modelChanged(this.spinnerModel);
+	}
+	else {
+		this.iconElement.style.display = 'inline';
+		this.spinnerModel.spinning = false;
+		this.controller.modelChanged(this.spinnerModel);
+	}
 };
 
 DeviceExploreAssistant.prototype.errorMessage = function(msg)

@@ -75,12 +75,14 @@ AppcatExploreAssistant.prototype.setup = function()
 	this.deviceProfile = false;
 	this.palmProfile = false;
 
-	this.request1 = ImpostahService.impersonate(this.getPalmProfileHandler, "com.palm.configurator",
-											   "com.palm.db",
-												"get", {"ids":["com.palm.palmprofile.token"]});
-	this.request2 = ImpostahService.impersonate(this.getDeviceProfileHandler, "com.palm.configurator",
-											   "com.palm.deviceprofile",
-											   "getDeviceProfile", {});
+	this.requestPalmProfile = ImpostahService.impersonate(this.getPalmProfileHandler,
+														  "com.palm.configurator",
+														  "com.palm.db",
+														  "get", {"ids":["com.palm.palmprofile.token"]});
+	this.requestDeviceProfile = ImpostahService.impersonate(this.getDeviceProfileHandler,
+															"com.palm.configurator",
+															"com.palm.deviceprofile",
+															"getDeviceProfile", {});
 };
 
 AppcatExploreAssistant.prototype.getDeviceProfile = function(payload)
@@ -90,22 +92,25 @@ AppcatExploreAssistant.prototype.getDeviceProfile = function(payload)
 		return;
 	}
 
+	if (this.requestDeviceProfile) this.requestDeviceProfile.cancel();
+	this.requestDeviceProfile = false;
+
+	this.updateSpinner();
+
 	this.deviceProfile = payload.deviceInfo;
 
-	if (this.palmProfile && this.deviceProfile) {
-		this.iconElement.style.display = 'inline';
-		this.spinnerModel.spinning = false;
-		this.controller.modelChanged(this.spinnerModel);
+	if (this.deviceProfile) {
+		this.deviceProfileButtonModel.disabled = false;
+		this.controller.modelChanged(this.deviceProfileButtonModel);
+	}
 
+	if (this.palmProfile && this.deviceProfile) {
 		this.paidAppsButtonModel.disabled = false;
 		this.controller.modelChanged(this.paidAppsButtonModel);
 
 		this.accessCountryButtonModel.disabled = false;
 		this.controller.modelChanged(this.accessCountryButtonModel);
 	}
-
-	this.deviceProfileButtonModel.disabled = false;
-	this.controller.modelChanged(this.deviceProfileButtonModel);
 };
 
 AppcatExploreAssistant.prototype.deviceProfileTap = function(event)
@@ -122,22 +127,25 @@ AppcatExploreAssistant.prototype.getPalmProfile = function(payload)
 		return;
 	}
 
+	if (this.requestPalmProfile) this.requestPalmProfile.cancel();
+	this.requestPalmProfile = false;
+
+	this.updateSpinner();
+
 	this.palmProfile = payload.results[0];
 
-	if (this.palmProfile && this.deviceProfile) {
-		this.iconElement.style.display = 'inline';
-		this.spinnerModel.spinning = false;
-		this.controller.modelChanged(this.spinnerModel);
+	if (this.palmProfile) {
+		this.palmProfileButtonModel.disabled = false;
+		this.controller.modelChanged(this.palmProfileButtonModel);
+	}
 
+	if (this.palmProfile && this.deviceProfile) {
 		this.paidAppsButtonModel.disabled = false;
 		this.controller.modelChanged(this.paidAppsButtonModel);
 
 		this.accessCountryButtonModel.disabled = false;
 		this.controller.modelChanged(this.accessCountryButtonModel);
 	}
-
-	this.palmProfileButtonModel.disabled = false;
-	this.controller.modelChanged(this.palmProfileButtonModel);
 };
 
 AppcatExploreAssistant.prototype.palmProfileTap = function(event)
@@ -149,13 +157,6 @@ AppcatExploreAssistant.prototype.palmProfileTap = function(event)
 
 AppcatExploreAssistant.prototype.paidAppsTap = function(event)
 {
-	this.iconElement.style.display = 'none';
-	this.spinnerModel.spinning = true;
-	this.controller.modelChanged(this.spinnerModel);
-
-	this.paidAppsButtonModel.disabled = true;
-	this.controller.modelChanged(this.paidAppsButtonModel);
-
 	var callback = this.paidAppsHandler;
 
 	var url = this.palmProfile.accountServerUrl+"getAppCatUserFlags";
@@ -169,7 +170,7 @@ AppcatExploreAssistant.prototype.paidAppsTap = function(event)
 		}
 	};
 
-	var request = new Ajax.Request(url, {
+	this.requestPaidApps = new Ajax.Request(url, {
 			method: 'POST',
 			contentType: 'application/json',
 			postBody: Object.toJSON(body),
@@ -205,6 +206,11 @@ AppcatExploreAssistant.prototype.paidAppsTap = function(event)
 				callback({"returnValue":false, "errorText":response.status});
 			}
 	});
+
+	this.updateSpinner();
+
+	this.paidAppsButtonModel.disabled = true;
+	this.controller.modelChanged(this.paidAppsButtonModel);
 };
 
 AppcatExploreAssistant.prototype.paidApps = function(payload)
@@ -214,9 +220,9 @@ AppcatExploreAssistant.prototype.paidApps = function(payload)
 		return;
 	}
 
-	this.iconElement.style.display = 'inline';
-	this.spinnerModel.spinning = false;
-	this.controller.modelChanged(this.spinnerModel);
+	this.requestPaidApps = false;
+
+	this.updateSpinner();
 
 	this.paidAppsButtonModel.disabled = false;
 	this.controller.modelChanged(this.paidAppsButtonModel);
@@ -229,13 +235,6 @@ AppcatExploreAssistant.prototype.paidApps = function(payload)
 
 AppcatExploreAssistant.prototype.accessCountryTap = function(event)
 {
-	this.iconElement.style.display = 'none';
-	this.spinnerModel.spinning = true;
-	this.controller.modelChanged(this.spinnerModel);
-
-	this.accessCountryButtonModel.disabled = true;
-	this.controller.modelChanged(this.accessCountryButtonModel);
-
 	var callback = this.accessCountryHandler;
 
 	var url = this.palmProfile.accountServerUrl+"appList_ext2";
@@ -252,7 +251,7 @@ AppcatExploreAssistant.prototype.accessCountryTap = function(event)
 		}
 	};
 
-	var request = new Ajax.Request(url, {
+	this.requestAccessCountry = new Ajax.Request(url, {
 			method: 'POST',
 			contentType: 'application/json',
 			postBody: Object.toJSON(body),
@@ -288,6 +287,11 @@ AppcatExploreAssistant.prototype.accessCountryTap = function(event)
 				callback({"returnValue":false, "errorText":response.status});
 			}
 	});
+
+	this.updateSpinner();
+
+	this.accessCountryButtonModel.disabled = true;
+	this.controller.modelChanged(this.accessCountryButtonModel);
 };
 
 AppcatExploreAssistant.prototype.accessCountry = function(payload)
@@ -297,9 +301,9 @@ AppcatExploreAssistant.prototype.accessCountry = function(payload)
 		return;
 	}
 
-	this.iconElement.style.display = 'inline';
-	this.spinnerModel.spinning = false;
-	this.controller.modelChanged(this.spinnerModel);
+	this.requestAccessCountry = false;
+
+	this.updateSpinner();
 
 	this.accessCountryButtonModel.disabled = false;
 	this.controller.modelChanged(this.accessCountryButtonModel);
@@ -307,6 +311,20 @@ AppcatExploreAssistant.prototype.accessCountry = function(payload)
 	if (payload.response.OutGetAppList) {
 		var country = payload.response.OutGetAppList.country;
 		this.controller.stageController.pushScene("item", "Access Country", country);
+	}
+};
+
+AppcatExploreAssistant.prototype.updateSpinner = function()
+{
+	if (this.requestDeviceProfile || this.requestPalmProfile || this.requestPaidApps || this.requestAccessCountry)  {
+		this.iconElement.style.display = 'none';
+		this.spinnerModel.spinning = true;
+		this.controller.modelChanged(this.spinnerModel);
+	}
+	else {
+		this.iconElement.style.display = 'inline';
+		this.spinnerModel.spinning = false;
+		this.controller.modelChanged(this.spinnerModel);
 	}
 };
 

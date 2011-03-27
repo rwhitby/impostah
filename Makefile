@@ -1,6 +1,7 @@
 APPID = org.webosinternals.impostah
 
 package: clean
+	cd src && ${MAKE} DEVICE=1
 	palm-package .
 	ar q ${APPID}_*.ipk pmPostInstall.script
 	ar q ${APPID}_*.ipk pmPreRemove.script
@@ -15,3 +16,4 @@ clean:
 	rm -f ipkgtmp*.tar.gz ${APPID}_*.ipk
 
 clobber: clean
+	cd src && ${MAKE} clobber

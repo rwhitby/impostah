@@ -101,6 +101,28 @@ ImpostahService.impersonate = function(callback, id, service, method, params)
     return request;
 };
 
+ImpostahService.removeFirstUseFlag = function(callback)
+{
+    var request = new Mojo.Service.Request(ImpostahService.identifier,
+	{
+	    method: 'removeFirstUseFlag',
+	    onSuccess: callback,
+	    onFailure: callback
+	});
+    return request;
+};
+
+ImpostahService.restartLuna = function(callback)
+{
+    var request = new Mojo.Service.Request(ImpostahService.identifier,
+	{
+	    method: 'restartLuna',
+	    onSuccess: callback,
+	    onFailure: callback
+	});
+    return request;
+};
+
 // Local Variables:
 // tab-width: 4
 // End:

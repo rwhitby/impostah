@@ -812,6 +812,20 @@ bool impersonate_method(LSHandle* lshandle, LSMessage *message, void *ctx) {
   return false;
 }
 
+//
+// Remove the ran-first-use flag file, and return the output to webOS.
+//
+bool remove_first_use_flag_method(LSHandle* lshandle, LSMessage *message, void *ctx) {
+  return simple_command(lshandle, message, "/bin/rm -f /var/luna/preferences/ran-first-use 2>&1");
+}
+
+//
+// Restart Luna, and return the output to webOS.
+//
+bool restart_luna_method(LSHandle* lshandle, LSMessage *message, void *ctx) {
+  return simple_command(lshandle, message, "/usr/bin/killall -HUP LunaSysMgr 2>&1");
+}
+
 LSMethod luna_methods[] = {
   { "status",			dummy_method },
   { "version",			version_method },
@@ -831,6 +845,9 @@ LSMethod luna_methods[] = {
   { "listWebCookies",		listWebCookies_method },
 
   { "impersonate",		impersonate_method },
+
+  { "removeFirstUseFlag",	remove_first_use_flag_method },
+  { "restartLuna",		restart_luna_method },
 
   { 0, 0 }
 };

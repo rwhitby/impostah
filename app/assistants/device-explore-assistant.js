@@ -27,12 +27,12 @@ function DeviceExploreAssistant()
 	};
 
 	this.palmProfileButtonModel = {
-		label: $L("Palm Profile"),
+		label: $L("Show Palm Profile"),
 		disabled: true
 	};
 
-	this.resetFirstUseButtonModel = {
-		label: $L("Reset First Use"),
+	this.resetPalmProfileButtonModel = {
+		label: $L("Reset Palm Profile"),
 		disabled: true
 	};
 
@@ -50,7 +50,7 @@ DeviceExploreAssistant.prototype.setup = function()
 	this.telephonyPlatformButton = this.controller.get('telephonyPlatformButton');
 	this.deviceProfileButton = this.controller.get('deviceProfileButton');
 	this.palmProfileButton = this.controller.get('palmProfileButton');
-	this.resetFirstUseButton = this.controller.get('resetFirstUseButton');
+	this.resetPalmProfileButton = this.controller.get('resetPalmProfileButton');
 	
 	// setup handlers
 	this.getTelephonyPlatformHandler =	this.getTelephonyPlatform.bindAsEventListener(this);
@@ -59,9 +59,11 @@ DeviceExploreAssistant.prototype.setup = function()
 	this.deviceProfileTapHandler = this.deviceProfileTap.bindAsEventListener(this);
 	this.getPalmProfileHandler =	this.getPalmProfile.bindAsEventListener(this);
 	this.palmProfileTapHandler = this.palmProfileTap.bindAsEventListener(this);
-	this.resetFirstUseTapHandler = this.resetFirstUseTap.bindAsEventListener(this);
+	this.resetPalmProfileTapHandler = this.resetPalmProfileTap.bindAsEventListener(this);
+	this.resetPalmProfileAckHandler = this.resetPalmProfileAck.bind(this);
 	this.palmProfileDeletedHandler = this.palmProfileDeleted.bindAsEventListener(this);
 	this.palmProfileDeletionAckHandler = this.palmProfileDeletionAck.bind(this);
+	this.palmProfileDeletionDoneHandler = this.palmProfileDeletionDone.bindAsEventListener(this);
 	
 	// setup wigets
 	this.spinnerModel = {spinning: true};
@@ -72,8 +74,8 @@ DeviceExploreAssistant.prototype.setup = function()
 	this.controller.listen(this.deviceProfileButton,  Mojo.Event.tap, this.deviceProfileTapHandler);
 	this.controller.setupWidget('palmProfileButton', { }, this.palmProfileButtonModel);
 	this.controller.listen(this.palmProfileButton,  Mojo.Event.tap, this.palmProfileTapHandler);
-	this.controller.setupWidget('resetFirstUseButton', { }, this.resetFirstUseButtonModel);
-	this.controller.listen(this.resetFirstUseButton,  Mojo.Event.tap, this.resetFirstUseTapHandler);
+	this.controller.setupWidget('resetPalmProfileButton', { }, this.resetPalmProfileButtonModel);
+	this.controller.listen(this.resetPalmProfileButton,  Mojo.Event.tap, this.resetPalmProfileTapHandler);
 	
 	this.telephonyPlatform = false;
 	this.deviceProfile = false;
@@ -163,8 +165,8 @@ DeviceExploreAssistant.prototype.getPalmProfile = function(payload)
 		this.palmProfileButtonModel.disabled = false;
 		this.controller.modelChanged(this.palmProfileButtonModel);
 
-		this.resetFirstUseButtonModel.disabled = false;
-		this.controller.modelChanged(this.resetFirstUseButtonModel);
+		this.resetPalmProfileButtonModel.disabled = false;
+		this.controller.modelChanged(this.resetPalmProfileButtonModel);
 	}
 };
 
@@ -175,8 +177,23 @@ DeviceExploreAssistant.prototype.palmProfileTap = function(event)
 	}
 };
 
-DeviceExploreAssistant.prototype.resetFirstUseTap = function(event)
+DeviceExploreAssistant.prototype.resetPalmProfileTap = function(event)
 {
+	this.controller.showAlertDialog({
+			allowHTMLMessage:	true,
+			title:				'Reset Palm Profile',
+			message:			"Are you sure? Applications you installed and all application settings and data will be erased.",
+			choices:			[{label:$L("Delete"), value:'delete', type:'negative'},{label:$L("Cancel"), value:'cancel', type:'dismiss'}],
+			onChoose:			this.resetPalmProfileAckHandler
+		});
+};
+
+DeviceExploreAssistant.prototype.resetPalmProfileAck = function(value)
+{
+	if (value != "delete") return;
+
+	this.palmProfile = false;
+
 	this.requestPalmProfile = ImpostahService.impersonate(this.palmProfileDeletedHandler,
 														  "com.palm.configurator",
 														  "com.palm.db",
@@ -187,8 +204,8 @@ DeviceExploreAssistant.prototype.resetFirstUseTap = function(event)
 	this.palmProfileButtonModel.disabled = true;
 	this.controller.modelChanged(this.palmProfileButtonModel);
 
-	this.resetFirstUseButtonModel.disabled = true;
-	this.controller.modelChanged(this.resetFirstUseButtonModel);
+	this.resetPalmProfileButtonModel.disabled = true;
+	this.controller.modelChanged(this.resetPalmProfileButtonModel);
 };
 
 DeviceExploreAssistant.prototype.palmProfileDeleted = function(payload)
@@ -203,26 +220,41 @@ DeviceExploreAssistant.prototype.palmProfileDeleted = function(payload)
 
 	this.updateSpinner();
 
-	this.palmProfile = false;
-
 	this.controller.showAlertDialog({
 			allowHTMLMessage:	true,
-			preventCancel:		true,
-			title:				'Impostah',
-			message:			"Palm Profile token deleted",
-			choices:			[{label:$L("Ok"), value:'ok'}],
-			onChoose:			this.palmProfileDeletionAckHandler
-		});
+				preventCancel:		true,
+				title:				'Reset Palm Profile',
+				message:			"Your Palm Profile has been reset. Your device will now restart.",
+				choices:			[{label:$L("Ok"), value:'ok'},
+									 // {label:$L("Cancel"), value:'cancel'}
+									 ],
+				onChoose:			this.palmProfileDeletionAckHandler
+				});
 };
 
 DeviceExploreAssistant.prototype.palmProfileDeletionAck = function(value)
 {
-	this.requestPalmProfile = ImpostahService.impersonate(this.getPalmProfileHandler,
-														  "com.palm.configurator",
-														  "com.palm.db",
-														  "get", {"ids":["com.palm.palmprofile.token"]});
+	if (value != "ok") {
+		this.requestPalmProfile = ImpostahService.impersonate(this.getPalmProfileHandler,
+															  "com.palm.configurator",
+															  "com.palm.db",
+															  "get", {"ids":["com.palm.palmprofile.token"]});
+	}
+	else {
+		this.requestPalmProfile = ImpostahService.removeFirstUseFlag(this.palmProfileDeletionDoneHandler);
+	}
 
 	this.updateSpinner();
+};
+
+DeviceExploreAssistant.prototype.palmProfileDeletionDone = function(payload)
+{
+	if (payload.returnValue === false) {
+		this.errorMessage('<b>Service Error (palmProfileDeletionDone):</b><br>'+payload.errorText);
+		return;
+	}
+
+	this.requestPalmProfile = ImpostahService.restartLuna();
 };
 
 DeviceExploreAssistant.prototype.updateSpinner = function()

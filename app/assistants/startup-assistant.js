@@ -165,7 +165,8 @@ StartupAssistant.prototype.setup = function()
 StartupAssistant.prototype.activate = function(event)
 {
     // start continue button timer
-    this.timer = this.controller.window.setTimeout(this.showContinue.bind(this), 5 * 1000);
+    // this.timer = this.controller.window.setTimeout(this.showContinue.bind(this), 5 * 1000);
+    this.showContinue();
 };
 
 StartupAssistant.prototype.showContinue = function()

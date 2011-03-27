@@ -54,6 +54,10 @@
         "source": "app/assistants/appcat-explore-assistant.js"
     },
     {
+        "scenes": "web-services-explore",
+        "source": "app/assistants/web-services-explore-assistant.js"
+    },
+    {
         "scenes": "activity-explore",
         "source": "app/assistants/activity-explore-assistant.js"
     },

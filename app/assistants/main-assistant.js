@@ -55,6 +55,18 @@ MainAssistant.prototype.setup = function()
     this.listTapHandler = this.listTap.bindAsEventListener(this);
 	
     this.mainModel.items.push({
+			name:     $L('Web Services'),
+				scene:   'web-services-explore',
+				disabled: (Mojo.Environment.DeviceInfo.platformVersionMajor == 1)
+				});
+
+    this.mainModel.items.push({
+			name:     $L('Web Services'),
+				scene:   'web-services-explore',
+				disabled: (Mojo.Environment.DeviceInfo.platformVersionMajor == 1)
+				});
+
+    this.mainModel.items.push({
 			name:     $L('App Catalog'),
 				scene:   'appcat-explore',
 				disabled: (Mojo.Environment.DeviceInfo.platformVersionMajor == 1)
@@ -62,6 +74,7 @@ MainAssistant.prototype.setup = function()
     this.mainModel.items.push({
 			name:     $L('Device Info'),
 				scene:   'device-explore',
+				disabled: (Mojo.Environment.DeviceInfo.platformVersionMajor == 1)
 				});
 
     this.mainModel.items.push({

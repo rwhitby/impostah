@@ -1,4 +1,4 @@
-function DeviceExploreAssistant()
+function DeviceProfileAssistant()
 {
 	// setup menu
 	this.menuModel = {
@@ -38,7 +38,7 @@ function DeviceExploreAssistant()
 
 };
 
-DeviceExploreAssistant.prototype.setup = function()
+DeviceProfileAssistant.prototype.setup = function()
 {
 	// setup menu
 	this.controller.setupWidget(Mojo.Menu.appMenu, { omitDefaultItems: true }, this.menuModel);
@@ -97,7 +97,7 @@ DeviceExploreAssistant.prototype.setup = function()
 	this.updateSpinner();
 };
 
-DeviceExploreAssistant.prototype.getTelephonyPlatform = function(payload)
+DeviceProfileAssistant.prototype.getTelephonyPlatform = function(payload)
 {
 	if (payload.returnValue === false) {
 		this.errorMessage('<b>Service Error (getTelephonyPlatform):</b><br>'+payload.errorText);
@@ -115,14 +115,14 @@ DeviceExploreAssistant.prototype.getTelephonyPlatform = function(payload)
 	this.controller.modelChanged(this.telephonyPlatformButtonModel);
 };
 
-DeviceExploreAssistant.prototype.telephonyPlatformTap = function(event)
+DeviceProfileAssistant.prototype.telephonyPlatformTap = function(event)
 {
 	if (this.telephonyPlatform) {
 		this.controller.stageController.pushScene("item", "Telephony Platform", this.telephonyPlatform);
 	}
 };
 
-DeviceExploreAssistant.prototype.getDeviceProfile = function(payload)
+DeviceProfileAssistant.prototype.getDeviceProfile = function(payload)
 {
 	if (payload.returnValue === false) {
 		this.errorMessage('<b>Service Error (getDeviceProfile):</b><br>'+payload.errorText);
@@ -140,14 +140,14 @@ DeviceExploreAssistant.prototype.getDeviceProfile = function(payload)
 	this.controller.modelChanged(this.deviceProfileButtonModel);
 };
 
-DeviceExploreAssistant.prototype.deviceProfileTap = function(event)
+DeviceProfileAssistant.prototype.deviceProfileTap = function(event)
 {
 	if (this.deviceProfile) {
 		this.controller.stageController.pushScene("item", "Device Profile", this.deviceProfile);
 	}
 };
 
-DeviceExploreAssistant.prototype.getPalmProfile = function(payload)
+DeviceProfileAssistant.prototype.getPalmProfile = function(payload)
 {
 	if (payload.returnValue === false) {
 		this.errorMessage('<b>Service Error (getPalmProfile):</b><br>'+payload.errorText);
@@ -170,14 +170,14 @@ DeviceExploreAssistant.prototype.getPalmProfile = function(payload)
 	}
 };
 
-DeviceExploreAssistant.prototype.palmProfileTap = function(event)
+DeviceProfileAssistant.prototype.palmProfileTap = function(event)
 {
 	if (this.palmProfile) {
 		this.controller.stageController.pushScene("item", "Palm Profile", this.palmProfile);
 	}
 };
 
-DeviceExploreAssistant.prototype.resetPalmProfileTap = function(event)
+DeviceProfileAssistant.prototype.resetPalmProfileTap = function(event)
 {
 	this.controller.showAlertDialog({
 			allowHTMLMessage:	true,
@@ -188,7 +188,7 @@ DeviceExploreAssistant.prototype.resetPalmProfileTap = function(event)
 		});
 };
 
-DeviceExploreAssistant.prototype.resetPalmProfileAck = function(value)
+DeviceProfileAssistant.prototype.resetPalmProfileAck = function(value)
 {
 	if (value != "delete") return;
 
@@ -208,7 +208,7 @@ DeviceExploreAssistant.prototype.resetPalmProfileAck = function(value)
 	this.controller.modelChanged(this.resetPalmProfileButtonModel);
 };
 
-DeviceExploreAssistant.prototype.palmProfileDeleted = function(payload)
+DeviceProfileAssistant.prototype.palmProfileDeleted = function(payload)
 {
 	if (payload.returnValue === false) {
 		this.errorMessage('<b>Service Error (palmProfileDeleted):</b><br>'+payload.errorText);
@@ -232,7 +232,7 @@ DeviceExploreAssistant.prototype.palmProfileDeleted = function(payload)
 				});
 };
 
-DeviceExploreAssistant.prototype.palmProfileDeletionAck = function(value)
+DeviceProfileAssistant.prototype.palmProfileDeletionAck = function(value)
 {
 	if (value != "ok") {
 		this.requestPalmProfile = ImpostahService.impersonate(this.getPalmProfileHandler,
@@ -247,7 +247,7 @@ DeviceExploreAssistant.prototype.palmProfileDeletionAck = function(value)
 	this.updateSpinner();
 };
 
-DeviceExploreAssistant.prototype.palmProfileDeletionDone = function(payload)
+DeviceProfileAssistant.prototype.palmProfileDeletionDone = function(payload)
 {
 	if (payload.returnValue === false) {
 		this.errorMessage('<b>Service Error (palmProfileDeletionDone):</b><br>'+payload.errorText);
@@ -257,7 +257,7 @@ DeviceExploreAssistant.prototype.palmProfileDeletionDone = function(payload)
 	this.requestPalmProfile = ImpostahService.restartLuna();
 };
 
-DeviceExploreAssistant.prototype.updateSpinner = function()
+DeviceProfileAssistant.prototype.updateSpinner = function()
 {
 	if (this.requestTelephonyPlatform || this.requestDeviceProfile || this.requestPalmProfile) {
 		this.iconElement.style.display = 'none';
@@ -271,7 +271,7 @@ DeviceExploreAssistant.prototype.updateSpinner = function()
 	}
 };
 
-DeviceExploreAssistant.prototype.errorMessage = function(msg)
+DeviceProfileAssistant.prototype.errorMessage = function(msg)
 {
 	this.controller.showAlertDialog({
 			allowHTMLMessage:	true,
@@ -283,7 +283,7 @@ DeviceExploreAssistant.prototype.errorMessage = function(msg)
 		});
 };
 
-DeviceExploreAssistant.prototype.handleCommand = function(event)
+DeviceProfileAssistant.prototype.handleCommand = function(event)
 {
 	if (event.type == Mojo.Event.command) {
 		switch (event.command) {
@@ -298,7 +298,7 @@ DeviceExploreAssistant.prototype.handleCommand = function(event)
 	}
 };
 
-DeviceExploreAssistant.prototype.cleanup = function(event)
+DeviceProfileAssistant.prototype.cleanup = function(event)
 {
 	this.controller.stopListening(this.telephonyPlatformButton,  Mojo.Event.tap,
 								  this.telephonyPlatformTapHandler);

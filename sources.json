@@ -22,8 +22,16 @@
         "source": "app/assistants/help-assistant.js"
     },
     {
-        "scenes": "help-data",
-        "source": "app/assistants/help-data-assistant.js"
+        "scenes": "palm-profile",
+        "source": "app/assistants/palm-profile-assistant.js"
+    },
+    {
+        "scenes": "device-profile",
+        "source": "app/assistants/device-profile-assistant.js"
+    },
+    {
+        "scenes": "appcat-explore",
+        "source": "app/assistants/appcat-explore-assistant.js"
     },
     {
         "scenes": "database-explore",
@@ -44,18 +52,6 @@
     {
         "scenes": "filecache-explore",
         "source": "app/assistants/filecache-explore-assistant.js"
-    },
-    {
-        "scenes": "device-explore",
-        "source": "app/assistants/device-explore-assistant.js"
-    },
-    {
-        "scenes": "appcat-explore",
-        "source": "app/assistants/appcat-explore-assistant.js"
-    },
-    {
-        "scenes": "web-services-explore",
-        "source": "app/assistants/web-services-explore-assistant.js"
     },
     {
         "scenes": "activity-explore",

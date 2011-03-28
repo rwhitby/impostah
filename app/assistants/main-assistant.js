@@ -55,14 +55,14 @@ MainAssistant.prototype.setup = function()
     this.listTapHandler = this.listTap.bindAsEventListener(this);
 	
     this.mainModel.items.push({
-			name:     $L('Web Services'),
-				scene:   'web-services-explore',
+			name:     $L('Device Profile'),
+				scene:   'device-profile',
 				disabled: (Mojo.Environment.DeviceInfo.platformVersionMajor == 1)
 				});
 
     this.mainModel.items.push({
-			name:     $L('Web Services'),
-				scene:   'web-services-explore',
+			name:     $L('Palm Profile'),
+				scene:   'palm-profile',
 				disabled: (Mojo.Environment.DeviceInfo.platformVersionMajor == 1)
 				});
 
@@ -71,10 +71,11 @@ MainAssistant.prototype.setup = function()
 				scene:   'appcat-explore',
 				disabled: (Mojo.Environment.DeviceInfo.platformVersionMajor == 1)
 				});
+
     this.mainModel.items.push({
-			name:     $L('Device Info'),
-				scene:   'device-explore',
-				disabled: (Mojo.Environment.DeviceInfo.platformVersionMajor == 1)
+			name:     $L('N/A'),
+				scene: false,
+				disabled: true
 				});
 
     this.mainModel.items.push({
@@ -82,12 +83,13 @@ MainAssistant.prototype.setup = function()
 				scene:   'application-explore',
 				disabled: (Mojo.Environment.DeviceInfo.platformVersionMajor == 1)
 				});
+
     this.mainModel.items.push({
 			name:     $L('Databases'),
 				scene:   'database-explore',
 				disabled: (Mojo.Environment.DeviceInfo.platformVersionMajor == 1)
 				});
-    
+
     this.mainModel.items.push({
 			name:     $L('Accounts'),
 				scene:   'account-explore',

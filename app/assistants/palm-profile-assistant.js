@@ -1,4 +1,4 @@
-function WebServicesExploreAssistant()
+function PalmProfileAssistant()
 {
 	// setup menu
 	this.menuModel = {
@@ -47,7 +47,7 @@ function WebServicesExploreAssistant()
 	};
 };
 
-WebServicesExploreAssistant.prototype.setup = function()
+PalmProfileAssistant.prototype.setup = function()
 {
 	// setup menu
 	this.controller.setupWidget(Mojo.Menu.appMenu, { omitDefaultItems: true }, this.menuModel);
@@ -104,7 +104,7 @@ WebServicesExploreAssistant.prototype.setup = function()
 															"getDeviceProfile", {});
 };
 
-WebServicesExploreAssistant.prototype.getDeviceProfile = function(payload)
+PalmProfileAssistant.prototype.getDeviceProfile = function(payload)
 {
 	if (payload.returnValue === false) {
 		this.errorMessage('<b>Service Error (getDeviceProfile):</b><br>'+payload.errorText);
@@ -140,14 +140,14 @@ WebServicesExploreAssistant.prototype.getDeviceProfile = function(payload)
 
 };
 
-WebServicesExploreAssistant.prototype.deviceProfileTap = function(event)
+PalmProfileAssistant.prototype.deviceProfileTap = function(event)
 {
 	if (this.deviceProfile) {
 		this.controller.stageController.pushScene("item", "Device Profile", this.deviceProfile);
 	}
 };
 
-WebServicesExploreAssistant.prototype.getPalmProfile = function(payload)
+PalmProfileAssistant.prototype.getPalmProfile = function(payload)
 {
 	if (payload.returnValue === false) {
 		this.errorMessage('<b>Service Error (getPalmProfile):</b><br>'+payload.errorText);
@@ -182,14 +182,14 @@ WebServicesExploreAssistant.prototype.getPalmProfile = function(payload)
 	}
 };
 
-WebServicesExploreAssistant.prototype.palmProfileTap = function(event)
+PalmProfileAssistant.prototype.palmProfileTap = function(event)
 {
 	if (this.palmProfile) {
 		this.controller.stageController.pushScene("item", "Palm Profile", this.palmProfile);
 	}
 };
 
-WebServicesExploreAssistant.prototype.deviceInUseTap = function(event)
+PalmProfileAssistant.prototype.deviceInUseTap = function(event)
 {
 	var callback = this.deviceInUseHandler;
 
@@ -245,7 +245,7 @@ WebServicesExploreAssistant.prototype.deviceInUseTap = function(event)
 	this.controller.modelChanged(this.deviceInUseButtonModel);
 };
 
-WebServicesExploreAssistant.prototype.deviceInUse = function(payload)
+PalmProfileAssistant.prototype.deviceInUse = function(payload)
 {
 	if (payload.returnValue === false) {
 		this.errorMessage('<b>Service Error (deviceInUse):</b><br>'+payload.errorText);
@@ -264,7 +264,7 @@ WebServicesExploreAssistant.prototype.deviceInUse = function(payload)
 	}
 };
 
-WebServicesExploreAssistant.prototype.authenticateFromDeviceTap = function(event)
+PalmProfileAssistant.prototype.authenticateFromDeviceTap = function(event)
 {
 	this.controller.showAlertDialog({
 			allowHTMLMessage:	true,
@@ -275,7 +275,7 @@ WebServicesExploreAssistant.prototype.authenticateFromDeviceTap = function(event
 		});
 };
 
-WebServicesExploreAssistant.prototype.authenticateFromDeviceAck = function(value)
+PalmProfileAssistant.prototype.authenticateFromDeviceAck = function(value)
 {
 	if (value != "authenticate") return;
 
@@ -361,7 +361,7 @@ WebServicesExploreAssistant.prototype.authenticateFromDeviceAck = function(value
 	this.controller.modelChanged(this.authenticateFromDeviceButtonModel);
 };
 
-WebServicesExploreAssistant.prototype.authenticateFromDevice = function(payload)
+PalmProfileAssistant.prototype.authenticateFromDevice = function(payload)
 {
 	if (payload.returnValue === false) {
 		this.errorMessage('<b>Service Error (authenticateFromDevice):</b><br>'+payload.errorText);
@@ -389,22 +389,35 @@ WebServicesExploreAssistant.prototype.authenticateFromDevice = function(payload)
 		  "tokenexpireTime": info.expirationTime, "uniqueId": info.uniqueId }
 																	   ]
 													  });
+		
+		this.updateSpinner();
+
+		this.authenticateFromDeviceButtonModel.disabled = true;
+		this.controller.modelChanged(this.authenticateFromDeviceButtonModel);
+
 	}
 };
 
-WebServicesExploreAssistant.prototype.authenticationUpdate = function(payload)
+PalmProfileAssistant.prototype.authenticationUpdate = function(payload)
 {
 	if (payload.returnValue === false) {
 		this.errorMessage('<b>Service Error (authenticationUpdate):</b><br>'+payload.errorText);
 		return;
 	}
 
+	this.requestDb8 = false;
+
+	this.updateSpinner();
+
+	this.authenticateFromDeviceButtonModel.disabled = false;
+	this.controller.modelChanged(this.authenticateFromDeviceButtonModel);
+
 	this.controller.stageController.pushScene("item", "Authentication Update", payload);
 };
 
-WebServicesExploreAssistant.prototype.updateSpinner = function()
+PalmProfileAssistant.prototype.updateSpinner = function()
 {
-	if (this.requestDeviceProfile || this.requestPalmProfile || this.requestWebService)  {
+	if (this.requestDeviceProfile || this.requestPalmProfile || this.requestWebService || this.requestDb8)  {
 		this.iconElement.style.display = 'none';
 		this.spinnerModel.spinning = true;
 		this.controller.modelChanged(this.spinnerModel);
@@ -416,7 +429,7 @@ WebServicesExploreAssistant.prototype.updateSpinner = function()
 	}
 };
 
-WebServicesExploreAssistant.prototype.errorMessage = function(msg)
+PalmProfileAssistant.prototype.errorMessage = function(msg)
 {
 	this.controller.showAlertDialog({
 			allowHTMLMessage:	true,
@@ -428,7 +441,7 @@ WebServicesExploreAssistant.prototype.errorMessage = function(msg)
 		});
 };
 
-WebServicesExploreAssistant.prototype.handleCommand = function(event)
+PalmProfileAssistant.prototype.handleCommand = function(event)
 {
 	if (event.type == Mojo.Event.command) {
 		switch (event.command) {
@@ -443,7 +456,7 @@ WebServicesExploreAssistant.prototype.handleCommand = function(event)
 	}
 };
 
-WebServicesExploreAssistant.prototype.cleanup = function(event)
+PalmProfileAssistant.prototype.cleanup = function(event)
 {
 	this.controller.stopListening(this.deviceProfileButton,  Mojo.Event.tap,
 								  this.deviceProfileTapHandler);

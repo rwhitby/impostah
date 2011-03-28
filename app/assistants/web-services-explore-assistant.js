@@ -73,6 +73,7 @@ WebServicesExploreAssistant.prototype.setup = function()
 	this.authenticateFromDeviceTapHandler = this.authenticateFromDeviceTap.bindAsEventListener(this);
 	this.authenticateFromDeviceAckHandler = this.authenticateFromDeviceAck.bind(this);
 	this.authenticateFromDeviceHandler =	this.authenticateFromDevice.bindAsEventListener(this);
+	this.authenticationUpdateHandler =	this.authenticationUpdate.bindAsEventListener(this);
 	
 	// setup wigets
 	this.spinnerModel = {spinning: true};
@@ -268,7 +269,7 @@ WebServicesExploreAssistant.prototype.authenticateFromDeviceTap = function(event
 	this.controller.showAlertDialog({
 			allowHTMLMessage:	true,
 			title:				'Authenticate From Device',
-			message:			"Are you sure? This will invalidate the current Palm Profile on your device, requiring you to do a full erase of all your apps and data before logging into your new Palm Profile again.",
+			message:			"Are you sure? This will replace the current Palm Profile on your device, which may have an unknown impact on your apps and data in your Palm Profile.",
 			choices:			[{label:$L("Authenticate"), value:'authenticate', type:'negative'},{label:$L("Cancel"), value:'cancel', type:'dismiss'}],
 			onChoose:			this.authenticateFromDeviceAckHandler
 		});
@@ -375,8 +376,30 @@ WebServicesExploreAssistant.prototype.authenticateFromDevice = function(payload)
 	this.controller.modelChanged(this.authenticateFromDeviceButtonModel);
 
 	if (payload.response.AuthenticateInfoEx) {
-		this.controller.stageController.pushScene("item", "Authentication Info", payload.response.AuthenticateInfoEx);
+		// this.controller.stageController.pushScene("item", "Authentication Info", payload.response.AuthenticateInfoEx);
+		var info = payload.response.AuthenticateInfoEx;
+		if (this.requestDb8) this.requestDb8.cancel();
+		this.requestDb8 = ImpostahService.impersonate(this.authenticationUpdateHandler,
+													  "com.palm.configurator", "com.palm.db",
+													  "merge", {
+														  "objects" : [
+		{ "_id": "com.palm.palmprofile.token",
+		  "alias": info.accountAlias, "authenticatedTime": info.authenticationTime,
+		  "jabberId": info.jabberId, "state": info.accountState, "token": info.token,
+		  "tokenexpireTime": info.expirationTime, "uniqueId": info.uniqueId }
+																	   ]
+													  });
 	}
+};
+
+WebServicesExploreAssistant.prototype.authenticationUpdate = function(payload)
+{
+	if (payload.returnValue === false) {
+		this.errorMessage('<b>Service Error (authenticationUpdate):</b><br>'+payload.errorText);
+		return;
+	}
+
+	this.controller.stageController.pushScene("item", "Authentication Update", payload);
 };
 
 WebServicesExploreAssistant.prototype.updateSpinner = function()

@@ -75,7 +75,7 @@ MainAssistant.prototype.setup = function()
     this.mainModel.items.push({
 			name:     $L('Credit Card'),
 				scene:   'credit-card',
-				disabled: true
+				disabled: (Mojo.Environment.DeviceInfo.platformVersionMajor == 1)
 				});
 
     this.mainModel.items.push({

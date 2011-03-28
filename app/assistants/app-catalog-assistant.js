@@ -1,4 +1,4 @@
-function AppcatExploreAssistant()
+function AppCatalogAssistant()
 {
 	// setup menu
 	this.menuModel = {
@@ -17,12 +17,7 @@ function AppcatExploreAssistant()
 	};
 	
 	this.palmProfileButtonModel = {
-		label: $L("Palm Profile"),
-		disabled: true
-	};
-
-	this.deviceProfileButtonModel = {
-		label: $L("Device Profile"),
+		label: $L("Show Palm Profile"),
 		disabled: true
 	};
 
@@ -36,7 +31,7 @@ function AppcatExploreAssistant()
 	};
 };
 
-AppcatExploreAssistant.prototype.setup = function()
+AppCatalogAssistant.prototype.setup = function()
 {
 	// setup menu
 	this.controller.setupWidget(Mojo.Menu.appMenu, { omitDefaultItems: true }, this.menuModel);
@@ -46,7 +41,6 @@ AppcatExploreAssistant.prototype.setup = function()
 	this.iconElement.style.display = 'none';
 	this.spinnerElement = 		this.controller.get('spinner');
 	this.palmProfileButton = this.controller.get('palmProfileButton');
-	this.deviceProfileButton = this.controller.get('deviceProfileButton');
 	this.paidAppsButton = this.controller.get('paidAppsButton');
 	this.accessCountryButton = this.controller.get('accessCountryButton');
 	
@@ -54,7 +48,6 @@ AppcatExploreAssistant.prototype.setup = function()
 	this.getPalmProfileHandler =	this.getPalmProfile.bindAsEventListener(this);
 	this.palmProfileTapHandler = this.palmProfileTap.bindAsEventListener(this);
 	this.getDeviceProfileHandler =	this.getDeviceProfile.bindAsEventListener(this);
-	this.deviceProfileTapHandler = this.deviceProfileTap.bindAsEventListener(this);
 	this.paidAppsTapHandler = this.paidAppsTap.bindAsEventListener(this);
 	this.paidAppsHandler =	this.paidApps.bindAsEventListener(this);
 	this.accessCountryTapHandler = this.accessCountryTap.bindAsEventListener(this);
@@ -63,8 +56,6 @@ AppcatExploreAssistant.prototype.setup = function()
 	// setup wigets
 	this.spinnerModel = {spinning: true};
 	this.controller.setupWidget('spinner', {spinnerSize: 'small'}, this.spinnerModel);
-	this.controller.setupWidget('deviceProfileButton', { }, this.deviceProfileButtonModel);
-	this.controller.listen(this.deviceProfileButton,  Mojo.Event.tap, this.deviceProfileTapHandler);
 	this.controller.setupWidget('palmProfileButton', { }, this.palmProfileButtonModel);
 	this.controller.listen(this.palmProfileButton,  Mojo.Event.tap, this.palmProfileTapHandler);
 	this.controller.setupWidget('paidAppsButton', { }, this.paidAppsButtonModel);
@@ -85,7 +76,7 @@ AppcatExploreAssistant.prototype.setup = function()
 															"getDeviceProfile", {});
 };
 
-AppcatExploreAssistant.prototype.getDeviceProfile = function(payload)
+AppCatalogAssistant.prototype.getDeviceProfile = function(payload)
 {
 	if (payload.returnValue === false) {
 		this.errorMessage('<b>Service Error (getDeviceProfile):</b><br>'+payload.errorText);
@@ -99,11 +90,6 @@ AppcatExploreAssistant.prototype.getDeviceProfile = function(payload)
 
 	this.deviceProfile = payload.deviceInfo;
 
-	if (this.deviceProfile) {
-		this.deviceProfileButtonModel.disabled = false;
-		this.controller.modelChanged(this.deviceProfileButtonModel);
-	}
-
 	if (this.palmProfile && this.deviceProfile) {
 		this.paidAppsButtonModel.disabled = false;
 		this.controller.modelChanged(this.paidAppsButtonModel);
@@ -113,14 +99,7 @@ AppcatExploreAssistant.prototype.getDeviceProfile = function(payload)
 	}
 };
 
-AppcatExploreAssistant.prototype.deviceProfileTap = function(event)
-{
-	if (this.deviceProfile) {
-		this.controller.stageController.pushScene("item", "Device Profile", this.deviceProfile);
-	}
-};
-
-AppcatExploreAssistant.prototype.getPalmProfile = function(payload)
+AppCatalogAssistant.prototype.getPalmProfile = function(payload)
 {
 	if (payload.returnValue === false) {
 		this.errorMessage('<b>Service Error (getPalmProfile):</b><br>'+payload.errorText);
@@ -148,14 +127,14 @@ AppcatExploreAssistant.prototype.getPalmProfile = function(payload)
 	}
 };
 
-AppcatExploreAssistant.prototype.palmProfileTap = function(event)
+AppCatalogAssistant.prototype.palmProfileTap = function(event)
 {
 	if (this.palmProfile) {
 		this.controller.stageController.pushScene("item", "Palm Profile", this.palmProfile);
 	}
 };
 
-AppcatExploreAssistant.prototype.paidAppsTap = function(event)
+AppCatalogAssistant.prototype.paidAppsTap = function(event)
 {
 	var callback = this.paidAppsHandler;
 
@@ -213,7 +192,7 @@ AppcatExploreAssistant.prototype.paidAppsTap = function(event)
 	this.controller.modelChanged(this.paidAppsButtonModel);
 };
 
-AppcatExploreAssistant.prototype.paidApps = function(payload)
+AppCatalogAssistant.prototype.paidApps = function(payload)
 {
 	if (payload.returnValue === false) {
 		this.errorMessage('<b>Service Error (paidApps):</b><br>'+payload.errorText);
@@ -233,7 +212,7 @@ AppcatExploreAssistant.prototype.paidApps = function(payload)
 	}
 };
 
-AppcatExploreAssistant.prototype.accessCountryTap = function(event)
+AppCatalogAssistant.prototype.accessCountryTap = function(event)
 {
 	var callback = this.accessCountryHandler;
 
@@ -294,7 +273,7 @@ AppcatExploreAssistant.prototype.accessCountryTap = function(event)
 	this.controller.modelChanged(this.accessCountryButtonModel);
 };
 
-AppcatExploreAssistant.prototype.accessCountry = function(payload)
+AppCatalogAssistant.prototype.accessCountry = function(payload)
 {
 	if (payload.returnValue === false) {
 		this.errorMessage('<b>Service Error (accessCountry):</b><br>'+payload.errorText);
@@ -314,7 +293,7 @@ AppcatExploreAssistant.prototype.accessCountry = function(payload)
 	}
 };
 
-AppcatExploreAssistant.prototype.updateSpinner = function()
+AppCatalogAssistant.prototype.updateSpinner = function()
 {
 	if (this.requestDeviceProfile || this.requestPalmProfile || this.requestPaidApps || this.requestAccessCountry)  {
 		this.iconElement.style.display = 'none';
@@ -328,7 +307,7 @@ AppcatExploreAssistant.prototype.updateSpinner = function()
 	}
 };
 
-AppcatExploreAssistant.prototype.errorMessage = function(msg)
+AppCatalogAssistant.prototype.errorMessage = function(msg)
 {
 	this.controller.showAlertDialog({
 			allowHTMLMessage:	true,
@@ -340,7 +319,7 @@ AppcatExploreAssistant.prototype.errorMessage = function(msg)
 		});
 };
 
-AppcatExploreAssistant.prototype.handleCommand = function(event)
+AppCatalogAssistant.prototype.handleCommand = function(event)
 {
 	if (event.type == Mojo.Event.command) {
 		switch (event.command) {
@@ -355,10 +334,8 @@ AppcatExploreAssistant.prototype.handleCommand = function(event)
 	}
 };
 
-AppcatExploreAssistant.prototype.cleanup = function(event)
+AppCatalogAssistant.prototype.cleanup = function(event)
 {
-	this.controller.stopListening(this.deviceProfileButton,  Mojo.Event.tap,
-								  this.deviceProfileTapHandler);
 	this.controller.stopListening(this.palmProfileButton,  Mojo.Event.tap,
 								  this.palmProfileTapHandler);
 	this.controller.stopListening(this.paidAppsButton,  Mojo.Event.tap,

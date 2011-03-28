@@ -30,8 +30,8 @@
         "source": "app/assistants/device-profile-assistant.js"
     },
     {
-        "scenes": "appcat-explore",
-        "source": "app/assistants/appcat-explore-assistant.js"
+        "scenes": "app-catalog",
+        "source": "app/assistants/app-catalog-assistant.js"
     },
     {
         "scenes": "database-explore",

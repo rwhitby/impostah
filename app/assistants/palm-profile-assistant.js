@@ -17,12 +17,12 @@ function PalmProfileAssistant()
 	};
 	
 	this.palmProfileButtonModel = {
-		label: $L("Palm Profile"),
+		label: $L("Show Palm Profile"),
 		disabled: true
 	};
 
-	this.deviceProfileButtonModel = {
-		label: $L("Device Profile"),
+	this.resetPalmProfileButtonModel = {
+		label: $L("Reset Palm Profile"),
 		disabled: true
 	};
 
@@ -57,17 +57,21 @@ PalmProfileAssistant.prototype.setup = function()
 	this.iconElement.style.display = 'none';
 	this.spinnerElement = 		this.controller.get('spinner');
 	this.palmProfileButton = this.controller.get('palmProfileButton');
-	this.deviceProfileButton = this.controller.get('deviceProfileButton');
+	this.resetPalmProfileButton = this.controller.get('resetPalmProfileButton');
 	this.emailInputField = this.controller.get('emailInputField');
 	this.deviceInUseButton = this.controller.get('deviceInUseButton');
 	this.passwordInputField = this.controller.get('passwordInputField');
 	this.authenticateFromDeviceButton = this.controller.get('authenticateFromDeviceButton');
 	
 	// setup handlers
+	this.getDeviceProfileHandler =	this.getDeviceProfile.bindAsEventListener(this);
 	this.getPalmProfileHandler =	this.getPalmProfile.bindAsEventListener(this);
 	this.palmProfileTapHandler = this.palmProfileTap.bindAsEventListener(this);
-	this.getDeviceProfileHandler =	this.getDeviceProfile.bindAsEventListener(this);
-	this.deviceProfileTapHandler = this.deviceProfileTap.bindAsEventListener(this);
+	this.resetPalmProfileTapHandler = this.resetPalmProfileTap.bindAsEventListener(this);
+	this.resetPalmProfileAckHandler = this.resetPalmProfileAck.bind(this);
+	this.palmProfileDeletedHandler = this.palmProfileDeleted.bindAsEventListener(this);
+	this.palmProfileDeletionAckHandler = this.palmProfileDeletionAck.bind(this);
+	this.palmProfileDeletionDoneHandler = this.palmProfileDeletionDone.bindAsEventListener(this);
 	this.deviceInUseTapHandler = this.deviceInUseTap.bindAsEventListener(this);
 	this.deviceInUseHandler =	this.deviceInUse.bindAsEventListener(this);
 	this.authenticateFromDeviceTapHandler = this.authenticateFromDeviceTap.bindAsEventListener(this);
@@ -78,30 +82,34 @@ PalmProfileAssistant.prototype.setup = function()
 	// setup wigets
 	this.spinnerModel = {spinning: true};
 	this.controller.setupWidget('spinner', {spinnerSize: 'small'}, this.spinnerModel);
-	this.controller.setupWidget('deviceProfileButton', { }, this.deviceProfileButtonModel);
-	this.controller.listen(this.deviceProfileButton,  Mojo.Event.tap, this.deviceProfileTapHandler);
 	this.controller.setupWidget('palmProfileButton', { }, this.palmProfileButtonModel);
-	this.controller.listen(this.palmProfileButton,  Mojo.Event.tap, this.palmProfileTapHandler);
-	this.controller.setupWidget('emailInputField', { 'textCase':Mojo.Widget.steModeLowerCase }, this.emailInputFieldModel);
-	// ???
+	this.controller.listen(this.palmProfileButton, Mojo.Event.tap, this.palmProfileTapHandler);
+	this.controller.setupWidget('resetPalmProfileButton', { }, this.resetPalmProfileButtonModel);
+	this.controller.listen(this.resetPalmProfileButton, Mojo.Event.tap, this.resetPalmProfileTapHandler);
+	this.controller.setupWidget('emailInputField', { 'textCase':Mojo.Widget.steModeLowerCase },
+								this.emailInputFieldModel);
 	this.controller.setupWidget('deviceInUseButton', { }, this.deviceInUseButtonModel);
-	this.controller.listen(this.deviceInUseButton,  Mojo.Event.tap, this.deviceInUseTapHandler);
-	this.controller.setupWidget('passwordInputField', { 'textCase':Mojo.Widget.steModeLowerCase }, this.passwordInputFieldModel);
-	// ???
+	this.controller.listen(this.deviceInUseButton, Mojo.Event.tap, this.deviceInUseTapHandler);
+	this.controller.setupWidget('passwordInputField', { 'textCase':Mojo.Widget.steModeLowerCase },
+								this.passwordInputFieldModel);
 	this.controller.setupWidget('authenticateFromDeviceButton', { }, this.authenticateFromDeviceButtonModel);
-	this.controller.listen(this.authenticateFromDeviceButton,  Mojo.Event.tap, this.authenticateFromDeviceTapHandler);
+	this.controller.listen(this.authenticateFromDeviceButton, Mojo.Event.tap, this.authenticateFromDeviceTapHandler);
 	
+	// %%% FIXME %%%
+	this.accountServerUrl = "https://ps.palmws.com/palmcsext/services/deviceJ/";
 	this.deviceProfile = false;
 	this.palmProfile = false;
 
-	this.requestPalmProfile = ImpostahService.impersonate(this.getPalmProfileHandler,
-														  "com.palm.configurator",
-														  "com.palm.db",
-														  "get", {"ids":["com.palm.palmprofile.token"]});
 	this.requestDeviceProfile = ImpostahService.impersonate(this.getDeviceProfileHandler,
 															"com.palm.configurator",
 															"com.palm.deviceprofile",
 															"getDeviceProfile", {});
+	this.requestPalmProfile = ImpostahService.impersonate(this.getPalmProfileHandler,
+														  "com.palm.configurator",
+														  "com.palm.db",
+														  "get", {"ids":["com.palm.palmprofile.token"]});
+
+	this.updateSpinner();
 };
 
 PalmProfileAssistant.prototype.getDeviceProfile = function(payload)
@@ -118,33 +126,8 @@ PalmProfileAssistant.prototype.getDeviceProfile = function(payload)
 
 	this.deviceProfile = payload.deviceInfo;
 
-	if (this.deviceProfile) {
-		this.deviceProfileButtonModel.disabled = false;
-		this.controller.modelChanged(this.deviceProfileButtonModel);
-	}
+	this.updateButtons();
 
-	if (this.palmProfile) {
-		this.emailInputFieldModel.disabled = false;
-		this.emailInputFieldModel.value = this.palmProfile.alias;
-		this.controller.modelChanged(this.emailInputFieldModel);
-	}
-
-	if (this.palmProfile && this.deviceProfile) {
-		this.deviceInUseButtonModel.disabled = false;
-		this.controller.modelChanged(this.deviceInUseButtonModel);
-		this.passwordInputFieldModel.disabled = false;
-		this.controller.modelChanged(this.passwordInputFieldModel);
-		this.authenticateFromDeviceButtonModel.disabled = false;
-		this.controller.modelChanged(this.authenticateFromDeviceButtonModel);
-	}
-
-};
-
-PalmProfileAssistant.prototype.deviceProfileTap = function(event)
-{
-	if (this.deviceProfile) {
-		this.controller.stageController.pushScene("item", "Device Profile", this.deviceProfile);
-	}
 };
 
 PalmProfileAssistant.prototype.getPalmProfile = function(payload)
@@ -161,25 +144,7 @@ PalmProfileAssistant.prototype.getPalmProfile = function(payload)
 
 	this.palmProfile = payload.results[0];
 
-	if (this.palmProfile) {
-		this.palmProfileButtonModel.disabled = false;
-		this.controller.modelChanged(this.palmProfileButtonModel);
-	}
-
-	if (this.palmProfile) {
-		this.emailInputFieldModel.disabled = false;
-		this.emailInputFieldModel.value = this.palmProfile.alias;
-		this.controller.modelChanged(this.emailInputFieldModel);
-	}
-
-	if (this.palmProfile && this.deviceProfile) {
-		this.deviceInUseButtonModel.disabled = false;
-		this.controller.modelChanged(this.deviceInUseButtonModel);
-		this.passwordInputFieldModel.disabled = false;
-		this.controller.modelChanged(this.passwordInputFieldModel);
-		this.authenticateFromDeviceButtonModel.disabled = false;
-		this.controller.modelChanged(this.authenticateFromDeviceButtonModel);
-	}
+	this.updateButtons();
 };
 
 PalmProfileAssistant.prototype.palmProfileTap = function(event)
@@ -189,11 +154,91 @@ PalmProfileAssistant.prototype.palmProfileTap = function(event)
 	}
 };
 
+PalmProfileAssistant.prototype.resetPalmProfileTap = function(event)
+{
+	this.controller.showAlertDialog({
+			allowHTMLMessage:	true,
+			title:				'Reset Palm Profile',
+			message:			"Are you sure? Applications you installed and all application settings and data will be erased.",
+			choices:			[{label:$L("Delete"), value:'delete', type:'negative'},{label:$L("Cancel"), value:'cancel', type:'dismiss'}],
+			onChoose:			this.resetPalmProfileAckHandler
+		});
+};
+
+PalmProfileAssistant.prototype.resetPalmProfileAck = function(value)
+{
+	if (value != "delete") return;
+
+	this.palmProfile = false;
+
+	this.requestPalmProfile = ImpostahService.impersonate(this.palmProfileDeletedHandler,
+														  "com.palm.configurator",
+														  "com.palm.db",
+														  "del", {"ids":["com.palm.palmprofile.token"], "purge":true});
+
+	this.updateSpinner();
+
+	this.palmProfileButtonModel.disabled = true;
+	this.controller.modelChanged(this.palmProfileButtonModel);
+
+	this.resetPalmProfileButtonModel.disabled = true;
+	this.controller.modelChanged(this.resetPalmProfileButtonModel);
+};
+
+PalmProfileAssistant.prototype.palmProfileDeleted = function(payload)
+{
+	if (payload.returnValue === false) {
+		this.errorMessage('<b>Service Error (palmProfileDeleted):</b><br>'+payload.errorText);
+		return;
+	}
+
+	if (this.requestPalmProfile) this.requestPalmProfile.cancel();
+	this.requestPalmProfile = false;
+
+	this.updateSpinner();
+
+	this.controller.showAlertDialog({
+			allowHTMLMessage:	true,
+				preventCancel:		true,
+				title:				'Reset Palm Profile',
+				message:			"Your Palm Profile has been reset. Your device will now restart.",
+				choices:			[{label:$L("Ok"), value:'ok'},
+									 {label:$L("Cancel"), value:'cancel'}
+									 ],
+				onChoose:			this.palmProfileDeletionAckHandler
+				});
+};
+
+PalmProfileAssistant.prototype.palmProfileDeletionAck = function(value)
+{
+	if (value != "ok") {
+		this.requestPalmProfile = ImpostahService.impersonate(this.getPalmProfileHandler,
+															  "com.palm.configurator",
+															  "com.palm.db",
+															  "get", {"ids":["com.palm.palmprofile.token"]});
+	}
+	else {
+		this.requestPalmProfile = ImpostahService.removeFirstUseFlag(this.palmProfileDeletionDoneHandler);
+	}
+
+	this.updateSpinner();
+};
+
+PalmProfileAssistant.prototype.palmProfileDeletionDone = function(payload)
+{
+	if (payload.returnValue === false) {
+		this.errorMessage('<b>Service Error (palmProfileDeletionDone):</b><br>'+payload.errorText);
+		return;
+	}
+
+	this.requestPalmProfile = ImpostahService.restartLuna();
+};
+
 PalmProfileAssistant.prototype.deviceInUseTap = function(event)
 {
 	var callback = this.deviceInUseHandler;
 
-	var url = this.palmProfile.accountServerUrl+"isDeviceInUse";
+	var url = this.accountServerUrl+"isDeviceInUse";
 	var body = {
 		"InDeviceInUse": {
 			"emailAddress": this.emailInputFieldModel.value,
@@ -281,7 +326,7 @@ PalmProfileAssistant.prototype.authenticateFromDeviceAck = function(value)
 
 	var callback = this.authenticateFromDeviceHandler;
 
-	var url = this.palmProfile.accountServerUrl+"authenticateFromDevice";
+	var url = this.accountServerUrl+"authenticateFromDevice";
 	var body = {
 		"InAuthenticateFromDevice": {
 			// "application": "ASClient",
@@ -378,18 +423,34 @@ PalmProfileAssistant.prototype.authenticateFromDevice = function(payload)
 	if (payload.response.AuthenticateInfoEx) {
 		// this.controller.stageController.pushScene("item", "Authentication Info", payload.response.AuthenticateInfoEx);
 		var info = payload.response.AuthenticateInfoEx;
-		if (this.requestDb8) this.requestDb8.cancel();
-		this.requestDb8 = ImpostahService.impersonate(this.authenticationUpdateHandler,
-													  "com.palm.configurator", "com.palm.db",
-													  "merge", {
-														  "objects" : [
-		{ "_id": "com.palm.palmprofile.token",
-		  "alias": info.accountAlias, "authenticatedTime": info.authenticationTime,
-		  "jabberId": info.jabberId, "state": info.accountState, "token": info.token,
-		  "tokenexpireTime": info.expirationTime, "uniqueId": info.uniqueId }
-																	   ]
-													  });
-		
+
+		if (this.palmProfile) {
+			this.requestDb8 = ImpostahService.impersonate(this.authenticationUpdateHandler,
+														  "com.palm.configurator", "com.palm.db",
+														  "merge", {
+															  "objects" : [
+			{ "_id": "com.palm.palmprofile.token",
+			  "alias": info.accountAlias, "authenticatedTime": info.authenticationTime,
+			  "jabberId": info.jabberId, "state": info.accountState, "token": info.token,
+			  "tokenexpireTime": info.expirationTime, "uniqueId": info.uniqueId }
+																		   ]
+														  });
+		}
+		else {
+			this.requestDb8 = ImpostahService.impersonate(this.authenticationUpdateHandler,
+														  "com.palm.configurator", "com.palm.db",
+														  "put", {
+															  "objects" : [
+			{ "_id": "com.palm.palmprofile.token", "_kind": "com.palm.palmprofile:1",
+			  "accountServerUrl": this.accountServerUrl, "accountExpirationTime": "",
+			  "alias": info.accountAlias, "authenticatedTime": info.authenticationTime,
+			  "jabberId": info.jabberId, "phoneNumber": "", "state": info.accountState,
+			  "token": info.token, "tokenexpireTime": info.expirationTime,
+			  "uniqueId": info.uniqueId }
+																		   ]
+														  });
+		}
+
 		this.updateSpinner();
 
 		this.authenticateFromDeviceButtonModel.disabled = true;
@@ -413,6 +474,11 @@ PalmProfileAssistant.prototype.authenticationUpdate = function(payload)
 	this.controller.modelChanged(this.authenticateFromDeviceButtonModel);
 
 	this.controller.stageController.pushScene("item", "Authentication Update", payload);
+
+	this.requestPalmProfile = ImpostahService.impersonate(this.getPalmProfileHandler,
+														  "com.palm.configurator",
+														  "com.palm.db",
+														  "get", {"ids":["com.palm.palmprofile.token"]});
 };
 
 PalmProfileAssistant.prototype.updateSpinner = function()
@@ -426,6 +492,30 @@ PalmProfileAssistant.prototype.updateSpinner = function()
 		this.iconElement.style.display = 'inline';
 		this.spinnerModel.spinning = false;
 		this.controller.modelChanged(this.spinnerModel);
+	}
+};
+
+PalmProfileAssistant.prototype.updateButtons = function()
+{
+	if (this.palmProfile) {
+		this.palmProfileButtonModel.disabled = false;
+		this.controller.modelChanged(this.palmProfileButtonModel);
+		this.resetPalmProfileButtonModel.disabled = false;
+		this.controller.modelChanged(this.resetPalmProfileButtonModel);
+		this.emailInputFieldModel.disabled = false;
+		this.emailInputFieldModel.value = this.palmProfile.alias;
+		this.controller.modelChanged(this.emailInputFieldModel);
+	}
+
+	if (!this.requestPalmProfile && this.deviceProfile) {
+		this.emailInputFieldModel.disabled = false;
+		this.controller.modelChanged(this.emailInputFieldModel);
+		this.deviceInUseButtonModel.disabled = false;
+		this.controller.modelChanged(this.deviceInUseButtonModel);
+		this.passwordInputFieldModel.disabled = false;
+		this.controller.modelChanged(this.passwordInputFieldModel);
+		this.authenticateFromDeviceButtonModel.disabled = false;
+		this.controller.modelChanged(this.authenticateFromDeviceButtonModel);
 	}
 };
 
@@ -458,10 +548,10 @@ PalmProfileAssistant.prototype.handleCommand = function(event)
 
 PalmProfileAssistant.prototype.cleanup = function(event)
 {
-	this.controller.stopListening(this.deviceProfileButton,  Mojo.Event.tap,
-								  this.deviceProfileTapHandler);
 	this.controller.stopListening(this.palmProfileButton,  Mojo.Event.tap,
 								  this.palmProfileTapHandler);
+	this.controller.stopListening(this.resetPalmProfileButton,  Mojo.Event.tap,
+								  this.resetPalmProfileTapHandler);
 	this.controller.stopListening(this.deviceInUseButton,  Mojo.Event.tap,
 								  this.deviceInUseTapHandler);
 	this.controller.stopListening(this.authenticateFromDeviceButton,  Mojo.Event.tap,

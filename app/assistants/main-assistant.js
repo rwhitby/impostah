@@ -68,13 +68,13 @@ MainAssistant.prototype.setup = function()
 
     this.mainModel.items.push({
 			name:     $L('App Catalog'),
-				scene:   'appcat-explore',
+				scene:   'app-catalog',
 				disabled: (Mojo.Environment.DeviceInfo.platformVersionMajor == 1)
 				});
 
     this.mainModel.items.push({
-			name:     $L('N/A'),
-				scene: false,
+			name:     $L('Credit Card'),
+				scene:   'credit-card',
 				disabled: true
 				});
 

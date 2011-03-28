@@ -10,11 +10,10 @@ function ItemAssistant(label, item) {
 	this.menuModel = {
 		visible: true,
 		items: [
-	{ label: $L("Preferences"),
-	  command: 'do-prefs' },
-	{ label: $L("Help"),
-	  command: 'do-help' }
-				]
+			{ label: $L("Email"), command: 'do-email' },
+			{ label: $L("Preferences"), command: 'do-prefs' },
+			{ label: $L("Help"), command: 'do-help' }
+		]
 	};
 
 }
@@ -131,6 +130,9 @@ ItemAssistant.prototype.handleCommand = function(event)
 				
 			case 'do-help':
 				this.controller.stageController.pushScene('help');
+				break;
+			case 'do-email':
+				email(this.label, "<pre>" + JSON.stringify(this.item, null, 4) + "</pre>");
 				break;
 		}
 	}

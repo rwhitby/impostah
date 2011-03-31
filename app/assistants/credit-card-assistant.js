@@ -165,7 +165,7 @@ CreditCardAssistant.prototype.paymentInfoTap = function(event)
 					var exception = response.JSONException;
 					if (exception) {
 						Mojo.Log.error("CatalogServer._callServer %j", exception);
-						callback({"returnValue":false, "errorText":exception});
+						callback({"returnValue":false, "errorText":Object.toJSON(exception)});
 					}
 					else {
 						callback({"returnValue":true, "response":response});
@@ -175,7 +175,7 @@ CreditCardAssistant.prototype.paymentInfoTap = function(event)
 			onFailure: function(response) {
 				Mojo.Log.info("onFailure %j", response);
 				if (response.responseJSON && response.responseJSON.JSONException) {
-					callback({"returnValue":false, "errorText":response.responseJSON.JSONException});
+					callback({"returnValue":false, "errorText":Object.toJSON(response.responseJSON.JSONException)});
 				}
 				else {
 					callback({"returnValue":false, "errorText":response.status});
@@ -242,7 +242,7 @@ CreditCardAssistant.prototype.billingCountriesTap = function(event)
 					var exception = response.JSONException;
 					if (exception) {
 						Mojo.Log.error("CatalogServer._callServer %j", exception);
-						callback({"returnValue":false, "errorText":exception});
+						callback({"returnValue":false, "errorText":Object.toJSON(exception)});
 					}
 					else {
 						callback({"returnValue":true, "response":response});
@@ -252,7 +252,7 @@ CreditCardAssistant.prototype.billingCountriesTap = function(event)
 			onFailure: function(response) {
 				Mojo.Log.info("onFailure %j", response);
 				if (response.responseJSON && response.responseJSON.JSONException) {
-					callback({"returnValue":false, "errorText":response.responseJSON.JSONException});
+					callback({"returnValue":false, "errorText":Object.toJSON(response.responseJSON.JSONException)});
 				}
 				else {
 					callback({"returnValue":false, "errorText":response.status});

@@ -303,6 +303,8 @@ PalmProfileAssistant.prototype.deviceInUseTap = function(event)
 		}
 	};
 
+	Mojo.Log.warn("request %j", body);
+
 	this.requestWebService = new Ajax.Request(url, {
 			method: 'POST',
 			contentType: 'application/json',
@@ -310,7 +312,7 @@ PalmProfileAssistant.prototype.deviceInUseTap = function(event)
 			evalJSON: 'force',
 			onSuccess: function(response) {
 				response = response.responseJSON;
-				Mojo.Log.info("onSuccess %j", response);
+				Mojo.Log.warn("onSuccess %j", response);
 				if (!response) {
 					callback({"returnValue":true}); // Empty replies are okay
 				}
@@ -326,7 +328,7 @@ PalmProfileAssistant.prototype.deviceInUseTap = function(event)
 				}
 			},
 			onFailure: function(response) {
-				Mojo.Log.info("onFailure %j", response);
+				Mojo.Log.warn("onFailure %j", response);
 				if (response.responseJSON && response.responseJSON.JSONException) {
 					callback({"returnValue":false, "errorText":Object.toJSON(response.responseJSON.JSONException)});
 				}
@@ -335,7 +337,7 @@ PalmProfileAssistant.prototype.deviceInUseTap = function(event)
 				}
 			},
 			on0: function(response) {
-				Mojo.Log.info("on0 %j", response);
+				Mojo.Log.warn("on0 %j", response);
 				callback({"returnValue":false, "errorText":response.status});
 			}
 	});
@@ -419,6 +421,8 @@ PalmProfileAssistant.prototype.authenticateFromDeviceAck = function(value)
 		}
 	};
 
+	Mojo.Log.warn("request %j", body);
+
 	this.requestWebService = new Ajax.Request(url, {
 			method: 'POST',
 			contentType: 'application/json',
@@ -426,7 +430,7 @@ PalmProfileAssistant.prototype.authenticateFromDeviceAck = function(value)
 			evalJSON: 'force',
 			onSuccess: function(response) {
 				response = response.responseJSON;
-				Mojo.Log.info("onSuccess %j", response);
+				Mojo.Log.warn("onSuccess %j", response);
 				if (!response) {
 					callback({"returnValue":true}); // Empty replies are okay
 				}
@@ -442,7 +446,7 @@ PalmProfileAssistant.prototype.authenticateFromDeviceAck = function(value)
 				}
 			},
 			onFailure: function(response) {
-				Mojo.Log.info("onFailure %j", response);
+				Mojo.Log.warn("onFailure %j", response);
 				if (response.responseJSON && response.responseJSON.JSONException) {
 					callback({"returnValue":false, "errorText":Object.toJSON(response.responseJSON.JSONException)});
 				}
@@ -451,7 +455,7 @@ PalmProfileAssistant.prototype.authenticateFromDeviceAck = function(value)
 				}
 			},
 			on0: function(response) {
-				Mojo.Log.info("on0 %j", response);
+				Mojo.Log.warn("on0 %j", response);
 				callback({"returnValue":false, "errorText":response.status});
 			}
 	});
@@ -597,6 +601,8 @@ PalmProfileAssistant.prototype.createDeviceAccountAck = function(value)
 		}
 	};
 
+	Mojo.Log.warn("request %j", body);
+
 	this.requestWebService = new Ajax.Request(url, {
 			method: 'POST',
 			contentType: 'application/json',
@@ -604,7 +610,7 @@ PalmProfileAssistant.prototype.createDeviceAccountAck = function(value)
 			evalJSON: 'force',
 			onSuccess: function(response) {
 				response = response.responseJSON;
-				Mojo.Log.info("onSuccess %j", response);
+				Mojo.Log.warn("onSuccess %j", response);
 				if (!response) {
 					callback({"returnValue":true}); // Empty replies are okay
 				}
@@ -620,7 +626,7 @@ PalmProfileAssistant.prototype.createDeviceAccountAck = function(value)
 				}
 			},
 			onFailure: function(response) {
-				Mojo.Log.info("onFailure %j", response);
+				Mojo.Log.warn("onFailure %j", response);
 				if (response.responseJSON && response.responseJSON.JSONException) {
 					callback({"returnValue":false, "errorText":Object.toJSON(response.responseJSON.JSONException)});
 				}
@@ -629,7 +635,7 @@ PalmProfileAssistant.prototype.createDeviceAccountAck = function(value)
 				}
 			},
 			on0: function(response) {
-				Mojo.Log.info("on0 %j", response);
+				Mojo.Log.warn("on0 %j", response);
 				callback({"returnValue":false, "errorText":response.status});
 			}
 	});

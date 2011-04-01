@@ -11,6 +11,7 @@ function StartupAssistant(changelog)
     this.newMessages =
 	[
 	 // Don't forget the comma on all but the last entry
+	 { version: '0.5.3', log: [ 'Added debugging of the web service requests and responses' ] },
 	 { version: '0.5.2', log: [ 'Added the ability to create a new Palm Profile' ] },
 	 { version: '0.5.1', log: [ 'Added the ability to display your registered credit card info' ] },
 	 { version: '0.5.0', log: [ 'Added the ability to change your Palm Profile without erasing the device' ] },

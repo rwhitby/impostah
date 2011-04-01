@@ -149,6 +149,8 @@ AppCatalogAssistant.prototype.paidAppsTap = function(event)
 		}
 	};
 
+	Mojo.Log.warn("request %j", body);
+
 	this.requestPaidApps = new Ajax.Request(url, {
 			method: 'POST',
 			contentType: 'application/json',
@@ -156,7 +158,7 @@ AppCatalogAssistant.prototype.paidAppsTap = function(event)
 			evalJSON: 'force',
 			onSuccess: function(response) {
 				response = response.responseJSON;
-				Mojo.Log.info("onSuccess %j", response);
+				Mojo.Log.warn("onSuccess %j", response);
 				if (!response) {
 					callback({"returnValue":true}); // Empty replies are okay
 				}
@@ -172,7 +174,7 @@ AppCatalogAssistant.prototype.paidAppsTap = function(event)
 				}
 			},
 			onFailure: function(response) {
-				Mojo.Log.info("onFailure %j", response);
+				Mojo.Log.warn("onFailure %j", response);
 				if (response.responseJSON && response.responseJSON.JSONException) {
 					callback({"returnValue":false, "errorText":Object.toJSON(response.responseJSON.JSONException)});
 				}
@@ -181,7 +183,7 @@ AppCatalogAssistant.prototype.paidAppsTap = function(event)
 				}
 			},
 			on0: function(response) {
-				Mojo.Log.info("on0 %j", response);
+				Mojo.Log.warn("on0 %j", response);
 				callback({"returnValue":false, "errorText":response.status});
 			}
 	});
@@ -230,6 +232,8 @@ AppCatalogAssistant.prototype.accessCountryTap = function(event)
 		}
 	};
 
+	Mojo.Log.warn("request %j", body);
+
 	this.requestAccessCountry = new Ajax.Request(url, {
 			method: 'POST',
 			contentType: 'application/json',
@@ -237,7 +241,7 @@ AppCatalogAssistant.prototype.accessCountryTap = function(event)
 			evalJSON: 'force',
 			onSuccess: function(response) {
 				response = response.responseJSON;
-				Mojo.Log.info("onSuccess %j", response);
+				Mojo.Log.warn("onSuccess %j", response);
 				if (!response) {
 					callback({"returnValue":true}); // Empty replies are okay
 				}
@@ -253,7 +257,7 @@ AppCatalogAssistant.prototype.accessCountryTap = function(event)
 				}
 			},
 			onFailure: function(response) {
-				Mojo.Log.info("onFailure %j", response);
+				Mojo.Log.warn("onFailure %j", response);
 				if (response.responseJSON && response.responseJSON.JSONException) {
 					callback({"returnValue":false, "errorText":Object.toJSON(response.responseJSON.JSONException)});
 				}
@@ -262,7 +266,7 @@ AppCatalogAssistant.prototype.accessCountryTap = function(event)
 				}
 			},
 			on0: function(response) {
-				Mojo.Log.info("on0 %j", response);
+				Mojo.Log.warn("on0 %j", response);
 				callback({"returnValue":false, "errorText":response.status});
 			}
 	});

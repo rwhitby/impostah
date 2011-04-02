@@ -58,6 +58,7 @@ BackupsAssistant.prototype.setup = function()
 	this.palmProfileTapHandler = this.palmProfileTap.bindAsEventListener(this);
 	this.getAuthTokenTapHandler = this.getAuthTokenTap.bindAsEventListener(this);
 	this.getAuthTokenHandler = this.getAuthToken.bindAsEventListener(this);
+	this.getManifestListHandler = this.getManifestList.bindAsEventListener(this);
 	this.showManifestTapHandler = this.showManifestTap.bindAsEventListener(this);
 	this.showManifestHandler = this.showManifest.bindAsEventListener(this);
 	
@@ -73,7 +74,7 @@ BackupsAssistant.prototype.setup = function()
 	this.controller.listen(this.showManifestButton, Mojo.Event.tap, this.showManifestTapHandler);
 	
 	// %%% FIXME %%%
-	this.storageServerUrl = "https://sta.palmws.com/storageauth/";
+	this.authServerUrl = "https://sta.palmws.com/storageauth/";
 	this.deviceProfile = false;
 	this.palmProfile = false;
 
@@ -140,7 +141,7 @@ BackupsAssistant.prototype.getAuthTokenTap = function(event)
 		deviceId = deviceId.substring(0, deviceId.length - 2);
 	}
 
-	var url = (this.storageServerUrl+"?email="+encodeURIComponent(this.palmProfile.alias)+
+	var url = (this.authServerUrl+"?email="+encodeURIComponent(this.palmProfile.alias)+
 			   "&deviceId="+ encodeURIComponent(deviceId)+
 			   "&token="+encodeURIComponent(this.palmProfile.token));
 
@@ -153,11 +154,9 @@ BackupsAssistant.prototype.getAuthTokenTap = function(event)
 				response = response.responseText;
 				Mojo.Log.warn("onSuccess %s", response);
 				if (!response) {
-					Mojo.Log.warn("callback no value");
 					callback({"returnValue":true}); // Empty replies are okay
 				}
 				else {
-					Mojo.Log.warn("callback %s", response);
 					callback({"returnValue":true, "response":response});
 				}
 			},
@@ -183,11 +182,97 @@ BackupsAssistant.prototype.getAuthToken = function(payload)
 
 	this.updateSpinner();
 
-	this.getAuthTokenModel.disabled = false;
+	this.getAuthTokenButtonModel.disabled = false;
 	this.controller.modelChanged(this.getAuthTokenButtonModel);
 
 	if (payload.returnValue === false) {
 		this.errorMessage('<b>Service Error (getAuthToken):</b><br>'+payload.errorText);
+		return;
+	}
+
+	Mojo.Log.warn("getAuthToken %s", payload.response);
+
+	if (payload.response) {
+		this.storageAuthToken = payload.response.substring(0, payload.response.length-2);
+		this.authServerUrl = "https://sta.palmws.com/storageauth/";
+		var fields = this.storageAuthToken.split(":", 5);
+		Mojo.Log.warn("fields %j", fields);
+		if (fields) {
+			var host = fields[1];
+			Mojo.Log.warn("host %s", host);
+			if (host) {
+				this.storageServerUrl = "https://"+host+".backup.st.palmws.com/storage/";
+				this.retrieveManifestList();
+			}
+		}
+	}
+};
+
+BackupsAssistant.prototype.retrieveManifestList = function()
+{
+	var callback = this.getManifestListHandler;
+
+	var url = this.storageServerUrl+"manifests/";
+
+	var authorization = "PalmDevice "+this.storageAuthToken;
+
+	Mojo.Log.warn("request %s %s", url, authorization);
+
+	this.requestWebService = new Ajax.Request(url, {
+			method: 'GET',
+			requestHeaders: {
+				"authorization": authorization
+			},
+			evalJSON: 'force',
+			onSuccess: function(response) {
+				response = response.responseJSON;
+				Mojo.Log.warn("onSuccess %j", response);
+				if (!response) {
+					callback({"returnValue":true}); // Empty replies are okay
+				}
+				else {
+					var exception = response.JSONException;
+					if (exception) {
+						Mojo.Log.error("CatalogServer._callServer %j", exception);
+						callback({"returnValue":false, "errorText":Object.toJSON(exception)});
+					}
+					else {
+						callback({"returnValue":true, "response":response});
+					}
+				}
+			},
+			onFailure: function(response) {
+				Mojo.Log.warn("onFailure %j", response);
+				if (response.responseJSON && response.responseJSON.JSONException) {
+					callback({"returnValue":false, "errorText":Object.toJSON(response.responseJSON.JSONException)});
+				}
+				else {
+					callback({"returnValue":false, "errorText":response.status});
+				}
+			},
+			on0: function(response) {
+				Mojo.Log.warn("on0 %j", response);
+				callback({"returnValue":false, "errorText":response.status});
+			}
+	});
+
+	this.updateSpinner();
+
+	this.getAuthTokenButtonModel.disabled = true;
+	this.controller.modelChanged(this.getAuthTokenButtonModel);
+};
+
+BackupsAssistant.prototype.getManifestList = function(payload)
+{
+	this.requestWebService = false;
+
+	this.updateSpinner();
+
+	this.getAuthTokenButtonModel.disabled = false;
+	this.controller.modelChanged(this.getAuthTokenButtonModel);
+
+	if (payload.returnValue === false) {
+		this.errorMessage('<b>Service Error (getManifestList):</b><br>'+payload.errorText);
 		return;
 	}
 
@@ -196,10 +281,20 @@ BackupsAssistant.prototype.getAuthToken = function(payload)
 	this.showManifestButtonModel.disabled = false;
 	this.controller.modelChanged(this.showManifestButtonModel);
 
-	Mojo.Log.warn("getAuthToken %s", payload.response);
+	Mojo.Log.warn("getManifestList %j", payload.response);
 
 	if (payload.response) {
-		this.controller.stageController.pushScene("item", "Auth Token", payload.response);
+		var manifests = payload.response;
+		// this.controller.stageController.pushScene("item", "Manifest List", manifests);
+		this.manifestSelectorModel.choices = [];
+		for (i = 0; i < manifests.length; i++) {
+			var manifest = manifests[i];
+			var label = manifest["Last-Modified"];
+			var value = manifest["Name"];
+			this.manifestSelectorModel.choices.push({"label": label, "value": value});
+			this.manifestSelectorModel.value = value;
+		}
+		this.controller.modelChanged(this.manifestSelectorModel);
 	}
 };
 
@@ -207,33 +302,43 @@ BackupsAssistant.prototype.showManifestTap = function(event)
 {
 	var callback = this.showManifestHandler;
 
-	var deviceId = this.deviceProfile.deviceId;
-	if (deviceId.indexOf("IMEI") === 0) {
-		deviceId = deviceId.substring(0, deviceId.length - 2);
-	}
+	var url = this.storageServerUrl+"manifests/"+this.manifestSelectorModel.value;
 
-	var url = (this.storageServerUrl+"?email="+encodeURIComponent(this.palmProfile.alias)+
-			   "&deviceId="+ encodeURIComponent(deviceId)+
-			   "&token="+encodeURIComponent(this.palmProfile.token));
+	var authorization = "PalmDevice "+this.storageAuthToken;
 
-	Mojo.Log.warn("request %s", url);
+	Mojo.Log.warn("request %s %s", url, authorization);
 
 	this.requestWebService = new Ajax.Request(url, {
-			method: 'POST',
-			evalJSON: false, evalJS: false,
+			method: 'GET',
+			requestHeaders: {
+				"authorization": authorization
+			},
+			evalJSON: 'force',
 			onSuccess: function(response) {
-				response = response.responseText;
-				Mojo.Log.warn("onSuccess %s", response);
+				response = response.responseJSON;
+				Mojo.Log.warn("onSuccess %j", response);
 				if (!response) {
 					callback({"returnValue":true}); // Empty replies are okay
 				}
 				else {
-					callback({"returnValue":true, "response":response});
+					var exception = response.JSONException;
+					if (exception) {
+						Mojo.Log.error("CatalogServer._callServer %j", exception);
+						callback({"returnValue":false, "errorText":Object.toJSON(exception)});
+					}
+					else {
+						callback({"returnValue":true, "response":response});
+					}
 				}
 			},
 			onFailure: function(response) {
 				Mojo.Log.warn("onFailure %j", response);
-				callback({"returnValue":false, "errorText":response.status});
+				if (response.responseJSON && response.responseJSON.JSONException) {
+					callback({"returnValue":false, "errorText":Object.toJSON(response.responseJSON.JSONException)});
+				}
+				else {
+					callback({"returnValue":false, "errorText":response.status});
+				}
 			},
 			on0: function(response) {
 				Mojo.Log.warn("on0 %j", response);
@@ -253,7 +358,7 @@ BackupsAssistant.prototype.showManifest = function(payload)
 
 	this.updateSpinner();
 
-	this.showManifestModel.disabled = false;
+	this.showManifestButtonModel.disabled = false;
 	this.controller.modelChanged(this.showManifestButtonModel);
 
 	if (payload.returnValue === false) {

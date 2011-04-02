@@ -73,8 +73,8 @@ MainAssistant.prototype.setup = function()
 				});
 
     this.mainModel.items.push({
-			name:     $L('Credit Card'),
-				scene:   'credit-card',
+			name:     $L('Backups'),
+				scene:   'backups',
 				disabled: (Mojo.Environment.DeviceInfo.platformVersionMajor == 1)
 				});
 

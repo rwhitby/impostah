@@ -29,6 +29,15 @@ function AppCatalogAssistant()
 		label: $L("Check Access Country"),
 		disabled: true
 	};
+	this.paymentInfoButtonModel = {
+		label: $L("Show Payment Info"),
+		disabled: true
+	};
+
+ 	this.billingCountriesButtonModel = {
+		label: $L("Show Billing Countries"),
+		disabled: true
+	};
 };
 
 AppCatalogAssistant.prototype.setup = function()
@@ -43,6 +52,8 @@ AppCatalogAssistant.prototype.setup = function()
 	this.palmProfileButton = this.controller.get('palmProfileButton');
 	this.paidAppsButton = this.controller.get('paidAppsButton');
 	this.accessCountryButton = this.controller.get('accessCountryButton');
+	this.paymentInfoButton = this.controller.get('paymentInfoButton');
+	this.billingCountriesButton = this.controller.get('billingCountriesButton');
 	
 	// setup handlers
 	this.getPalmProfileHandler =	this.getPalmProfile.bindAsEventListener(this);
@@ -52,6 +63,10 @@ AppCatalogAssistant.prototype.setup = function()
 	this.paidAppsHandler =	this.paidApps.bindAsEventListener(this);
 	this.accessCountryTapHandler = this.accessCountryTap.bindAsEventListener(this);
 	this.accessCountryHandler =	this.accessCountry.bindAsEventListener(this);
+	this.paymentInfoTapHandler = this.paymentInfoTap.bindAsEventListener(this);
+	this.paymentInfoHandler =	this.paymentInfo.bindAsEventListener(this);
+	this.billingCountriesTapHandler = this.billingCountriesTap.bindAsEventListener(this);
+	this.billingCountriesHandler =	this.billingCountries.bindAsEventListener(this);
 	
 	// setup wigets
 	this.spinnerModel = {spinning: true};
@@ -62,7 +77,13 @@ AppCatalogAssistant.prototype.setup = function()
 	this.controller.listen(this.paidAppsButton,  Mojo.Event.tap, this.paidAppsTapHandler);
 	this.controller.setupWidget('accessCountryButton', { }, this.accessCountryButtonModel);
 	this.controller.listen(this.accessCountryButton,  Mojo.Event.tap, this.accessCountryTapHandler);
+	this.controller.setupWidget('paymentInfoButton', { }, this.paymentInfoButtonModel);
+	this.controller.listen(this.paymentInfoButton,  Mojo.Event.tap, this.paymentInfoTapHandler);
+	this.controller.setupWidget('billingCountriesButton', { }, this.billingCountriesButtonModel);
+	this.controller.listen(this.billingCountriesButton,  Mojo.Event.tap, this.billingCountriesTapHandler);
 	
+	// %%% FIXME %%%
+	this.paymentServerUrl = "https://pmt.palmws.com/palmcspmtext/services/paymentJ/";
 	this.deviceProfile = false;
 	this.palmProfile = false;
 
@@ -78,38 +99,43 @@ AppCatalogAssistant.prototype.setup = function()
 
 AppCatalogAssistant.prototype.getDeviceProfile = function(payload)
 {
-	if (payload.returnValue === false) {
-		this.errorMessage('<b>Service Error (getDeviceProfile):</b><br>'+payload.errorText);
-		return;
-	}
-
 	if (this.requestDeviceProfile) this.requestDeviceProfile.cancel();
 	this.requestDeviceProfile = false;
 
 	this.updateSpinner();
+
+	if (payload.returnValue === false) {
+		this.errorMessage('<b>Service Error (getDeviceProfile):</b><br>'+payload.errorText);
+		this.deviceProfile = false;
+		return;
+	}
 
 	this.deviceProfile = payload.deviceInfo;
 
 	if (this.palmProfile && this.deviceProfile) {
 		this.paidAppsButtonModel.disabled = false;
 		this.controller.modelChanged(this.paidAppsButtonModel);
-
 		this.accessCountryButtonModel.disabled = false;
 		this.controller.modelChanged(this.accessCountryButtonModel);
+		this.paymentInfoButtonModel.disabled = false;
+		this.controller.modelChanged(this.paymentInfoButtonModel);
+		this.billingCountriesButtonModel.disabled = false;
+		this.controller.modelChanged(this.billingCountriesButtonModel);
 	}
 };
 
 AppCatalogAssistant.prototype.getPalmProfile = function(payload)
 {
-	if (payload.returnValue === false) {
-		this.errorMessage('<b>Service Error (getPalmProfile):</b><br>'+payload.errorText);
-		return;
-	}
-
 	if (this.requestPalmProfile) this.requestPalmProfile.cancel();
 	this.requestPalmProfile = false;
 
 	this.updateSpinner();
+
+	if (payload.returnValue === false) {
+		this.errorMessage('<b>Service Error (getPalmProfile):</b><br>'+payload.errorText);
+		this.palmProfile = false;
+		return;
+	}
 
 	this.palmProfile = payload.results[0];
 
@@ -121,9 +147,12 @@ AppCatalogAssistant.prototype.getPalmProfile = function(payload)
 	if (this.palmProfile && this.deviceProfile) {
 		this.paidAppsButtonModel.disabled = false;
 		this.controller.modelChanged(this.paidAppsButtonModel);
-
 		this.accessCountryButtonModel.disabled = false;
 		this.controller.modelChanged(this.accessCountryButtonModel);
+		this.paymentInfoButtonModel.disabled = false;
+		this.controller.modelChanged(this.paymentInfoButtonModel);
+		this.billingCountriesButtonModel.disabled = false;
+		this.controller.modelChanged(this.billingCountriesButtonModel);
 	}
 };
 
@@ -196,17 +225,17 @@ AppCatalogAssistant.prototype.paidAppsTap = function(event)
 
 AppCatalogAssistant.prototype.paidApps = function(payload)
 {
-	if (payload.returnValue === false) {
-		this.errorMessage('<b>Service Error (paidApps):</b><br>'+payload.errorText);
-		return;
-	}
-
 	this.requestPaidApps = false;
 
 	this.updateSpinner();
 
 	this.paidAppsButtonModel.disabled = false;
 	this.controller.modelChanged(this.paidAppsButtonModel);
+
+	if (payload.returnValue === false) {
+		this.errorMessage('<b>Service Error (paidApps):</b><br>'+payload.errorText);
+		return;
+	}
 
 	if (payload.response.OutGetAppCatUserFlags) {
 		var payments = payload.response.OutGetAppCatUserFlags.enablePaymentSetup;
@@ -279,11 +308,6 @@ AppCatalogAssistant.prototype.accessCountryTap = function(event)
 
 AppCatalogAssistant.prototype.accessCountry = function(payload)
 {
-	if (payload.returnValue === false) {
-		this.errorMessage('<b>Service Error (accessCountry):</b><br>'+payload.errorText);
-		return;
-	}
-
 	this.requestAccessCountry = false;
 
 	this.updateSpinner();
@@ -291,15 +315,179 @@ AppCatalogAssistant.prototype.accessCountry = function(payload)
 	this.accessCountryButtonModel.disabled = false;
 	this.controller.modelChanged(this.accessCountryButtonModel);
 
+	if (payload.returnValue === false) {
+		this.errorMessage('<b>Service Error (accessCountry):</b><br>'+payload.errorText);
+		return;
+	}
+
 	if (payload.response.OutGetAppList) {
 		var country = payload.response.OutGetAppList.country;
 		this.controller.stageController.pushScene("item", "Access Country", country);
 	}
 };
 
+AppCatalogAssistant.prototype.paymentInfoTap = function(event)
+{
+	var callback = this.paymentInfoHandler;
+
+	var url = this.paymentServerUrl+"getCCPaymentInfos";
+	var body = {
+		"InGetCCPaymentInfos": {
+			"authToken": this.palmProfile.token,
+			"accountAlias": this.palmProfile.alias,
+			"deviceId": this.deviceProfile.deviceId
+		}
+	};
+
+	Mojo.Log.warn("request %j", body);
+
+	this.requestPaymentInfo = new Ajax.Request(url, {
+			method: 'POST',
+			contentType: 'application/json',
+			postBody: Object.toJSON(body),
+			evalJSON: 'force',
+			onSuccess: function(response) {
+				response = response.responseJSON;
+				Mojo.Log.warn("onSuccess %j", response);
+				if (!response) {
+					callback({"returnValue":true}); // Empty replies are okay
+				}
+				else {
+					var exception = response.JSONException;
+					if (exception) {
+						Mojo.Log.error("CatalogServer._callServer %j", exception);
+						callback({"returnValue":false, "errorText":Object.toJSON(exception)});
+					}
+					else {
+						callback({"returnValue":true, "response":response});
+					}
+				}
+			},
+			onFailure: function(response) {
+				Mojo.Log.warn("onFailure %j", response);
+				if (response.responseJSON && response.responseJSON.JSONException) {
+					callback({"returnValue":false, "errorText":Object.toJSON(response.responseJSON.JSONException)});
+				}
+				else {
+					callback({"returnValue":false, "errorText":response.status});
+				}
+			},
+			on0: function(response) {
+				Mojo.Log.warn("on0 %j", response);
+				callback({"returnValue":false, "errorText":response.status});
+			}
+	});
+
+	this.updateSpinner();
+
+	this.paymentInfoButtonModel.disabled = true;
+	this.controller.modelChanged(this.paymentInfoButtonModel);
+};
+
+AppCatalogAssistant.prototype.paymentInfo = function(payload)
+{
+	this.requestPaymentInfo = false;
+
+	this.updateSpinner();
+
+	this.paymentInfoButtonModel.disabled = false;
+	this.controller.modelChanged(this.paymentInfoButtonModel);
+
+	if (payload.returnValue === false) {
+		this.errorMessage('<b>Service Error (paymentInfo):</b><br>'+payload.errorText);
+		return;
+	}
+
+	if (payload.response.OutGetCCPaymentInfos) {
+		var payments = payload.response.OutGetCCPaymentInfos;
+		this.controller.stageController.pushScene("item", "Payment Info", payments);
+	}
+};
+
+AppCatalogAssistant.prototype.billingCountriesTap = function(event)
+{
+	var callback = this.billingCountriesHandler;
+
+	var url = this.paymentServerUrl+"getBillToCountries";
+
+	var body = {
+		"InGetBillToCountries": {
+			"authToken": this.palmProfile.token,
+			"accountAlias": this.palmProfile.alias,
+			"deviceId": this.deviceProfile.deviceId
+		}
+	};
+
+	Mojo.Log.warn("request %j", body);
+
+	this.requestBillingCountries = new Ajax.Request(url, {
+			method: 'POST',
+			contentType: 'application/json',
+			postBody: Object.toJSON(body),
+			evalJSON: 'force',
+			onSuccess: function(response) {
+				response = response.responseJSON;
+				Mojo.Log.warn("onSuccess %j", response);
+				if (!response) {
+					callback({"returnValue":true}); // Empty replies are okay
+				}
+				else {
+					var exception = response.JSONException;
+					if (exception) {
+						Mojo.Log.error("CatalogServer._callServer %j", exception);
+						callback({"returnValue":false, "errorText":Object.toJSON(exception)});
+					}
+					else {
+						callback({"returnValue":true, "response":response});
+					}
+				}
+			},
+			onFailure: function(response) {
+				Mojo.Log.warn("onFailure %j", response);
+				if (response.responseJSON && response.responseJSON.JSONException) {
+					callback({"returnValue":false, "errorText":Object.toJSON(response.responseJSON.JSONException)});
+				}
+				else {
+					callback({"returnValue":false, "errorText":response.status});
+				}
+			},
+			on0: function(response) {
+				Mojo.Log.warn("on0 %j", response);
+				callback({"returnValue":false, "errorText":response.status});
+			}
+	});
+
+	this.updateSpinner();
+
+	this.billingCountriesButtonModel.disabled = true;
+	this.controller.modelChanged(this.billingCountriesButtonModel);
+};
+
+AppCatalogAssistant.prototype.billingCountries = function(payload)
+{
+	this.requestBillingCountries = false;
+
+	this.updateSpinner();
+
+	this.billingCountriesButtonModel.disabled = false;
+	this.controller.modelChanged(this.billingCountriesButtonModel);
+
+	if (payload.returnValue === false) {
+		this.errorMessage('<b>Service Error (billingCountries):</b><br>'+payload.errorText);
+		return;
+	}
+
+	if (payload.response.OutGetBillToCountries) {
+		var countries = payload.response.OutGetBillToCountries.billToCountries;
+		this.controller.stageController.pushScene("item", "Billing Countries", countries);
+	}
+};
+
 AppCatalogAssistant.prototype.updateSpinner = function()
 {
-	if (this.requestDeviceProfile || this.requestPalmProfile || this.requestPaidApps || this.requestAccessCountry)  {
+	if (this.requestDeviceProfile || this.requestPalmProfile || 
+		this.requestPaidApps || this.requestAccessCountry ||
+		this.requestPaymentInfo || this.requestBillingCountries)  {
 		this.iconElement.style.display = 'none';
 		this.spinnerModel.spinning = true;
 		this.controller.modelChanged(this.spinnerModel);
@@ -346,6 +534,10 @@ AppCatalogAssistant.prototype.cleanup = function(event)
 								  this.paidAppsTapHandler);
 	this.controller.stopListening(this.accessCountryButton,  Mojo.Event.tap,
 								  this.accessCountryTapHandler);
+	this.controller.stopListening(this.paymentInfoButton,  Mojo.Event.tap,
+								  this.paymentInfoTapHandler);
+	this.controller.stopListening(this.billingCountriesButton,  Mojo.Event.tap,
+								  this.billingCountriesTapHandler);
 };
 
 // Local Variables:

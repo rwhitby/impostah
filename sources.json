@@ -34,8 +34,8 @@
         "source": "app/assistants/app-catalog-assistant.js"
     },
     {
-        "scenes": "credit-card",
-        "source": "app/assistants/credit-card-assistant.js"
+        "scenes": "backups",
+        "source": "app/assistants/backups-assistant.js"
     },
     {
         "scenes": "database-explore",

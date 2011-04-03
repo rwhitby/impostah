@@ -11,6 +11,7 @@ function StartupAssistant(changelog)
     this.newMessages =
 	[
 	 // Don't forget the comma on all but the last entry
+	 { version: '0.5.5', log: [ 'Added the ability to restore from backups' ] },
 	 { version: '0.5.4', log: [ 'Added the ability to display backup manifests' ] },
 	 { version: '0.5.3', log: [ 'Added debugging of the web service requests and responses' ] },
 	 { version: '0.5.2', log: [ 'Added the ability to create a new Palm Profile' ] },

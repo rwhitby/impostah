@@ -93,7 +93,8 @@ ImpostahService.impersonate = function(callback, id, service, method, params)
 			"id": id,
 			"service": service,
 			"method": method,
-			"params": params
+			"params": params,
+			"subscribe": params.subscribe? true : false
 		},
 	    onSuccess: callback,
 	    onFailure: callback

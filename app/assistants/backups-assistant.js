@@ -36,6 +36,11 @@ function BackupsAssistant()
 		label: $L("Show Backup Manifest"),
 		disabled: true
 	};
+
+	this.restoreBackupButtonModel = {
+		label: $L("Restore Backup"),
+		disabled: true
+	};
 };
 
 BackupsAssistant.prototype.setup = function()
@@ -51,6 +56,8 @@ BackupsAssistant.prototype.setup = function()
 	this.getAuthTokenButton = this.controller.get('getAuthTokenButton');
 	this.manifestSelector = this.controller.get('manifestSelector');
 	this.showManifestButton = this.controller.get('showManifestButton');
+	this.restoreBackupButton = this.controller.get('restoreBackupButton');
+	this.backupStatus = this.controller.get('backupStatus');
 	
 	// setup handlers
 	this.getDeviceProfileHandler =	this.getDeviceProfile.bindAsEventListener(this);
@@ -61,6 +68,11 @@ BackupsAssistant.prototype.setup = function()
 	this.getManifestListHandler = this.getManifestList.bindAsEventListener(this);
 	this.showManifestTapHandler = this.showManifestTap.bindAsEventListener(this);
 	this.showManifestHandler = this.showManifest.bindAsEventListener(this);
+	this.restoreBackupTapHandler = this.restoreBackupTap.bindAsEventListener(this);
+	this.restoreBackupAckHandler = this.restoreBackupAck.bindAsEventListener(this);
+	this.restoreBackupGetHandler = this.restoreBackupGet.bindAsEventListener(this);
+	this.restoreBackupSetHandler = this.restoreBackupSet.bindAsEventListener(this);
+	this.restoreBackupStatusHandler = this.restoreBackupStatus.bindAsEventListener(this);
 	
 	// setup wigets
 	this.spinnerModel = {spinning: true};
@@ -72,6 +84,8 @@ BackupsAssistant.prototype.setup = function()
 	this.controller.setupWidget('manifestSelector', { }, this.manifestSelectorModel);
 	this.controller.setupWidget('showManifestButton', { }, this.showManifestButtonModel);
 	this.controller.listen(this.showManifestButton, Mojo.Event.tap, this.showManifestTapHandler);
+	this.controller.setupWidget('restoreBackupButton', { }, this.restoreBackupButtonModel);
+	this.controller.listen(this.restoreBackupButton, Mojo.Event.tap, this.restoreBackupTapHandler);
 	
 	// %%% FIXME %%%
 	this.authServerUrl = "https://sta.palmws.com/storageauth/";
@@ -280,6 +294,8 @@ BackupsAssistant.prototype.getManifestList = function(payload)
 	this.controller.modelChanged(this.manifestSelectorModel);
 	this.showManifestButtonModel.disabled = false;
 	this.controller.modelChanged(this.showManifestButtonModel);
+	this.restoreBackupButtonModel.disabled = false;
+	this.controller.modelChanged(this.restoreBackupButtonModel);
 
 	Mojo.Log.warn("getManifestList %j", payload.response);
 
@@ -371,9 +387,137 @@ BackupsAssistant.prototype.showManifest = function(payload)
 	}
 };
 
+BackupsAssistant.prototype.restoreBackupTap = function(event)
+{
+	this.controller.showAlertDialog({
+			allowHTMLMessage:	true,
+			title:				'Restore Backup',
+			message:			"Are you sure? This will attempt to replace all the current Palm Profile data on your device, which may have an unknown impact on your apps and data.",
+			choices:			[{label:$L("Restore"), value:'restore', type:'negative'},{label:$L("Cancel"), value:'cancel', type:'dismiss'}],
+			onChoose:			this.restoreBackupAckHandler
+		});
+};
+
+BackupsAssistant.prototype.restoreBackupAck = function(value)
+{
+	if (value != "restore") return;
+
+	this.updateSpinner();
+
+	this.restoreBackupButtonModel.disabled = true;
+	this.controller.modelChanged(this.restoreBackupButtonModel);
+
+	this.requestDb8 = ImpostahService.impersonate(this.restoreBackupGetHandler,
+												  "com.palm.configurator", "com.palm.db",
+												  "find", {
+													  "query" : {
+														  "from": "com.palm.service.backup.prefs:1"
+													  }
+												  });
+};
+
+BackupsAssistant.prototype.restoreBackupGet = function(payload)
+{
+	if (this.requestDb8) this.requestDb8.cancel();
+	this.requestDb8 = false;
+
+	this.updateSpinner();
+
+	this.restoreBackupButtonModel.disabled = false;
+	this.controller.modelChanged(this.restoreBackupButtonModel);
+
+	if (payload.returnValue === false) {
+		this.errorMessage('<b>Service Error (restoreBackup):</b><br>'+payload.errorText);
+		return;
+	}
+
+	if (payload.results) {
+		if (payload.results.length) {
+			this.requestDb8 = ImpostahService.impersonate(this.restoreBackupSetHandler,
+														  "com.palm.configurator", "com.palm.db",
+														  "merge", {
+															  "objects" : [
+			{ "_id": payload.results[0]._id, "overrideManifestName": this.manifestSelectorModel.value }
+																		   ]
+														  });
+
+			this.updateSpinner();
+
+			this.restoreBackupButtonModel.disabled = true;
+			this.controller.modelChanged(this.restoreBackupButtonModel);
+		}
+	}
+
+};
+
+BackupsAssistant.prototype.restoreBackupSet = function(payload)
+{
+	if (this.requestDb8) this.requestDb8.cancel();
+	this.requestDb8 = false;
+
+	this.updateSpinner();
+
+	this.restoreBackupButtonModel.disabled = false;
+	this.controller.modelChanged(this.restoreBackupButtonModel);
+
+	if (payload.returnValue === false) {
+		this.errorMessage('<b>Service Error (restoreBackup):</b><br>'+payload.errorText);
+		return;
+	}
+
+	if (payload.results) {
+		this.requestBackup = ImpostahService.impersonate(this.restoreBackupStatusHandler,
+													  "com.palm.configurator", "com.palm.service.backup",
+														 "startRestore", {
+															 "subscribe" : true
+														 });
+
+		this.updateSpinner();
+
+		this.restoreBackupButtonModel.disabled = true;
+		this.controller.modelChanged(this.restoreBackupButtonModel);
+	}
+};
+
+BackupsAssistant.prototype.restoreBackupStatus = function(payload)
+{
+	Mojo.Log.info("payload: %j", payload);
+
+	this.backupStatus.innerHTML = payload.STATUS;
+
+	if (payload.returnValue === false || payload.STATUS == "Failed" || payload.STATUS == "Complete") {
+
+		if (payload.returnValue === false) {
+			this.errorMessage('<b>Service Error (restoreBackup):</b><br>'+payload.errorText);
+		}
+
+		if (payload.STATUS == "Failed") {
+			this.errorMessage('<b>Restore Failed</b>');
+		}
+
+		if (payload.STATUS == "Complete") {
+			this.errorMessage('<b>Restore Complete</b>');
+		}
+
+		if (this.requestBackup) this.requestBackup.cancel();
+		this.requestBackup = false;
+
+		this.updateSpinner();
+
+		this.restoreBackupButtonModel.disabled = false;
+		this.controller.modelChanged(this.restoreBackupButtonModel);
+
+		return;
+	}
+
+	this.backupStatus.innerHTML = payload.STATUS + ": " + Math.round(payload.percent/2) +"%";
+
+};
+
 BackupsAssistant.prototype.updateSpinner = function()
 {
-	if (this.requestDeviceProfile || this.requestPalmProfile || this.requestWebService)  {
+	if (this.requestDeviceProfile || this.requestPalmProfile ||
+		this.requestWebService || this.requestDb8 || this.requestBackup )  {
 		this.iconElement.style.display = 'none';
 		this.spinnerModel.spinning = true;
 		this.controller.modelChanged(this.spinnerModel);

@@ -737,7 +737,9 @@ bool impersonate_handler(LSHandle* lshandle, LSMessage *reply, void *ctx) {
   LSErrorInit(&lserror);
   LSMessage* message = (LSMessage*)ctx;
   retVal = LSMessageRespond(message, LSMessageGetPayload(reply), &lserror);
-  LSMessageUnref(message);
+  if (!LSMessageIsSubscription(message)) {
+    LSMessageUnref(message);
+  }
   if (!retVal) {
     LSErrorPrint(&lserror, stderr);
     LSErrorFree(&lserror);

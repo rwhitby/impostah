@@ -387,7 +387,7 @@ PalmProfileAssistant.prototype.authenticateFromDeviceAck = function(value)
 	var url = this.accountServerUrl+"authenticateFromDevice";
 	var body = {
 		"InAuthenticateFromDevice": {
-			// "application": "ASClient",
+			"application": "ASClient",
 			"accountAlias": this.emailInputFieldModel.value,
 			"password": this.passwordInputFieldModel.value,
 			"device": {

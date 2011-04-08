@@ -5,7 +5,7 @@ function StartupAssistant(changelog)
     // on first start, this message is displayed, along with the current version message from below
     this.firstMessage = $L('Here are some tips for first-timers:<ul><li>Many Impostah features are only available on webOS 2.0</li></ul>');
 	
-    this.secondMessage = $L('We hope you enjoy being able to impersonate other applications to access the secrets inside your device.<br>Please consider making a <a href=http://donate.webos-internals.org/>donation</a> if you wish to show your appreciation.');
+    this.secondMessage = $L('We hope you enjoy being able to impersonate other applications to access the secrets inside your device.<br>Please consider making a <a href=\"https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=4DRCMPBJ8VYQQ\">donation</a> if you wish to show your appreciation.');
 	
     // on new version start
     this.newMessages =

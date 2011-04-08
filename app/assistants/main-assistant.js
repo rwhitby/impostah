@@ -7,7 +7,7 @@ function MainAssistant()
 		 {weight: 20, text: $L('Sneaky stuff from inside your device')},
 		 {weight: 10, text: $L('More information than WikiLeaks')},
 		 {weight: 10, text: $L('All your base are belong to us')},
-		 {weight: 6, text: $L("<a href=\"http://donate.webos-internals.org/\">Donated</a> To WebOS Internals Lately?")}
+		 {weight: 6, text: $L("<a href=\"https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=4DRCMPBJ8VYQQ\">Donated</a> To WebOS Internals Lately?")}
 		 ];
 	
 	// setup list model

@@ -18,6 +18,10 @@
         "source": "app/assistants/preferences-assistant.js"
     },
     {
+        "scenes": "overrides",
+        "source": "app/assistants/overrides-assistant.js"
+    },
+    {
         "scenes": "help",
         "source": "app/assistants/help-assistant.js"
     },

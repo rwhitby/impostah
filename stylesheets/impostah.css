@@ -144,6 +144,29 @@ body.palm-dark .main .palm-list .palm-row.selected
 }
 
 
+/*
+ * Config/Feed Scene Styles
+ */
+.overrides #overridesList .toggle-text
+{
+	float: right;
+}
+.overrides #overridesList .title.sub
+{
+	color: #999;
+	padding-top: 0px;
+	padding-left: 16px;
+	padding-right: 10px;
+	margin-top: -5px;
+	font-size: 14px;
+}
+.overrides #overridesList .disabled,
+.overrides #overridesList .disabled *,
+.overrides .palm-group.disabled
+{
+	opacity: 0.35;
+}
+
 
 /*
  * database-explore scene styles

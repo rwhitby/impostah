@@ -16,13 +16,13 @@ function DeviceProfileAssistant()
 		 ]
 	};
 	
-	this.telephonyPlatformButtonModel = {
-		label: $L("Telephony Platform"),
+	this.deviceProfileButtonModel = {
+		label: $L("Show Device Profile"),
 		disabled: true
 	};
 
-	this.deviceProfileButtonModel = {
-		label: $L("Show Device Profile"),
+	this.manageOverridesButtonModel = {
+		label: $L("Device Profile Overrides"),
 		disabled: true
 	};
 
@@ -37,79 +37,51 @@ DeviceProfileAssistant.prototype.setup = function()
 	this.iconElement =			this.controller.get('icon');
 	this.iconElement.style.display = 'none';
 	this.spinnerElement = 		this.controller.get('spinner');
-	this.telephonyPlatformButton = this.controller.get('telephonyPlatformButton');
 	this.deviceProfileButton = this.controller.get('deviceProfileButton');
+	this.manageOverridesButton = this.controller.get('manageOverridesButton');
 	
 	// setup handlers
-	this.getTelephonyPlatformHandler =	this.getTelephonyPlatform.bindAsEventListener(this);
-	this.telephonyPlatformTapHandler = this.telephonyPlatformTap.bindAsEventListener(this);
 	this.getDeviceProfileHandler =	this.getDeviceProfile.bindAsEventListener(this);
 	this.deviceProfileTapHandler = this.deviceProfileTap.bindAsEventListener(this);
+	this.manageOverridesTapHandler = this.manageOverridesTap.bindAsEventListener(this);
 	
 	// setup wigets
 	this.spinnerModel = {spinning: true};
 	this.controller.setupWidget('spinner', {spinnerSize: 'small'}, this.spinnerModel);
-	this.controller.setupWidget('telephonyPlatformButton', { }, this.telephonyPlatformButtonModel);
-	this.controller.listen(this.telephonyPlatformButton,  Mojo.Event.tap, this.telephonyPlatformTapHandler);
 	this.controller.setupWidget('deviceProfileButton', { }, this.deviceProfileButtonModel);
 	this.controller.listen(this.deviceProfileButton,  Mojo.Event.tap, this.deviceProfileTapHandler);
+	this.controller.setupWidget('manageOverridesButton', { }, this.manageOverridesButtonModel);
+	this.controller.listen(this.manageOverridesButton,  Mojo.Event.tap, this.manageOverridesTapHandler);
 	
-	this.telephonyPlatform = false;
 	this.deviceProfile = false;
 
-	this.requestTelephonyPlatform = ImpostahService.impersonate(this.getTelephonyPlatformHandler,
-																"com.palm.configurator",
-																"com.palm.telephony",
-																"platformQuery", {});
 	this.requestDeviceProfile = ImpostahService.impersonate(this.getDeviceProfileHandler,
 															"com.palm.configurator",
 															"com.palm.deviceprofile",
 															"getDeviceProfile", {});
 
-	this.updateSpinner();
-};
-
-DeviceProfileAssistant.prototype.getTelephonyPlatform = function(payload)
-{
-	if (payload.returnValue === false) {
-		this.errorMessage('<b>Service Error (getTelephonyPlatform):</b><br>'+payload.errorText);
-		return;
-	}
-
-	if (this.requestTelephonyPlatform) this.requestTelephonyPlatform.cancel();
-	this.requestTelephonyPlatform = false;
-
-	this.updateSpinner();
-
-	this.telephonyPlatform = payload.extended;
-
-	this.telephonyPlatformButtonModel.disabled = false;
-	this.controller.modelChanged(this.telephonyPlatformButtonModel);
-};
-
-DeviceProfileAssistant.prototype.telephonyPlatformTap = function(event)
-{
-	if (this.telephonyPlatform) {
-		this.controller.stageController.pushScene("item", "Telephony Platform", this.telephonyPlatform);
-	}
 };
 
 DeviceProfileAssistant.prototype.getDeviceProfile = function(payload)
 {
-	if (payload.returnValue === false) {
-		this.errorMessage('<b>Service Error (getDeviceProfile):</b><br>'+payload.errorText);
-		return;
-	}
-
 	if (this.requestDeviceProfile) this.requestDeviceProfile.cancel();
 	this.requestDeviceProfile = false;
 
 	this.updateSpinner();
 
+	if (payload.returnValue === false) {
+		this.errorMessage('<b>Service Error (getDeviceProfile):</b><br>'+payload.errorText);
+		return;
+	}
+
 	this.deviceProfile = payload.deviceInfo;
 
-	this.deviceProfileButtonModel.disabled = false;
-	this.controller.modelChanged(this.deviceProfileButtonModel);
+	if (this.deviceProfile) {
+		this.deviceProfileButtonModel.disabled = false;
+		this.controller.modelChanged(this.deviceProfileButtonModel);
+		this.manageOverridesButtonModel.disabled = false;
+		this.controller.modelChanged(this.manageOverridesButtonModel);
+	}
 };
 
 DeviceProfileAssistant.prototype.deviceProfileTap = function(event)
@@ -119,9 +91,17 @@ DeviceProfileAssistant.prototype.deviceProfileTap = function(event)
 	}
 };
 
+DeviceProfileAssistant.prototype.manageOverridesTap = function(event)
+{
+	if (this.deviceProfile) {
+		this.controller.stageController.pushScene("overrides", "Device Profile Overrides",
+												  this.deviceProfile, "deviceProfile");
+	}
+};
+
 DeviceProfileAssistant.prototype.updateSpinner = function()
 {
-	if (this.requestTelephonyPlatform || this.requestDeviceProfile) {
+	if (this.requestDeviceProfile) {
 		this.iconElement.style.display = 'none';
 		this.spinnerModel.spinning = true;
 		this.controller.modelChanged(this.spinnerModel);
@@ -162,10 +142,10 @@ DeviceProfileAssistant.prototype.handleCommand = function(event)
 
 DeviceProfileAssistant.prototype.cleanup = function(event)
 {
-	this.controller.stopListening(this.telephonyPlatformButton,  Mojo.Event.tap,
-								  this.telephonyPlatformTapHandler);
 	this.controller.stopListening(this.deviceProfileButton,  Mojo.Event.tap,
 								  this.deviceProfileTapHandler);
+	this.controller.stopListening(this.manageOverridesButton,  Mojo.Event.tap,
+								  this.manageOverridesTapHandler);
 };
 
 // Local Variables:

@@ -1,0 +1,13 @@
+[
+  {
+      "type": "db.kind",
+      "object": "org.webosinternals.impostah:1",
+      "caller": "org.webosinternals.impostah",
+      "operations": {
+          "create": "allow",
+          "read": "allow",
+          "update": "allow",
+          "delete": "allow"
+      }
+  }
+]

@@ -21,6 +21,11 @@ function PalmProfileAssistant()
 		disabled: true
 	};
 
+	this.manageOverridesButtonModel = {
+		label: $L("Palm Profile Overrides"),
+		disabled: true
+	};
+
 	this.resetPalmProfileButtonModel = {
 		label: $L("Reset Palm Profile"),
 		disabled: true
@@ -95,6 +100,7 @@ PalmProfileAssistant.prototype.setup = function()
 	this.iconElement.style.display = 'none';
 	this.spinnerElement = 		this.controller.get('spinner');
 	this.palmProfileButton = this.controller.get('palmProfileButton');
+	this.manageOverridesButton = this.controller.get('manageOverridesButton');
 	this.resetPalmProfileButton = this.controller.get('resetPalmProfileButton');
 	this.emailInputField = this.controller.get('emailInputField');
 	this.deviceInUseButton = this.controller.get('deviceInUseButton');
@@ -108,6 +114,7 @@ PalmProfileAssistant.prototype.setup = function()
 	this.getDeviceProfileHandler =	this.getDeviceProfile.bindAsEventListener(this);
 	this.getPalmProfileHandler =	this.getPalmProfile.bindAsEventListener(this);
 	this.palmProfileTapHandler = this.palmProfileTap.bindAsEventListener(this);
+	this.manageOverridesTapHandler = this.manageOverridesTap.bindAsEventListener(this);
 	this.resetPalmProfileTapHandler = this.resetPalmProfileTap.bindAsEventListener(this);
 	this.resetPalmProfileAckHandler = this.resetPalmProfileAck.bind(this);
 	this.palmProfileDeletedHandler = this.palmProfileDeleted.bindAsEventListener(this);
@@ -129,6 +136,8 @@ PalmProfileAssistant.prototype.setup = function()
 	this.controller.setupWidget('spinner', {spinnerSize: 'small'}, this.spinnerModel);
 	this.controller.setupWidget('palmProfileButton', { }, this.palmProfileButtonModel);
 	this.controller.listen(this.palmProfileButton, Mojo.Event.tap, this.palmProfileTapHandler);
+	this.controller.setupWidget('manageOverridesButton', { }, this.manageOverridesButtonModel);
+	this.controller.listen(this.manageOverridesButton,  Mojo.Event.tap, this.manageOverridesTapHandler);
 	this.controller.setupWidget('resetPalmProfileButton', { }, this.resetPalmProfileButtonModel);
 	this.controller.listen(this.resetPalmProfileButton, Mojo.Event.tap, this.resetPalmProfileTapHandler);
 	this.controller.setupWidget('emailInputField', { 'textCase':Mojo.Widget.steModeLowerCase },
@@ -149,14 +158,44 @@ PalmProfileAssistant.prototype.setup = function()
 	this.deviceProfile = false;
 	this.palmProfile = false;
 
-	this.requestDeviceProfile = ImpostahService.impersonate(this.getDeviceProfileHandler,
-															"com.palm.configurator",
-															"com.palm.deviceprofile",
-															"getDeviceProfile", {});
 	this.requestPalmProfile = ImpostahService.impersonate(this.getPalmProfileHandler,
 														  "com.palm.configurator",
 														  "com.palm.db",
 														  "get", {"ids":["com.palm.palmprofile.token"]});
+
+	this.updateSpinner();
+};
+
+PalmProfileAssistant.prototype.getPalmProfile = function(payload)
+{
+	if (this.requestPalmProfile) this.requestPalmProfile.cancel();
+	this.requestPalmProfile = false;
+
+	this.updateSpinner();
+
+	if (payload.returnValue === false) {
+		this.errorMessage('<b>Service Error (getPalmProfile):</b><br>'+payload.errorText);
+		return;
+	}
+
+	this.palmProfile = payload.results[0];
+
+	if (this.palmProfile) {
+		this.palmProfileButtonModel.disabled = false;
+		this.controller.modelChanged(this.palmProfileButtonModel);
+		this.manageOverridesButtonModel.disabled = false;
+		this.controller.modelChanged(this.manageOverridesButtonModel);
+		this.resetPalmProfileButtonModel.disabled = false;
+		this.controller.modelChanged(this.resetPalmProfileButtonModel);
+		this.emailInputFieldModel.disabled = false;
+		this.emailInputFieldModel.value = this.palmProfile.alias;
+		this.controller.modelChanged(this.emailInputFieldModel);
+	}
+
+	this.requestDeviceProfile = ImpostahService.impersonate(this.getDeviceProfileHandler,
+															"com.palm.configurator",
+															"com.palm.deviceprofile",
+															"getDeviceProfile", {});
 
 	this.updateSpinner();
 };
@@ -175,31 +214,41 @@ PalmProfileAssistant.prototype.getDeviceProfile = function(payload)
 
 	this.deviceProfile = payload.deviceInfo;
 
-	this.updateButtons();
-
-};
-
-PalmProfileAssistant.prototype.getPalmProfile = function(payload)
-{
-	if (this.requestPalmProfile) this.requestPalmProfile.cancel();
-	this.requestPalmProfile = false;
-
-	this.updateSpinner();
-
-	if (payload.returnValue === false) {
-		this.errorMessage('<b>Service Error (getPalmProfile):</b><br>'+payload.errorText);
-		return;
+	if (this.deviceProfile) {
+		this.emailInputFieldModel.disabled = false;
+		this.controller.modelChanged(this.emailInputFieldModel);
+		this.deviceInUseButtonModel.disabled = false;
+		this.controller.modelChanged(this.deviceInUseButtonModel);
+		this.passwordInputFieldModel.disabled = false;
+		this.controller.modelChanged(this.passwordInputFieldModel);
+		this.authenticateFromDeviceButtonModel.disabled = false;
+		this.controller.modelChanged(this.authenticateFromDeviceButtonModel);
+		this.deviceModelSelectorModel.disabled = false;
+		this.deviceModelSelectorModel.value = this.deviceProfile.deviceModel;
+		this.controller.modelChanged(this.deviceModelSelectorModel);
+		this.carrierSelectorModel.disabled = false;
+		this.carrierSelectorModel.value = this.deviceProfile.carrier;
+		this.controller.modelChanged(this.carrierSelectorModel);
+		this.createDeviceAccountButtonModel.disabled = false;
+		this.controller.modelChanged(this.createDeviceAccountButtonModel);
 	}
 
-	this.palmProfile = payload.results[0];
-
-	this.updateButtons();
 };
 
 PalmProfileAssistant.prototype.palmProfileTap = function(event)
 {
 	if (this.palmProfile) {
 		this.controller.stageController.pushScene("item", "Palm Profile", this.palmProfile);
+	}
+};
+
+PalmProfileAssistant.prototype.manageOverridesTap = function(event)
+{
+	if (this.palmProfile) {
+		var overrides = this.palmProfile;
+		delete overrides['_id']; delete overrides['_kind']; delete overrides['_rev'];
+		this.controller.stageController.pushScene("overrides", "Palm Profile Overrides",
+												  overrides, "palmProfile");
 	}
 };
 
@@ -738,33 +787,8 @@ PalmProfileAssistant.prototype.updateSpinner = function()
 
 PalmProfileAssistant.prototype.updateButtons = function()
 {
-	if (this.palmProfile) {
-		this.palmProfileButtonModel.disabled = false;
-		this.controller.modelChanged(this.palmProfileButtonModel);
-		this.resetPalmProfileButtonModel.disabled = false;
-		this.controller.modelChanged(this.resetPalmProfileButtonModel);
-		this.emailInputFieldModel.disabled = false;
-		this.emailInputFieldModel.value = this.palmProfile.alias;
-		this.controller.modelChanged(this.emailInputFieldModel);
-	}
 
 	if (!this.requestPalmProfile && this.deviceProfile) {
-		this.emailInputFieldModel.disabled = false;
-		this.controller.modelChanged(this.emailInputFieldModel);
-		this.deviceInUseButtonModel.disabled = false;
-		this.controller.modelChanged(this.deviceInUseButtonModel);
-		this.passwordInputFieldModel.disabled = false;
-		this.controller.modelChanged(this.passwordInputFieldModel);
-		this.authenticateFromDeviceButtonModel.disabled = false;
-		this.controller.modelChanged(this.authenticateFromDeviceButtonModel);
-		this.deviceModelSelectorModel.disabled = false;
-		this.deviceModelSelectorModel.value = this.deviceProfile.deviceModel;
-		this.controller.modelChanged(this.deviceModelSelectorModel);
-		this.carrierSelectorModel.disabled = false;
-		this.carrierSelectorModel.value = this.deviceProfile.carrier;
-		this.controller.modelChanged(this.carrierSelectorModel);
-		this.createDeviceAccountButtonModel.disabled = false;
-		this.controller.modelChanged(this.createDeviceAccountButtonModel);
 	}
 };
 
@@ -799,6 +823,8 @@ PalmProfileAssistant.prototype.cleanup = function(event)
 {
 	this.controller.stopListening(this.palmProfileButton,  Mojo.Event.tap,
 								  this.palmProfileTapHandler);
+	this.controller.stopListening(this.manageOverridesButton,  Mojo.Event.tap,
+								  this.manageOverridesTapHandler);
 	this.controller.stopListening(this.resetPalmProfileButton,  Mojo.Event.tap,
 								  this.resetPalmProfileTapHandler);
 	this.controller.stopListening(this.deviceInUseButton,  Mojo.Event.tap,

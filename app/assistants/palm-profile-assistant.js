@@ -248,7 +248,8 @@ PalmProfileAssistant.prototype.manageOverridesTap = function(event)
 		var overrides = this.palmProfile;
 		delete overrides['_id']; delete overrides['_kind']; delete overrides['_rev'];
 		this.controller.stageController.pushScene("overrides", "Palm Profile Overrides",
-												  overrides, "palmProfile");
+												  overrides,
+												  "org.webosinternals.impostah.palmprofile");
 	}
 };
 

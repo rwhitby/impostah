@@ -95,7 +95,8 @@ DeviceProfileAssistant.prototype.manageOverridesTap = function(event)
 {
 	if (this.deviceProfile) {
 		this.controller.stageController.pushScene("overrides", "Device Profile Overrides",
-												  this.deviceProfile, "deviceProfile");
+												  this.deviceProfile,
+												  "org.webosinternals.impostah.deviceprofile");
 	}
 };
 

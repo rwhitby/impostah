@@ -25,7 +25,9 @@ function OverridesAssistant(label, attributes, group)
 
 	this.newEnableModel = { value: true }
 
+	this.dbId = false;
 	this.overrides = [];
+
 };
 
 OverridesAssistant.prototype.setup = function()
@@ -34,6 +36,9 @@ OverridesAssistant.prototype.setup = function()
 	this.controller.setupWidget(Mojo.Menu.appMenu, { omitDefaultItems: true }, this.menuModel);
 	
 	// get elements
+	this.iconElement =			this.controller.get('icon');
+	this.iconElement.style.display = 'none';
+	this.spinnerElement = 		this.controller.get('spinner');
 	this.titleElement = this.controller.get('title');
 	this.newNameElement = this.controller.get('newName');
 	this.newButtonElement = this.controller.get('newButton');
@@ -45,8 +50,13 @@ OverridesAssistant.prototype.setup = function()
 	this.controller.setDefaultTransition(Mojo.Transition.zoomFade);
 	
 	this.newNameChangedHandler =  this.newNameChanged.bindAsEventListener(this);
+	this.getOverridesHandler =  this.getOverrides.bindAsEventListener(this);
+	this.delOverridesHandler =  this.delOverrides.bindAsEventListener(this);
+	this.putOverridesHandler =  this.putOverrides.bindAsEventListener(this);
 
-	// setup new feed form
+	// setup widgets
+	this.spinnerModel = {spinning: true};
+	this.controller.setupWidget('spinner', {spinnerSize: 'small'}, this.spinnerModel);
 	this.controller.setupWidget('newName', { label: "Attribute" }, this.newNameModel);
 	this.controller.listen(this.newNameElement, Mojo.Event.propertyChange, this.newNameChangedHandler);
 	this.controller.setupWidget('newValue', {
@@ -91,9 +101,47 @@ OverridesAssistant.prototype.setup = function()
 	// make it so nothing is selected by default
 	this.controller.setInitialFocusedElement(null);
 
-	this.loadOverrides();
+	this.readOverrides();
 
 };
+
+OverridesAssistant.prototype.readOverrides = function()
+{
+	if (this.requestDb8) this.request.cancel();
+	this.requestDb8 = new Mojo.Service.Request("palm://com.palm.db/", {
+			method: "find",
+			parameters: {
+				"query" : {
+					"from" : "org.webosinternals.impostah:1",
+					"where" : [{"prop":"_id","op":"=","val":this.group}]
+				}
+			},
+			onSuccess: this.getOverridesHandler,
+			onFailure: this.getOverridesHandler
+		});
+
+	this.updateSpinner();
+};
+
+OverridesAssistant.prototype.getOverrides = function(payload)
+{
+	if (this.requestDb8) this.requestDb8.cancel();
+	this.requestDb8 = false;
+
+	this.updateSpinner();
+
+	if (payload.returnValue === false) {
+		this.errorMessage('<b>Service Error (getOverrides):</b><br>'+payload.errorText);
+		return;
+	}
+
+	if (payload.results && (payload.results.length == 1)) {
+		this.dbId = this.group;
+		this.overrides = payload.results[0].overrides;
+	}
+
+	this.loadOverrides();
+}
 
 OverridesAssistant.prototype.loadOverrides = function()
 {
@@ -136,6 +184,7 @@ OverridesAssistant.prototype.overrideToggled = function(event)
 		var toggleName = event.target.id.replace(/_toggle/, '');
 		this.overrides[toggleName].enabled = event.value
 		alert(this.overrides[toggleName].name + ' - ' + this.overrides[toggleName].enabled);
+		this.saveOverrides();
 	}
 };
 OverridesAssistant.prototype.overrideDeleted = function(event)
@@ -143,7 +192,7 @@ OverridesAssistant.prototype.overrideDeleted = function(event)
 	alert('---');
 	alert(this.overrides[event.index].name + ' - deleted');
 	this.overrides.splice(event.index, 1);
-	this.loadOverrides();
+	this.saveOverrides();
 };
 
 OverridesAssistant.prototype.newNameChanged = function(event)
@@ -173,9 +222,100 @@ OverridesAssistant.prototype.newOverrideButton = function()
 		}
 	}
 
-	this.loadOverrides();
-	
 	this.newButtonElement.mojo.deactivate();
+
+	this.saveOverrides();
+};
+
+OverridesAssistant.prototype.saveOverrides = function()
+{
+	if (this.requestDb8) this.request.cancel();
+	if (this.dbId) {
+		this.requestDb8 = new Mojo.Service.Request("palm://com.palm.db/", {
+				method: "del",
+				parameters: {
+					"ids" : [this.dbId]
+				},
+				onSuccess: this.delOverridesHandler,
+				onFailure: this.delOverridesHandler
+			});
+	}
+	else {
+		this.requestDb8 = new Mojo.Service.Request("palm://com.palm.db/", {
+				method: "put",
+				parameters: {
+					"objects" : [{
+							"_id":this.group,
+							"_kind":"org.webosinternals.impostah:1",
+							"overrides":this.overrides,
+						}]
+				},
+				onSuccess: this.putOverridesHandler,
+				onFailure: this.putOverridesHandler
+			});
+	}
+
+	this.updateSpinner();
+
+};
+
+OverridesAssistant.prototype.delOverrides = function(payload)
+{
+	if (this.requestDb8) this.requestDb8.cancel();
+	this.requestDb8 = false;
+
+	this.updateSpinner();
+
+	if (payload.returnValue === false) {
+		this.errorMessage('<b>Service Error (delOverrides):</b><br>'+payload.errorText);
+		return;
+	}
+
+	if (this.requestDb8) this.request.cancel();
+	this.requestDb8 = new Mojo.Service.Request("palm://com.palm.db/", {
+			method: "put",
+			parameters: {
+				"objects" : [{
+						"_id":this.group,
+						"_kind":"org.webosinternals.impostah:1",
+						"overrides":this.overrides,
+					}]
+			},
+			onSuccess: this.putOverridesHandler,
+			onFailure: this.putOverridesHandler
+		});
+
+	this.updateSpinner();
+
+}
+
+OverridesAssistant.prototype.putOverrides = function(payload)
+{
+	if (this.requestDb8) this.requestDb8.cancel();
+	this.requestDb8 = false;
+
+	this.updateSpinner();
+
+	if (payload.returnValue === false) {
+		this.errorMessage('<b>Service Error (putOverrides):</b><br>'+payload.errorText);
+		return;
+	}
+
+	this.readOverrides();
+}
+
+OverridesAssistant.prototype.updateSpinner = function()
+{
+	if (this.requestDb8)  {
+		this.iconElement.style.display = 'none';
+		this.spinnerModel.spinning = true;
+		this.controller.modelChanged(this.spinnerModel);
+	}
+	else {
+		this.iconElement.style.display = 'inline';
+		this.spinnerModel.spinning = false;
+		this.controller.modelChanged(this.spinnerModel);
+	}
 };
 
 OverridesAssistant.prototype.alertMessage = function(title, message)
@@ -187,6 +327,18 @@ OverridesAssistant.prototype.alertMessage = function(title, message)
 	    message: message,
 	    choices:[{label:$L("Ok"), value:""}]
     });
+};
+
+OverridesAssistant.prototype.errorMessage = function(msg)
+{
+	this.controller.showAlertDialog({
+			allowHTMLMessage:	true,
+			preventCancel:		true,
+			title:				'Impostah',
+			message:			msg,
+			choices:			[{label:$L("Ok"), value:'ok'}],
+			onChoose:			function(e){}
+		});
 };
 
 OverridesAssistant.prototype.handleCommand = function(event)

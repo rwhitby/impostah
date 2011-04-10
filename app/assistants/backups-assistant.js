@@ -21,11 +21,6 @@ function BackupsAssistant()
 		disabled: true
 	};
 
-	this.getAuthTokenButtonModel = {
-		label: $L("Get Auth Token"),
-		disabled: true
-	};
-
 	this.manifestSelectorModel = {
 		label: $L("Backup Manifests"),
 		disabled: true,
@@ -53,7 +48,6 @@ BackupsAssistant.prototype.setup = function()
 	this.iconElement.style.display = 'none';
 	this.spinnerElement = 		this.controller.get('spinner');
 	this.palmProfileButton = this.controller.get('palmProfileButton');
-	this.getAuthTokenButton = this.controller.get('getAuthTokenButton');
 	this.manifestSelector = this.controller.get('manifestSelector');
 	this.showManifestButton = this.controller.get('showManifestButton');
 	this.restoreBackupButton = this.controller.get('restoreBackupButton');
@@ -63,7 +57,6 @@ BackupsAssistant.prototype.setup = function()
 	this.getDeviceProfileHandler =	this.getDeviceProfile.bindAsEventListener(this);
 	this.getPalmProfileHandler =	this.getPalmProfile.bindAsEventListener(this);
 	this.palmProfileTapHandler = this.palmProfileTap.bindAsEventListener(this);
-	this.getAuthTokenTapHandler = this.getAuthTokenTap.bindAsEventListener(this);
 	this.getAuthTokenHandler = this.getAuthToken.bindAsEventListener(this);
 	this.getManifestListHandler = this.getManifestList.bindAsEventListener(this);
 	this.showManifestTapHandler = this.showManifestTap.bindAsEventListener(this);
@@ -79,8 +72,6 @@ BackupsAssistant.prototype.setup = function()
 	this.controller.setupWidget('spinner', {spinnerSize: 'small'}, this.spinnerModel);
 	this.controller.setupWidget('palmProfileButton', { }, this.palmProfileButtonModel);
 	this.controller.listen(this.palmProfileButton, Mojo.Event.tap, this.palmProfileTapHandler);
-	this.controller.setupWidget('getAuthTokenButton', { }, this.getAuthTokenButtonModel);
-	this.controller.listen(this.getAuthTokenButton, Mojo.Event.tap, this.getAuthTokenTapHandler);
 	this.controller.setupWidget('manifestSelector', { }, this.manifestSelectorModel);
 	this.controller.setupWidget('showManifestButton', { }, this.showManifestButtonModel);
 	this.controller.listen(this.showManifestButton, Mojo.Event.tap, this.showManifestTapHandler);
@@ -92,14 +83,11 @@ BackupsAssistant.prototype.setup = function()
 	this.deviceProfile = false;
 	this.palmProfile = false;
 
+	if (this.requestDeviceProfile) this.requestDeviceProfile.cancel();
 	this.requestDeviceProfile = ImpostahService.impersonate(this.getDeviceProfileHandler,
 															"com.palm.configurator",
 															"com.palm.deviceprofile",
 															"getDeviceProfile", {});
-	this.requestPalmProfile = ImpostahService.impersonate(this.getPalmProfileHandler,
-														  "com.palm.configurator",
-														  "com.palm.db",
-														  "get", {"ids":["com.palm.palmprofile.token"]});
 
 	this.updateSpinner();
 };
@@ -118,7 +106,12 @@ BackupsAssistant.prototype.getDeviceProfile = function(payload)
 
 	this.deviceProfile = payload.deviceInfo;
 
-	this.updateButtons();
+	if (this.requestPalmProfile) this.requestPalmProfile.cancel();
+	this.requestPalmProfile = ImpostahService.impersonate(this.getPalmProfileHandler,
+														  "com.palm.configurator",
+														  "com.palm.db",
+														  "get", {"ids":["com.palm.palmprofile.token"]});
+	this.updateSpinner();
 
 };
 
@@ -136,7 +129,12 @@ BackupsAssistant.prototype.getPalmProfile = function(payload)
 
 	this.palmProfile = payload.results[0];
 
-	this.updateButtons();
+	if (this.palmProfile) {
+		this.palmProfileButtonModel.disabled = false;
+		this.controller.modelChanged(this.palmProfileButtonModel);
+		this.getAuthTokenStart();
+	}
+
 };
 
 BackupsAssistant.prototype.palmProfileTap = function(event)
@@ -146,7 +144,7 @@ BackupsAssistant.prototype.palmProfileTap = function(event)
 	}
 };
 
-BackupsAssistant.prototype.getAuthTokenTap = function(event)
+BackupsAssistant.prototype.getAuthTokenStart = function()
 {
 	var callback = this.getAuthTokenHandler;
 
@@ -185,9 +183,6 @@ BackupsAssistant.prototype.getAuthTokenTap = function(event)
 	});
 
 	this.updateSpinner();
-
-	this.getAuthTokenButtonModel.disabled = true;
-	this.controller.modelChanged(this.getAuthTokenButtonModel);
 };
 
 BackupsAssistant.prototype.getAuthToken = function(payload)
@@ -195,9 +190,6 @@ BackupsAssistant.prototype.getAuthToken = function(payload)
 	this.requestWebService = false;
 
 	this.updateSpinner();
-
-	this.getAuthTokenButtonModel.disabled = false;
-	this.controller.modelChanged(this.getAuthTokenButtonModel);
 
 	if (payload.returnValue === false) {
 		this.errorMessage('<b>Service Error (getAuthToken):</b><br>'+payload.errorText);
@@ -271,9 +263,6 @@ BackupsAssistant.prototype.retrieveManifestList = function()
 	});
 
 	this.updateSpinner();
-
-	this.getAuthTokenButtonModel.disabled = true;
-	this.controller.modelChanged(this.getAuthTokenButtonModel);
 };
 
 BackupsAssistant.prototype.getManifestList = function(payload)
@@ -281,9 +270,6 @@ BackupsAssistant.prototype.getManifestList = function(payload)
 	this.requestWebService = false;
 
 	this.updateSpinner();
-
-	this.getAuthTokenButtonModel.disabled = false;
-	this.controller.modelChanged(this.getAuthTokenButtonModel);
 
 	if (payload.returnValue === false) {
 		this.errorMessage('<b>Service Error (getManifestList):</b><br>'+payload.errorText);
@@ -529,19 +515,6 @@ BackupsAssistant.prototype.updateSpinner = function()
 	}
 };
 
-BackupsAssistant.prototype.updateButtons = function()
-{
-	if (this.palmProfile) {
-		this.palmProfileButtonModel.disabled = false;
-		this.controller.modelChanged(this.palmProfileButtonModel);
-	}
-
-	if (!this.requestPalmProfile && this.deviceProfile) {
-		this.getAuthTokenButtonModel.disabled = false;
-		this.controller.modelChanged(this.getAuthTokenButtonModel);
-	}
-};
-
 BackupsAssistant.prototype.errorMessage = function(msg)
 {
 	this.controller.showAlertDialog({
@@ -573,8 +546,6 @@ BackupsAssistant.prototype.cleanup = function(event)
 {
 	this.controller.stopListening(this.palmProfileButton,  Mojo.Event.tap,
 								  this.palmProfileTapHandler);
-	this.controller.stopListening(this.getAuthTokenButton,  Mojo.Event.tap,
-								  this.getAuthTokenTapHandler);
 	this.controller.stopListening(this.showManifestButton,  Mojo.Event.tap,
 								  this.showManifestTapHandler);
 };

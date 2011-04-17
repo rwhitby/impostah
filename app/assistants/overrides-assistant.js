@@ -71,7 +71,7 @@ OverridesAssistant.prototype.setup = function()
 			type: Mojo.Widget.activityButton
 		},
 		{
-			buttonLabel: $L("Add Override"),
+			buttonLabel: $L("Set Override"),
 			buttonClass: 'palm-button'
 		}
 	);

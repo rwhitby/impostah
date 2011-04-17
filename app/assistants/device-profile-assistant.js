@@ -52,13 +52,18 @@ DeviceProfileAssistant.prototype.setup = function()
 	this.controller.listen(this.deviceProfileButton,  Mojo.Event.tap, this.deviceProfileTapHandler);
 	this.controller.setupWidget('manageOverridesButton', { }, this.manageOverridesButtonModel);
 	this.controller.listen(this.manageOverridesButton,  Mojo.Event.tap, this.manageOverridesTapHandler);
-	
+};
+
+DeviceProfileAssistant.prototype.activate = function()
+{
 	this.deviceProfile = false;
 
 	this.requestDeviceProfile = ImpostahService.impersonate(this.getDeviceProfileHandler,
 															"com.palm.configurator",
 															"com.palm.deviceprofile",
 															"getDeviceProfile", {});
+
+	this.updateSpinner();
 
 };
 

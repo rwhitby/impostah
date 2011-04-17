@@ -23,4 +23,7 @@ rm -f /var/palm/ls2/roles/pub/${SID}.json
 # Remove the upstart script
 rm -f /var/palm/event.d/${SID}
 
+# Remove the configurator cache file
+rm -f /var/cache/configurator/_media_cryptofs_apps_usr_palm_applications_org.webosinternals.impostah_configuration_db_permissions_org.webosinternals.impostah
+
 exit 0

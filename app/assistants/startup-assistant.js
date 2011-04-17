@@ -11,6 +11,9 @@ function StartupAssistant(changelog)
     this.newMessages =
 	[
 	 // Don't forget the comma on all but the last entry
+	 { version: '0.6.0', log: [ 'Added device profile and palm profile overrides',
+								'Worked around the fatal webOS 2.x db permissions bug',
+								'Remove and reinstall Impostah *twice* to fix it' ] },
 	 { version: '0.5.6', log: [ 'Fixed the palm profile token expiry' ] },
 	 { version: '0.5.5', log: [ 'Added the ability to restore from backups' ] },
 	 { version: '0.5.4', log: [ 'Added the ability to display backup manifests' ] },

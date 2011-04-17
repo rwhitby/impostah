@@ -23,10 +23,8 @@ function OverridesAssistant(label, attributes, group)
 	this.newValueModel = { };
 	this.newValueModel.value = this.attributes[this.newNameModel.value];
 
-	this.newEnableModel = { value: true }
-
 	this.dbId = false;
-	this.overrides = [];
+	this.overrides = {};
 
 };
 
@@ -67,7 +65,6 @@ OverridesAssistant.prototype.setup = function()
 				textCase: Mojo.Widget.steModeLowerCase
 				},
 		this.newValueModel);
-	this.controller.setupWidget('newEnable', { trueLabel:  $L("Yes"), falseLabel: $L("No"), }, this.newEnableModel);
 	this.controller.setupWidget(
 		'newButton',
 		{
@@ -93,7 +90,6 @@ OverridesAssistant.prototype.setup = function()
 		},
 		this.overridesModel
 	);
-	this.controller.listen(this.overridesListElement, Mojo.Event.propertyChanged, this.overrideToggled.bindAsEventListener(this));
 	this.controller.listen(this.overridesListElement, Mojo.Event.listDelete, this.overrideDeleted.bindAsEventListener(this));
 	this.controller.listen(this.overridesListElement, Mojo.Event.listTap, this.overrideTapped.bindAsEventListener(this));
 	
@@ -109,12 +105,9 @@ OverridesAssistant.prototype.readOverrides = function()
 {
 	if (this.requestDb8) this.request.cancel();
 	this.requestDb8 = new Mojo.Service.Request("palm://com.palm.db/", {
-			method: "find",
+			method: "get",
 			parameters: {
-				"query" : {
-					"from" : "org.webosinternals.impostah:1",
-					"where" : [{"prop":"_id","op":"=","val":this.group}]
-				}
+				"ids" : [this.group]
 			},
 			onSuccess: this.getOverridesHandler,
 			onFailure: this.getOverridesHandler
@@ -137,7 +130,15 @@ OverridesAssistant.prototype.getOverrides = function(payload)
 
 	if (payload.results && (payload.results.length == 1)) {
 		this.dbId = this.group;
-		this.overrides = payload.results[0].overrides;
+		this.overrides = payload.results[0];
+		delete this.overrides["_rev"];
+		delete this.overrides["_sync"];
+	}
+	else {
+		this.overrides = {
+			"_id":this.group,
+			"_kind":"org.webosinternals.impostah:1"
+		}
 	}
 
 	this.loadOverrides();
@@ -145,59 +146,37 @@ OverridesAssistant.prototype.getOverrides = function(payload)
 
 OverridesAssistant.prototype.loadOverrides = function()
 {
-	if (this.overrides.length > 0) {
-		this.overridesModel.items = [];
-		this.overridesListElement.mojo.invalidateItems(0);
-		
-		for (var f = 0; f < this.overrides.length; f++) {
-			var attribute = this.overrides[f].name;
-			var override = this.overrides[f].value;
-				
-			this.overridesModel.items.push
-				({
-					toggleName: f,
-						attribute: attribute,
-						override: override,
-						
-						// these are for the child toggle widget
-						//disabled: true, // comment this for go time
-						value: this.overrides[f].enabled
-						});
+	this.overridesModel.items = [];
+	this.overridesListElement.mojo.invalidateItems(0);
+
+	for (f in this.overrides) {
+		if (f.charAt(0) != '_') {
+			this.overridesModel.items.push({ label: f, title: this.overrides[f],
+						labelClass: 'left', titleClass: 'right' });
 		}
-			
-		this.overridesListElement.mojo.noticeUpdatedItems(0, this.overridesModel.items);
 	}
+			
+	this.overridesListElement.mojo.noticeUpdatedItems(0, this.overridesModel.items);
 };
 
 OverridesAssistant.prototype.overrideTapped = function(event)
 {
 	alert('---');
-	alert(event.item.toggleName);
-	for (var f in this.overrides[event.item.toggleName]) alert(f+': '+this.overrides[event.item.toggleName][f]);
+	alert(event.item.label);
+	for (var f in this.overrides) alert(f+': '+this.overrides[f]);
 	alert('---');
 };
 
-OverridesAssistant.prototype.overrideToggled = function(event)
-{
-	// make sure this is a toggle button
-	if (event.property == 'value' && event.target.id.include('_toggle')) {
-		var toggleName = event.target.id.replace(/_toggle/, '');
-		this.overrides[toggleName].enabled = event.value
-		alert(this.overrides[toggleName].name + ' - ' + this.overrides[toggleName].enabled);
-		this.saveOverrides();
-	}
-};
 OverridesAssistant.prototype.overrideDeleted = function(event)
 {
 	alert('---');
-	alert(this.overrides[event.index].name + ' - deleted');
-	this.overrides.splice(event.index, 1);
+	alert(event.item.label + ' - deleted');
+	delete this.overrides[event.item.label];
 	this.saveOverrides();
 };
 
 OverridesAssistant.prototype.newNameChanged = function(event)
 {
-	// Disable the database kinds list
 	this.newValueModel.value = this.attributes[event.value];
 	this.controller.modelChanged(this.newValueModel);
 };
@@ -206,20 +185,9 @@ OverridesAssistant.prototype.newOverrideButton = function()
 {
 	var name = this.newNameModel.value;
 	var value = this.newValueModel.value;
-	var enabled = this.newEnableModel.value;
 
 	if (name != '') {
-		var found = false;
-		for (var f = 0; f < this.overrides.length; f++) {
-			if (this.overrides[f].name == name) {
-				found = true;
-				this.overrides[f].value = value;
-				this.overrides[f].enabled = enabled;
-			}
-		}
-		if (!found) {
-			this.overrides.push({"name":name,"value":value,"enabled":enabled});
-		}
+		this.overrides[name] = value;
 	}
 
 	this.newButtonElement.mojo.deactivate();
@@ -244,11 +212,7 @@ OverridesAssistant.prototype.saveOverrides = function()
 		this.requestDb8 = new Mojo.Service.Request("palm://com.palm.db/", {
 				method: "put",
 				parameters: {
-					"objects" : [{
-							"_id":this.group,
-							"_kind":"org.webosinternals.impostah:1",
-							"overrides":this.overrides,
-						}]
+					"objects" : [this.overrides]
 				},
 				onSuccess: this.putOverridesHandler,
 				onFailure: this.putOverridesHandler
@@ -275,11 +239,7 @@ OverridesAssistant.prototype.delOverrides = function(payload)
 	this.requestDb8 = new Mojo.Service.Request("palm://com.palm.db/", {
 			method: "put",
 			parameters: {
-				"objects" : [{
-						"_id":this.group,
-						"_kind":"org.webosinternals.impostah:1",
-						"overrides":this.overrides,
-					}]
+				"objects" : [this.overrides]
 			},
 			onSuccess: this.putOverridesHandler,
 			onFailure: this.putOverridesHandler
@@ -359,7 +319,6 @@ OverridesAssistant.prototype.handleCommand = function(event)
 OverridesAssistant.prototype.cleanup = function(event) {
 	this.controller.stopListening(this.newNameElement, Mojo.Event.propertyChange, this.newNameChangedHandler);
 	this.controller.stopListening(this.newButtonElement, Mojo.Event.tap, this.newOverrideButton.bindAsEventListener(this));
-	this.controller.stopListening(this.overridesListElement, Mojo.Event.propertyChanged, this.overrideToggled.bindAsEventListener(this));
 	this.controller.stopListening(this.overridesListElement, Mojo.Event.listDelete, this.overrideDeleted.bindAsEventListener(this));
 	this.controller.stopListening(this.overridesListElement, Mojo.Event.listTap, this.overrideTapped.bindAsEventListener(this));
 };

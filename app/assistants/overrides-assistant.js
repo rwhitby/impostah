@@ -149,8 +149,9 @@ OverridesAssistant.prototype.loadOverrides = function()
 	this.overridesModel.items = [];
 	this.overridesListElement.mojo.invalidateItems(0);
 
-	for (f in this.overrides) {
-		if (f.charAt(0) != '_') {
+	// Load the overrides using the same ordering as the attributes
+	for (f in this.attributes) {
+		if ((f in this.overrides) && (f.charAt(0) != '_')) {
 			this.overridesModel.items.push({ label: f, title: this.overrides[f],
 						labelClass: 'left', titleClass: 'right' });
 		}
@@ -161,16 +162,14 @@ OverridesAssistant.prototype.loadOverrides = function()
 
 OverridesAssistant.prototype.overrideTapped = function(event)
 {
-	alert('---');
-	alert(event.item.label);
-	for (var f in this.overrides) alert(f+': '+this.overrides[f]);
-	alert('---');
+	this.newNameModel.value = event.item.label;
+	this.controller.modelChanged(this.newNameModel);
+	this.newValueModel.value = this.overrides[event.item.label];
+	this.controller.modelChanged(this.newValueModel);
 };
 
 OverridesAssistant.prototype.overrideDeleted = function(event)
 {
-	alert('---');
-	alert(event.item.label + ' - deleted');
 	delete this.overrides[event.item.label];
 	this.saveOverrides();
 };
@@ -190,7 +189,69 @@ OverridesAssistant.prototype.newOverrideButton = function()
 		this.overrides[name] = value;
 	}
 
-	this.newButtonElement.mojo.deactivate();
+	var found = false;
+	var newname = false;
+
+	// Loop through the attributes, looking for the next one that does not have an override
+	for (var f in this.attributes) {
+
+		// If we found a match in the last iteration, check this attribute
+		if (found) {
+			// If we don't already have an override, it's the one we want
+			if (!(f in this.overrides)) {
+				found = false;
+				newname = f;
+			}
+		}
+
+		// If we find a match, do something on the next iteration
+		if (name == f) {
+			found = true;
+		}
+	}
+
+	// If we wrapped around, look for the first attribute without an override
+	if (found) {
+		for (var f in this.attributes) {
+			// If we don't already have an override, it's the one we want
+			if (!(f in this.overrides)) {
+				newname = f;
+				break;
+			}
+		}
+	}
+
+	// If all attributes have an override, then just move to the next one
+	if (!newname) {
+		found = false;
+		for (var f in this.attributes) {
+			// If we found a match in the last iteration, use this attribute
+			if (found) {
+				found = false;
+				newname = f;
+			}
+			
+			// If we find a match, do something on the next iteration
+			if (name == f) {
+				found = true;
+			}
+		}
+	}
+
+	// Last resort is the first attribute
+	if (!newname) {
+		newname = this.newNameModel.choices[0].label;
+	}
+
+	this.newNameModel.value = newname;
+	this.controller.modelChanged(this.newNameModel);
+	if (newname in this.overrides) {
+		this.newValueModel.value = this.overrides[newname];
+	}
+	else {
+		this.newValueModel.value = this.attributes[newname];
+	}
+	this.controller.modelChanged(this.newValueModel);
 
 	this.saveOverrides();
 };
@@ -255,6 +316,8 @@ OverridesAssistant.prototype.putOverrides = function(payload)
 	this.requestDb8 = false;
 
 	this.updateSpinner();
+
+	this.newButtonElement.mojo.deactivate();
 
 	if (payload.returnValue === false) {
 		this.errorMessage('<b>Service Error (putOverrides):</b><br>'+payload.errorText);

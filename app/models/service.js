@@ -126,6 +126,18 @@ ImpostahService.getFile = function(callback, url, filename)
 	return request;
 };
 
+ImpostahService.putFile = function(callback, object, filename)
+{
+	var request = new Mojo.Service.Request(ImpostahService.identifier,
+	{
+		method: 'putFile',
+		parameters: {"object": object, "filename": filename},
+		onSuccess: callback,
+		onFailure: callback
+	});
+	return request;
+};
+
 ImpostahService.removeFirstUseFlag = function(callback)
 {
     var request = new Mojo.Service.Request(ImpostahService.identifier,

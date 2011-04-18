@@ -1,6 +1,6 @@
 function JsonLoadAssistant(params)
 {
-	this.launchFile = params.file;
+	this.file = params.file;
 	this.id = params.id;
 	this.callback = params.callback;
 	
@@ -56,7 +56,7 @@ JsonLoadAssistant.prototype.setup = function()
 			focusMode: Mojo.Widget.focusSelectMode
 		},
 		{
-			value: (this.launchFile ? this.launchFile : '')
+			value: (this.file ? this.file : '')
 		}
 	);
 	
@@ -79,7 +79,7 @@ JsonLoadAssistant.prototype.setup = function()
 		},
 		this.viewButtonModel = {
 			buttonLabel: $L('View'),
-			disabled: (this.launchFile ? false : true)
+			disabled: (this.file ? false : true)
 		}
 	);
 	
@@ -91,7 +91,7 @@ JsonLoadAssistant.prototype.setup = function()
 		},
 		this.loadButtonModel = {
 			buttonLabel: $L('Load'),
-			disabled: (this.launchFile ? false : true)
+			disabled: (this.file ? false : true)
 		}
 	);
 	
@@ -158,7 +158,7 @@ JsonLoadAssistant.prototype.loadButtonPressed = function(event)
 	this.subscription = ImpostahService.getFile(this.fileResponse.bindAsEventListener(this, true), url, filename);
 };
 
-JsonLoadAssistant.prototype.fileResponse = function(payload, doCallback)
+JsonLoadAssistant.prototype.fileResponse = function(payload, isLoad)
 {
 	if (payload.returnValue == false) {
 		this.errorMessage('<b>Service Error (fileResponse):</b><br>'+payload.errorText);
@@ -187,9 +187,23 @@ JsonLoadAssistant.prototype.fileResponse = function(payload, doCallback)
 					Mojo.Log.logException(e, 'fileResponse#parse: ' + this.rawData);
 				}
 			}
-			this.viewButtonElement.mojo.deactivate();
-			if (doCallback && this.callback) {
-				this.callback(object);
+			if (isLoad) {
+				this.loadButtonElement.mojo.deactivate();
+			}
+			else {
+				this.viewButtonElement.mojo.deactivate();
+			}
+			if (isLoad) {
+				if (this.id) {
+					if ((object["_id"] != this.id) ||
+						(object["_kind"] != "org.webosinternals.impostah:1")) {
+						this.errorMessage("Invalid file contents");
+						return;
+					}
+				}
+				if (this.callback) {
+					this.callback(object);
+				}
 				this.controller.stageController.popScene();
 			}
 			else {

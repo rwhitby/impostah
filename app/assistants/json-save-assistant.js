@@ -1,7 +1,11 @@
 function JsonSaveAssistant(params)
 {
-	this.filename = params.filename;
 	this.object = params.object;
+	this.filename = params.filename;
+	if (this.filename) {
+		this.file = "file:///media/internal/"+params.filename;
+	}
+	this.callback = params.callback;
 	
 	// setup menu
 	this.menuModel = {
@@ -130,7 +134,7 @@ JsonSaveAssistant.prototype.browsed = function(value)
 	if (value === false) {
 	}
 	else {
-		this.fileElement.mojo.setValue('file://'+value);
+		this.fileElement.mojo.setValue('file://'+value+this.filename);
 	}
 	this.browseButtonElement.mojo.deactivate();
 }
@@ -143,9 +147,26 @@ JsonSaveAssistant.prototype.viewButtonPressed = function(event)
 
 JsonSaveAssistant.prototype.saveButtonPressed = function(event)
 {
-	var url = this.fileElement.mojo.getValue();
-	var filename = filePicker.getFileName(url);
-	// %%% Load the file here %%%
+	var filename = this.fileElement.mojo.getValue();
+	this.subscription = ImpostahService.putFile(this.saveResponse.bindAsEventListener(this),
+												this.object, filename);
+};
+
+JsonSaveAssistant.prototype.saveResponse = function(payload)
+{
+	this.saveButtonElement.mojo.deactivate();
+	if (payload.returnValue == false) {
+		this.errorMessage('<b>Service Error (saveResponse):</b><br>'+payload.errorText);
+		if (this.callback) {
+			this.callback(false);
+		}
+	}
+	else {
+		if (this.callback) {
+			this.callback(true);
+		}
+		this.controller.stageController.popScene();
+	}
 };
 
 JsonSaveAssistant.prototype.errorMessage = function(msg)

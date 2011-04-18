@@ -11,6 +11,7 @@ function StartupAssistant(changelog)
     this.newMessages =
 	[
 	 // Don't forget the comma on all but the last entry
+	 { version: '0.6.2', log: [ 'Added load and save for JSON overrides files' ] },
 	 { version: '0.6.1', log: [ 'Refresh the device profile when exiting the overrides scene',
 								'Improved the overrides user interface' ] },
 	 { version: '0.6.0', log: [ 'Added device profile and palm profile overrides',

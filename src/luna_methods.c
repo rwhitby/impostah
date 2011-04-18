@@ -987,6 +987,86 @@ bool get_file_method(LSHandle* lshandle, LSMessage *message, void *ctx) {
   return false;
 }
 
+bool put_file_method(LSHandle* lshandle, LSMessage *message, void *ctx) {
+  LSError lserror;
+  LSErrorInit(&lserror);
+
+  char buffer[MAXBUFLEN];
+
+  json_t *object = json_parse_document(LSMessageGetPayload(message));
+  json_t *id;
+
+  // Extract the url argument from the message
+  id = json_find_first_label(object, "filename");
+  if (!id || (id->child->type != JSON_STRING) ||
+      (strlen(id->child->text) >= MAXLINLEN) ||
+      (strlen(id->child->text) < 8) ||
+      strncmp(id->child->text, "file://", 7)) {
+    if (!LSMessageRespond(message,
+			"{\"returnValue\": false, \"errorCode\": -1, "
+			"\"errorText\": \"Invalid or missing filename parameter\"}",
+			&lserror)) goto error;
+    return true;
+  }
+  char filename[MAXLINLEN];
+  strcpy(filename, id->child->text+7);
+
+  // Extract the object argument from the message
+  id = json_find_first_label(object, "object");
+  if (!id || (id->child->type != JSON_OBJECT)) {
+    if (!LSMessageRespond(message,
+			"{\"returnValue\": false, \"errorCode\": -1, "
+			"\"errorText\": \"Invalid or missing object parameter\"}",
+			&lserror)) goto error;
+    return true;
+  }
+
+  char *contents = NULL;
+
+  if (json_tree_to_string(id->child, &contents) != JSON_OK) {
+    sprintf(buffer,
+	    "{\"errorText\": \"Unable to parse object\", \"returnValue\": false, \"errorCode\": -1 }");
+    if (!LSMessageRespond(message, buffer, &lserror)) goto error;
+    return true;
+  }
+
+  FILE *fp = fopen(filename, "w");
+  if (!fp) {
+    sprintf(buffer,
+	    "{\"errorText\": \"Unable to open %s\", \"returnValue\": false, \"errorCode\": -1 }",
+	    filename);
+    if (!LSMessageRespond(message, buffer, &lserror)) goto error;
+    return true;
+  }
+
+  if (fputs(contents, fp) == EOF) {
+    (void)fclose(fp);
+    (void)unlink(filename);
+    sprintf(buffer,
+	    "{\"errorText\": \"Unable to write to %s\", \"returnValue\": false, \"errorCode\": -1 }",
+	    filename);
+    if (!LSMessageRespond(message, buffer, &lserror)) goto error;
+    return true;
+  }
+  
+  if (fclose(fp)) {
+    sprintf(buffer,
+	    "{\"errorText\": \"Unable to close %s\", \"returnValue\": false, \"errorCode\": -1 }",
+	    filename);
+    if (!LSMessageRespond(message, buffer, &lserror)) goto error;
+    return true;
+  }
+
+  if (!LSMessageRespond(message, "{\"returnValue\": true}", &lserror)) goto error;
+  return true;
+
+ error:
+  LSErrorPrint(&lserror, stderr);
+  LSErrorFree(&lserror);
+ end:
+  return false;
+}
+
 //
 // Remove the ran-first-use flag file, and return the output to webOS.
 //
@@ -1024,6 +1104,7 @@ LSMethod luna_methods[] = {
   { "getDirListing",		get_dir_listing_method },
 
   { "getFile",			get_file_method },
+  { "putFile",			put_file_method },
 
   { "removeFirstUseFlag",	remove_first_use_flag_method },
   { "restartLuna",		restart_luna_method },

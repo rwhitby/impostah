@@ -10,6 +10,7 @@ function OverridesAssistant(label, attributes, id)
 		visible: true,
 		items: [
 			{ label: $L("Load Overrides"), command: 'do-load' },
+			{ label: $L("Save Overrides"), command: 'do-save' },
 			{ label: $L("Preferences"), command: 'do-prefs' },
 			{ label: $L("Help"), command: 'do-help' }
 		]
@@ -363,7 +364,11 @@ OverridesAssistant.prototype.handleCommand = function(event)
 	if (event.type == Mojo.Event.command) {
 		switch (event.command) {
 		case 'do-load':
-		this.controller.stageController.pushScene('json-load',{'callback':this.setOverrides.bind(this)});
+		this.controller.stageController.pushScene('json-load',{'callback':this.setOverrides.bind(this), 'id':this.id});
+		break;
+
+		case 'do-save':
+		this.controller.stageController.pushScene('json-save',{'object':this.overrides, 'filename':this.id+'.json'});
 		break;
 
 		case 'do-prefs':

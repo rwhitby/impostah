@@ -1,9 +1,9 @@
-function OverridesAssistant(label, attributes, group)
+function OverridesAssistant(label, attributes, id)
 {
 
 	this.label = label;
 	this.attributes = attributes;
-	this.group = group;
+	this.id = id;
 
 	// setup menu
 	this.menuModel = {
@@ -23,7 +23,6 @@ function OverridesAssistant(label, attributes, group)
 	this.newValueModel = { };
 	this.newValueModel.value = this.attributes[this.newNameModel.value];
 
-	this.dbId = false;
 	this.overrides = {};
 
 };
@@ -107,7 +106,7 @@ OverridesAssistant.prototype.readOverrides = function()
 	this.requestDb8 = new Mojo.Service.Request("palm://com.palm.db/", {
 			method: "get",
 			parameters: {
-				"ids" : [this.group]
+				"ids" : [this.id]
 			},
 			onSuccess: this.getOverridesHandler,
 			onFailure: this.getOverridesHandler
@@ -129,14 +128,13 @@ OverridesAssistant.prototype.getOverrides = function(payload)
 	}
 
 	if (payload.results && (payload.results.length == 1)) {
-		this.dbId = this.group;
 		this.overrides = payload.results[0];
 		delete this.overrides["_rev"];
 		delete this.overrides["_sync"];
 	}
 	else {
 		this.overrides = {
-			"_id":this.group,
+			"_id":this.id,
 			"_kind":"org.webosinternals.impostah:1"
 		}
 	}
@@ -259,44 +257,21 @@ OverridesAssistant.prototype.newOverrideButton = function()
 OverridesAssistant.prototype.saveOverrides = function()
 {
 	if (this.requestDb8) this.request.cancel();
-	if (this.dbId) {
-		this.requestDb8 = new Mojo.Service.Request("palm://com.palm.db/", {
-				method: "del",
-				parameters: {
-					"ids" : [this.dbId]
-				},
-				onSuccess: this.delOverridesHandler,
-				onFailure: this.delOverridesHandler
-			});
-	}
-	else {
-		this.requestDb8 = new Mojo.Service.Request("palm://com.palm.db/", {
-				method: "put",
-				parameters: {
-					"objects" : [this.overrides]
-				},
-				onSuccess: this.putOverridesHandler,
-				onFailure: this.putOverridesHandler
-			});
-	}
+	this.requestDb8 = new Mojo.Service.Request("palm://com.palm.db/", {
+			method: "del",
+			parameters: {
+				"ids" : [this.id]
+			},
+			onSuccess: this.delOverridesHandler,
+			onFailure: this.delOverridesHandler
+		});
 
 	this.updateSpinner();
-
 };
 
 OverridesAssistant.prototype.delOverrides = function(payload)
 {
 	if (this.requestDb8) this.requestDb8.cancel();
-	this.requestDb8 = false;
-
-	this.updateSpinner();
-
-	if (payload.returnValue === false) {
-		this.errorMessage('<b>Service Error (delOverrides):</b><br>'+payload.errorText);
-		return;
-	}
-
-	if (this.requestDb8) this.request.cancel();
 	this.requestDb8 = new Mojo.Service.Request("palm://com.palm.db/", {
 			method: "put",
 			parameters: {
@@ -305,9 +280,8 @@ OverridesAssistant.prototype.delOverrides = function(payload)
 			onSuccess: this.putOverridesHandler,
 			onFailure: this.putOverridesHandler
 		});
-
+	
 	this.updateSpinner();
-
 }
 
 OverridesAssistant.prototype.putOverrides = function(payload)

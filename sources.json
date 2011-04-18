@@ -4,6 +4,7 @@
     {"source": "app/models/utility.js"},
     {"source": "app/models/help.js"},
     {"source": "app/models/cookies.js"},
+    {"source": "app/models/filePicker.js"},
     {"source": "app/assistants/app-assistant.js"},
     {
         "scenes": "startup",
@@ -20,6 +21,14 @@
     {
         "scenes": "overrides",
         "source": "app/assistants/overrides-assistant.js"
+    },
+    {
+        "scenes": "json-load",
+        "source": "app/assistants/json-load-assistant.js"
+    },
+    {
+        "scenes": "json-save",
+        "source": "app/assistants/json-save-assistant.js"
     },
     {
         "scenes": "help",
@@ -96,5 +105,13 @@
     {
         "scenes": "item",
         "source": "app/assistants/item-assistant.js"
+    },
+    {
+        "scenes": "file-picker",
+        "source": "app/assistants/file-picker-assistant.js"
+    },
+    {
+        "scenes": "folder-picker",
+        "source": "app/assistants/folder-picker-assistant.js"
     }
 ]

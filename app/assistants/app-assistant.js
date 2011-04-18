@@ -3,7 +3,7 @@ var vers =  new versionCookie();
 
 // stage names
 var mainStageName = 'impostah-main';
-var dashStageName = 'impostah-dash';
+var loadStageName = 'impostah-load';
 
 function AppAssistant() {}
 
@@ -19,24 +19,30 @@ AppAssistant.prototype.handleLaunch = function(params)
 				alert(p+': '+params[p]);
 	*/
 	
-	try
-	{
+	try {
 		// launch from launcher tap
-		if (!params) 
-		{
-	        if (mainStageController) 
-			{
+		if (!params) {
+	        if (mainStageController) {
 				mainStageController.popScenesTo('main');
 				mainStageController.activate();
 			}
-			else
-			{
+			else {
 				this.controller.createStageWithCallback({name: mainStageName, lightweight: true}, this.launchFirstScene.bind(this));
 			}
 		}
+		else if (params.target) {
+			var installStageController = this.controller.getStageController(installStageName);
+	        if (installStageController) {
+				installStageController.popScenesTo('json-load');
+				installStageController.delegateToSceneAssistant('updateText', params.target);
+				installStageController.activate();
+			}
+			else {
+				this.controller.createStageWithCallback({name: installStageName, lightweight: true}, this.launchLoadScene.bindAsEventListener(this, params));
+			}
+		}
 	}
-	catch (e)
-	{
+	catch (e) {
 		Mojo.Log.logException(e, "AppAssistant#handleLaunch");
 	}
 };
@@ -50,6 +56,11 @@ AppAssistant.prototype.launchFirstScene = function(controller)
     else {
 		controller.pushScene('main');
 	}
+};
+
+AppAssistant.prototype.launchLoadScene = function(controller, params)
+{
+	controller.pushScene('json-load', params);
 };
 
 AppAssistant.prototype.cleanup = function(event)

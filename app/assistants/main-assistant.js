@@ -55,6 +55,20 @@ MainAssistant.prototype.setup = function()
     this.listTapHandler = this.listTap.bindAsEventListener(this);
 	
     this.mainModel.items.push({
+			name:     $L('Load JSON'),
+				scene:   'json-load',
+				params: { 'file':false, 'id': "org.webosinternals.impostah.deviceprofile" },
+				disabled: (Mojo.Environment.DeviceInfo.platformVersionMajor == 1)
+				});
+
+    this.mainModel.items.push({
+			name:     $L('Save JSON'),
+				scene:   'json-save',
+				params: { 'filename':"foo.json", 'object': {foo:true} },
+				disabled: (Mojo.Environment.DeviceInfo.platformVersionMajor == 1)
+				});
+
+    this.mainModel.items.push({
 			name:     $L('Device Profile'),
 				scene:   'device-profile',
 				disabled: (Mojo.Environment.DeviceInfo.platformVersionMajor == 1)
@@ -163,7 +177,7 @@ MainAssistant.prototype.listTap = function(event)
     }
     else {
 		// push the scene
-		this.controller.stageController.pushScene(event.item.scene, event.item);
+		this.controller.stageController.pushScene(event.item.scene, event.item.params);
     }
 };
 

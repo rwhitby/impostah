@@ -1,0 +1,229 @@
+function JsonLoadAssistant(params)
+{
+	this.launchFile = params.file;
+	this.id = params.id;
+	
+	// setup menu
+	this.menuModel = {
+		visible: true,
+		items: [
+			{ label: $L("Preferences"), command: 'do-prefs' },
+			{ label: $L("Help"), command: 'do-help' }
+		]
+	};
+
+	this.rawData = "";
+};
+
+JsonLoadAssistant.prototype.setup = function()
+{
+
+	this.controller.get('install-title').innerHTML = $L("Load JSON File");
+	this.controller.get('group-title').innerHTML = $L("File");
+
+	// set theme because this can be the first scene pushed
+	this.controller.document.body.className = prefs.get().theme;
+	
+	// setup menu
+	this.controller.setupWidget(Mojo.Menu.appMenu, { omitDefaultItems: true }, this.menuModel);
+	
+	// setup spinner widget
+	this.spinnerModel = {spinning: false};
+	this.controller.setupWidget('spinner', {spinnerSize: 'large'}, this.spinnerModel);
+	
+	
+	this.fileElement =			this.controller.get('file');
+	this.browseButtonElement =	this.controller.get('browseButton');
+	this.viewButtonElement =	this.controller.get('viewButton');
+	this.loadButtonElement =	this.controller.get('loadButton');
+	
+	this.textChanged =			this.textChanged.bindAsEventListener(this);
+	this.browseButtonPressed =	this.browseButtonPressed.bindAsEventListener(this);
+	this.viewButtonPressed =	this.viewButtonPressed.bindAsEventListener(this);
+	this.loadButtonPressed =	this.loadButtonPressed.bindAsEventListener(this);
+	
+	
+	this.controller.setupWidget
+	(
+		'file',
+		{
+			hintText: $L('http:// or file:// or ftp://'),
+			multiline: true,
+			enterSubmits: false,
+			changeOnKeyPress: true,
+			textCase: Mojo.Widget.steModeLowerCase,
+			focusMode: Mojo.Widget.focusSelectMode
+		},
+		{
+			value: (this.launchFile ? this.launchFile : '')
+		}
+	);
+	
+	this.controller.setupWidget
+	(
+		'browseButton',
+		{
+			type: Mojo.Widget.activityButton
+		},
+		{
+			buttonLabel: $L('Browse')
+		}
+	);
+	
+	this.controller.setupWidget
+	(
+		'viewButton',
+		{
+			type: Mojo.Widget.activityButton
+		},
+		this.viewButtonModel = {
+			buttonLabel: $L('View'),
+			disabled: (this.launchFile ? false : true)
+		}
+	);
+	
+	this.controller.setupWidget
+	(
+		'loadButton',
+		{
+			type: Mojo.Widget.activityButton
+		},
+		this.loadButtonModel = {
+			buttonLabel: $L('Load'),
+			disabled: (this.launchFile ? false : true)
+		}
+	);
+	
+	Mojo.Event.listen(this.fileElement, Mojo.Event.propertyChange, this.textChanged);
+	Mojo.Event.listen(this.browseButtonElement, Mojo.Event.tap, this.browseButtonPressed);
+	Mojo.Event.listen(this.viewButtonElement, Mojo.Event.tap, this.viewButtonPressed);
+	Mojo.Event.listen(this.loadButtonElement, Mojo.Event.tap, this.loadButtonPressed);
+	
+};
+
+JsonLoadAssistant.prototype.textChanged = function(event)
+{
+	if (event.value != '') {
+		this.loadButtonModel.disabled = false;
+		this.viewButtonModel.disabled = false;
+		this.controller.modelChanged(this.loadButtonModel);
+		this.controller.modelChanged(this.viewButtonModel);
+	}
+	else {
+		this.loadButtonModel.disabled = true;
+		this.viewButtonModel.disabled = true;
+		this.controller.modelChanged(this.loadButtonModel);
+		this.controller.modelChanged(this.viewButtonModel);
+	}
+};
+
+JsonLoadAssistant.prototype.updateText = function(value)
+{
+	this.fileElement.mojo.setValue(value);
+};
+
+JsonLoadAssistant.prototype.browseButtonPressed = function(event)
+{
+	var f = new filePicker({
+		type: 'file',
+		extensions: ['json'],
+		onSelect: this.browsed.bind(this)
+	});
+};
+
+JsonLoadAssistant.prototype.browsed = function(value)
+{
+	if (value === false) {
+	}
+	else {
+		this.fileElement.mojo.setValue('file://'+value);
+	}
+	this.browseButtonElement.mojo.deactivate();
+}
+
+JsonLoadAssistant.prototype.viewButtonPressed = function(event)
+{
+	var url = this.fileElement.mojo.getValue();
+	var filename =	filePicker.getFileName(url);
+
+	this.subscription = ImpostahService.getFile(this.fileResponse.bindAsEventListener(this), url, filename);
+};
+
+JsonLoadAssistant.prototype.fileResponse = function(payload)
+{
+	if (payload.returnValue == false) {
+		this.errorMessage('<b>Service Error (fileResponse):</b><br>'+payload.errorText);
+		this.browseButtonElement.mojo.deactivate();
+	}
+	else {
+		if (payload.stage == 'start') {
+			// at start we clear the old data to make sure its empty
+			this.rawData = '';
+		}
+		else if (payload.stage == 'middle') {
+			// in the middle, we append the data
+			if (payload.contents) {
+				this.rawData += payload.contents;
+			}
+		}
+		else if (payload.stage == 'end') {
+			// at end, we parse the data we've received this whole time
+			var object = {};
+			if (this.rawData != '') {
+				// parse json to object
+				try {
+					object = JSON.parse(this.rawData.replace(/\\'/g, "'")); //'"));
+				}
+				catch (e) {
+					Mojo.Log.logException(e, 'fileResponse#parse: ' + this.rawData);
+				}
+			}
+			this.controller.stageController.pushScene("item", "JSON File", object);
+			this.viewButtonElement.mojo.deactivate();
+		}
+	}
+};
+
+JsonLoadAssistant.prototype.loadButtonPressed = function(event)
+{
+	var url = this.fileElement.mojo.getValue();
+	var filename = filePicker.getFileName(url);
+	// %%% Load the file here %%%
+};
+
+JsonLoadAssistant.prototype.errorMessage = function(msg)
+{
+	this.controller.showAlertDialog({
+			allowHTMLMessage:	true,
+			preventCancel:		true,
+			title:				'Impostah',
+			message:			msg,
+			choices:			[{label:$L("Ok"), value:'ok'}],
+			onChoose:			function(e){}
+		});
+};
+
+JsonLoadAssistant.prototype.handleCommand = function(event)
+{
+	if (event.type == Mojo.Event.command) {
+		switch (event.command) {
+		case 'do-prefs':
+		this.controller.stageController.pushScene('preferences');
+		break;
+
+		case 'do-help':
+		this.controller.stageController.pushScene('help');
+		break;
+		}
+	}
+};
+
+JsonLoadAssistant.prototype.cleanup = function(event)
+{
+};
+
+// Local Variables:
+// tab-width: 4
+// End:
+
+

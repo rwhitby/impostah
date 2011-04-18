@@ -23,24 +23,25 @@
 #include <pthread.h>
 #include <syslog.h>
 #include <sys/stat.h>
+#include <dirent.h>
 
 #include "luna_service.h"
 #include "luna_methods.h"
 
-#define ALLOWED_CHARS "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.-_"
+#define ALLOWED_CHARS "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.-+_"
 
-#define API_VERSION "1"
+#define API_VERSION "2"
 
 static char file_buffer[CHUNKSIZE+CHUNKSIZE+1];
 static char file_esc_buffer[MAXBUFLEN];
 
-static bool access_denied(LSHandle* lshandle, LSMessage *message) {
+static bool access_denied(LSMessage *message) {
   LSError lserror;
   LSErrorInit(&lserror);
 
   const char *appId = LSMessageGetApplicationID(message);
   if (!appId || strncmp(appId, "org.webosinternals.impostah", 27) || ((strlen(appId) > 27) && (*(appId+27) != ' '))) {
-    if (!LSMessageReply(lshandle, message, "{\"returnValue\": false, \"errorText\": \"Unauthorised access\"}", &lserror)) {
+    if (!LSMessageRespond(message, "{\"returnValue\": false, \"errorText\": \"Unauthorised access\"}", &lserror)) {
       LSErrorPrint(&lserror, stderr);
       LSErrorFree(&lserror);
     }
@@ -151,9 +152,9 @@ bool dummy_method(LSHandle* lshandle, LSMessage *message, void *ctx) {
   LSError lserror;
   LSErrorInit(&lserror);
 
-  if (access_denied(lshandle, message)) return true;
+  if (access_denied(message)) return true;
 
-  if (!LSMessageReply(lshandle, message, "{\"returnValue\": true}", &lserror)) goto error;
+  if (!LSMessageRespond(message, "{\"returnValue\": true}", &lserror)) goto error;
 
   return true;
  error:
@@ -171,9 +172,9 @@ bool version_method(LSHandle* lshandle, LSMessage *message, void *ctx) {
   LSError lserror;
   LSErrorInit(&lserror);
 
-  if (access_denied(lshandle, message)) return true;
+  if (access_denied(message)) return true;
 
-  if (!LSMessageReply(lshandle, message, "{\"returnValue\": true, \"version\": \"" VERSION "\", \"apiVersion\": \"" API_VERSION "\"}", &lserror)) goto error;
+  if (!LSMessageRespond(message, "{\"returnValue\": true, \"version\": \"" VERSION "\", \"apiVersion\": \"" API_VERSION "\"}", &lserror)) goto error;
 
   return true;
  error:
@@ -270,9 +271,9 @@ static bool run_command(char *command, bool escape, char *buffer) {
 // Send a standard format command failure message back to webOS.
 // The command will be escaped.  The output argument should be a JSON array and is not escaped.
 // The additional text  will not be escaped.
-// The return value is from the LSMessageReply call, not related to the command execution.
+// The return value is from the LSMessageRespond call, not related to the command execution.
 //
-static bool report_command_failure(LSHandle* lshandle, LSMessage *message, char *command, char *stdErrText, char *additional) {
+static bool report_command_failure(LSMessage *message, char *command, char *stdErrText, char *additional) {
   LSError lserror;
   LSErrorInit(&lserror);
 
@@ -305,7 +306,7 @@ static bool report_command_failure(LSHandle* lshandle, LSMessage *message, char 
   // fprintf(stderr, "Message is %s\n", buffer);
 
   // and send it.
-  if (!LSMessageReply(lshandle, message, buffer, &lserror)) goto error;
+  if (!LSMessageRespond(message, buffer, &lserror)) goto error;
 
   return true;
  error:
@@ -318,7 +319,7 @@ static bool report_command_failure(LSHandle* lshandle, LSMessage *message, char 
 //
 // Run a simple shell command, and return the output to webOS.
 //
-static bool simple_command(LSHandle* lshandle, LSMessage *message, char *command) {
+static bool simple_command(LSMessage *message, char *command) {
   LSError lserror;
   LSErrorInit(&lserror);
 
@@ -336,7 +337,7 @@ static bool simple_command(LSHandle* lshandle, LSMessage *message, char *command
     // fprintf(stderr, "Message is %s\n", run_command_buffer);
 
     // and send it to webOS.
-    if (!LSMessageReply(lshandle, message, run_command_buffer, &lserror)) goto error;
+    if (!LSMessageRespond(message, run_command_buffer, &lserror)) goto error;
   }
   else {
 
@@ -344,7 +345,7 @@ static bool simple_command(LSHandle* lshandle, LSMessage *message, char *command
     strcat(run_command_buffer, "]");
 
     // and use it in a failure report message.
-    if (!report_command_failure(lshandle, message, command, run_command_buffer+11, NULL)) goto end;
+    if (!report_command_failure(message, command, run_command_buffer+11, NULL)) goto end;
   }
 
   return true;
@@ -355,7 +356,7 @@ static bool simple_command(LSHandle* lshandle, LSMessage *message, char *command
   return false;
 }
 
-static bool read_file(LSHandle* lshandle, LSMessage *message, char *filename, bool subscribed) {
+static bool read_file(LSMessage *message, char *filename, bool subscribed) {
   LSError lserror;
   LSErrorInit(&lserror);
 
@@ -365,7 +366,7 @@ static bool read_file(LSHandle* lshandle, LSMessage *message, char *filename, bo
 	    "{\"returnValue\": false, \"errorCode\": -1, \"errorText\": \"Cannot open %s\"}",
 	    filename);
     
-    if (!LSMessageReply(lshandle, message, file_buffer, &lserror)) goto error;
+    if (!LSMessageRespond(message, file_buffer, &lserror)) goto error;
     return true;
   }
   
@@ -383,7 +384,7 @@ static bool read_file(LSHandle* lshandle, LSMessage *message, char *filename, bo
 		"{\"returnValue\": true, \"filesize\": %d, \"chunksize\": %d, \"stage\": \"start\"}",
 		filesize, chunksize)) {
 
-      if (!LSMessageReply(lshandle, message, file_buffer, &lserror)) goto error;
+      if (!LSMessageRespond(message, file_buffer, &lserror)) goto error;
 
     }
   }
@@ -404,7 +405,7 @@ static bool read_file(LSHandle* lshandle, LSMessage *message, char *filename, bo
     }
     strcat(file_buffer, "}");
 
-    if (!LSMessageReply(lshandle, message, file_buffer, &lserror)) goto error;
+    if (!LSMessageRespond(message, file_buffer, &lserror)) goto error;
 
   }
 
@@ -412,14 +413,14 @@ static bool read_file(LSHandle* lshandle, LSMessage *message, char *filename, bo
     if (subscribed) {
       sprintf(file_buffer, "{\"returnValue\": true, \"datasize\": %d, \"stage\": \"end\"}", datasize);
 
-      if (!LSMessageReply(lshandle, message, file_buffer, &lserror)) goto error;
+      if (!LSMessageRespond(message, file_buffer, &lserror)) goto error;
 
     }
   }
   else {
     sprintf(file_buffer, "{\"returnValue\": false, \"errorCode\": -1, \"errorText\": \"Cannot close file\"}");
 
-    if (!LSMessageReply(lshandle, message, file_buffer, &lserror)) goto error;
+    if (!LSMessageRespond(message, file_buffer, &lserror)) goto error;
 
   }
 
@@ -435,14 +436,14 @@ bool listKeys_method(LSHandle* lshandle, LSMessage *message, void *ctx) {
   LSError lserror;
   LSErrorInit(&lserror);
 
-  if (access_denied(lshandle, message)) return true;
+  if (access_denied(message)) return true;
 
   // Local buffer to store the command
   char command[MAXLINLEN];
 
   sprintf(command, "sqlite3 /var/palm/data/keys.db 'SELECT id,ownerId,keyId FROM keytable ;' 2>&1");
 
-  return simple_command(lshandle, message, command);
+  return simple_command(message, command);
 
  error:
   LSErrorPrint(&lserror, stderr);
@@ -455,14 +456,14 @@ bool listBackups_method(LSHandle* lshandle, LSMessage *message, void *ctx) {
   LSError lserror;
   LSErrorInit(&lserror);
 
-  if (access_denied(lshandle, message)) return true;
+  if (access_denied(message)) return true;
 
   // Local buffer to store the command
   char command[MAXLINLEN];
 
   sprintf(command, "/bin/ls -1 /etc/palm/backup/ 2>&1");
 
-  return simple_command(lshandle, message, command);
+  return simple_command(message, command);
 
  error:
   LSErrorPrint(&lserror, stderr);
@@ -475,7 +476,7 @@ bool getBackup_method(LSHandle* lshandle, LSMessage *message, void *ctx) {
   LSError lserror;
   LSErrorInit(&lserror);
 
-  if (access_denied(lshandle, message)) return true;
+  if (access_denied(message)) return true;
 
   char filename[MAXLINLEN];
 
@@ -483,7 +484,7 @@ bool getBackup_method(LSHandle* lshandle, LSMessage *message, void *ctx) {
   json_t *object = json_parse_document(LSMessageGetPayload(message));
   json_t *id = json_find_first_label(object, "id");               
   if (!id || (id->child->type != JSON_STRING) || (strspn(id->child->text, ALLOWED_CHARS) != strlen(id->child->text))) {
-    if (!LSMessageReply(lshandle, message,
+    if (!LSMessageRespond(message,
 			"{\"returnValue\": false, \"errorCode\": -1, \"errorText\": \"Invalid or missing id\"}",
 			&lserror)) goto error;
     return true;
@@ -491,7 +492,7 @@ bool getBackup_method(LSHandle* lshandle, LSMessage *message, void *ctx) {
 
   sprintf(filename, "/etc/palm/backup/%s", id->child->text);
 
-  return read_file(lshandle, message, filename, true);
+  return read_file(message, filename, true);
 
  error:
   LSErrorPrint(&lserror, stderr);
@@ -504,14 +505,14 @@ bool listFilecacheTypes_method(LSHandle* lshandle, LSMessage *message, void *ctx
   LSError lserror;
   LSErrorInit(&lserror);
 
-  if (access_denied(lshandle, message)) return true;
+  if (access_denied(message)) return true;
 
   // Local buffer to store the command
   char command[MAXLINLEN];
 
   sprintf(command, "/bin/ls -1 /etc/palm/filecache_types/ 2>&1");
 
-  return simple_command(lshandle, message, command);
+  return simple_command(message, command);
 
  error:
   LSErrorPrint(&lserror, stderr);
@@ -524,7 +525,7 @@ bool getFilecacheType_method(LSHandle* lshandle, LSMessage *message, void *ctx) 
   LSError lserror;
   LSErrorInit(&lserror);
 
-  if (access_denied(lshandle, message)) return true;
+  if (access_denied(message)) return true;
 
   char filename[MAXLINLEN];
 
@@ -532,7 +533,7 @@ bool getFilecacheType_method(LSHandle* lshandle, LSMessage *message, void *ctx) 
   json_t *object = json_parse_document(LSMessageGetPayload(message));
   json_t *type = json_find_first_label(object, "type");               
   if (!type || (type->child->type != JSON_STRING) || (strspn(type->child->text, ALLOWED_CHARS) != strlen(type->child->text))) {
-    if (!LSMessageReply(lshandle, message,
+    if (!LSMessageRespond(message,
 			"{\"returnValue\": false, \"errorCode\": -1, \"errorText\": \"Invalid or missing type\"}",
 			&lserror)) goto error;
     return true;
@@ -540,7 +541,7 @@ bool getFilecacheType_method(LSHandle* lshandle, LSMessage *message, void *ctx) 
 
   sprintf(filename, "/etc/palm/filecache_types/%s", type->child->text);
 
-  return read_file(lshandle, message, filename, true);
+  return read_file(message, filename, true);
 
  error:
   LSErrorPrint(&lserror, stderr);
@@ -553,14 +554,14 @@ bool listConnections_method(LSHandle* lshandle, LSMessage *message, void *ctx) {
   LSError lserror;
   LSErrorInit(&lserror);
 
-  if (access_denied(lshandle, message)) return true;
+  if (access_denied(message)) return true;
 
   // Local buffer to store the command
   char command[MAXLINLEN];
 
   sprintf(command, "cat /proc/net/nf_conntrack 2>&1");
 
-  return simple_command(lshandle, message, command);
+  return simple_command(message, command);
 
  error:
   LSErrorPrint(&lserror, stderr);
@@ -572,7 +573,7 @@ bool listConnections_method(LSHandle* lshandle, LSMessage *message, void *ctx) {
 //
 // Dump the contents of an sqlite3 database table
 //
-static bool dump_sqlite(LSHandle* lshandle, LSMessage *message, char *database, char *table) {
+static bool dump_sqlite(LSMessage *message, char *database, char *table) {
   LSError lserror;
   LSErrorInit(&lserror);
 
@@ -602,13 +603,13 @@ static bool dump_sqlite(LSHandle* lshandle, LSMessage *message, char *database, 
   if (!fp) {
 
     // then report the error to webOS.
-    if (!report_command_failure(lshandle, message, command, NULL, NULL)) goto end;
+    if (!report_command_failure(message, command, NULL, NULL)) goto end;
 
     // The error report has been sent, so return to webOS.
     return true;
   }
 
-  if (!LSMessageReply(lshandle, message, "{\"stage\": \"start\", \"returnValue\": true}", &lserror)) goto error;
+  if (!LSMessageRespond(message, "{\"stage\": \"start\", \"returnValue\": true}", &lserror)) goto error;
 
   // Initialise the output message.
   strcpy(buffer, "{");
@@ -651,7 +652,7 @@ static bool dump_sqlite(LSHandle* lshandle, LSMessage *message, char *database, 
       // fprintf(stderr, "Message is %s\n", buffer);
 
       // Return the results to webOS.
-      if (!LSMessageReply(lshandle, message, buffer, &lserror)) goto error;
+      if (!LSMessageRespond(message, buffer, &lserror)) goto error;
 
       // This is now the first line of output
       first = true;
@@ -696,7 +697,7 @@ static bool dump_sqlite(LSHandle* lshandle, LSMessage *message, char *database, 
   // fprintf(stderr, "Message is %s\n", buffer);
 
   // Return the results to webOS.
-  if (!LSMessageReply(lshandle, message, buffer, &lserror)) goto error;
+  if (!LSMessageRespond(message, buffer, &lserror)) goto error;
 
   return true;
  error:
@@ -714,18 +715,18 @@ bool listAppDatabases_method(LSHandle* lshandle, LSMessage *message, void *ctx) 
     filename = "/var/palm/data/Databases.db";
   }
 
-  return access_denied(lshandle, message) || \
-    dump_sqlite(lshandle, message, filename, "Databases");
+  return access_denied(message) || \
+    dump_sqlite(message, filename, "Databases");
 }
 
 bool listAppCookies_method(LSHandle* lshandle, LSMessage *message, void *ctx) {
-  return access_denied(lshandle, message) || \
-    dump_sqlite(lshandle, message, "/var/palm/data/cookies.db", "Cookies");
+  return access_denied(message) || \
+    dump_sqlite(message, "/var/palm/data/cookies.db", "Cookies");
 }
 
 bool listWebCookies_method(LSHandle* lshandle, LSMessage *message, void *ctx) {
-  return access_denied(lshandle, message) || \
-    dump_sqlite(lshandle, message, "/var/palm/data/browser-cookies.db", "Cookies");
+  return access_denied(message) || \
+    dump_sqlite(message, "/var/palm/data/browser-cookies.db", "Cookies");
 }
 
 //
@@ -756,13 +757,13 @@ bool impersonate_method(LSHandle* lshandle, LSMessage *message, void *ctx) {
   LSErrorInit(&lserror);
   LSMessageRef(message);
 
-  if (access_denied(lshandle, message)) return true;
+  if (access_denied(message)) return true;
 
   // Extract the method argument from the message
   json_t *object = json_parse_document(LSMessageGetPayload(message));
   json_t *id = json_find_first_label(object, "id");               
   if (!id || (id->child->type != JSON_STRING)) {
-    if (!LSMessageReply(lshandle, message,
+    if (!LSMessageRespond(message,
 			"{\"returnValue\": false, \"errorCode\": -1, \"errorText\": \"Invalid or missing id\"}",
 			&lserror)) goto error;
     return true;
@@ -772,7 +773,7 @@ bool impersonate_method(LSHandle* lshandle, LSMessage *message, void *ctx) {
   object = json_parse_document(LSMessageGetPayload(message));
   json_t *service = json_find_first_label(object, "service");               
   if (!service || (service->child->type != JSON_STRING)) {
-    if (!LSMessageReply(lshandle, message,
+    if (!LSMessageRespond(message,
 			"{\"returnValue\": false, \"errorCode\": -1, \"errorText\": \"Invalid or missing service\"}",
 			&lserror)) goto error;
     return true;
@@ -782,7 +783,7 @@ bool impersonate_method(LSHandle* lshandle, LSMessage *message, void *ctx) {
   object = json_parse_document(LSMessageGetPayload(message));
   json_t *method = json_find_first_label(object, "method");               
   if (!method || (method->child->type != JSON_STRING)) {
-    if (!LSMessageReply(lshandle, message,
+    if (!LSMessageRespond(message,
 			"{\"returnValue\": false, \"errorCode\": -1, \"errorText\": \"Invalid or missing method\"}",
 			&lserror)) goto error;
     return true;
@@ -792,7 +793,7 @@ bool impersonate_method(LSHandle* lshandle, LSMessage *message, void *ctx) {
   object = json_parse_document(LSMessageGetPayload(message));
   json_t *params = json_find_first_label(object, "params");               
   if (!params || (params->child->type != JSON_OBJECT)) {
-    if (!LSMessageReply(lshandle, message,
+    if (!LSMessageRespond(message,
 			"{\"returnValue\": false, \"errorCode\": -1, \"errorText\": \"Invalid or missing params\"}",
 			&lserror)) goto error;
     return true;
@@ -815,17 +816,189 @@ bool impersonate_method(LSHandle* lshandle, LSMessage *message, void *ctx) {
 }
 
 //
+// Get the listing of a directory, and return it's contents.
+//
+bool get_dir_listing_method(LSHandle* lshandle, LSMessage *message, void *ctx) {
+  LSError lserror;
+  LSErrorInit(&lserror);
+
+  char buffer[MAXBUFLEN];
+  char esc_buffer[MAXBUFLEN];
+
+  struct dirent *ep;
+
+  // Local buffer to hold each line of output from ls
+  char line[MAXLINLEN];
+
+  // Is this the first line of output?
+  bool first = true;
+
+  // Was there an error in accessing any of the files?
+  bool error = false;
+
+  json_t *object = json_parse_document(LSMessageGetPayload(message));
+  json_t *id = json_find_first_label(object, "directory");
+
+  if (!id || (id->child->type != JSON_STRING) || (strspn(id->child->text, ALLOWED_CHARS"/") != strlen(id->child->text))) {
+    if (!LSMessageRespond(message,
+			"{\"returnValue\": false, \"errorCode\": -1, \"errorText\": \"Invalid or missing directory\"}",
+			&lserror)) goto error;
+  }
+
+  // Start execution of the command to list the directory contents
+  DIR *dp = opendir(id->child->text);
+
+  // If the command cannot be started
+  if (!dp) {
+    if (!LSMessageRespond(message,
+			"{\"returnValue\": false, \"errorCode\": -1, \"errorText\": \"Unable to open directory\"}",
+			&lserror)) goto error;
+
+    // The error report has been sent, so return to webOS.
+    return true;
+  }
+
+  // Initialise the output message.
+  strcpy(buffer, "{");
+
+  // Loop through the list of directory entries.
+  while (ep = readdir(dp)) {
+
+    // Start or continue the JSON array
+    if (first) {
+      strcat(buffer, "\"contents\": [");
+      first = false;
+    }
+    else {
+      strcat(buffer, ", ");
+    }
+
+    strcat(buffer, "{\"name\":\"");
+    strcat(buffer, json_escape_str(ep->d_name, esc_buffer));
+    strcat(buffer, "\", ");
+
+    strcat(buffer, "\"type\":\"");
+    if (ep->d_type == DT_DIR) {
+      strcat(buffer, "directory");
+    }
+    else if (ep->d_type == DT_REG) {
+      strcat(buffer, "file");
+    }
+    else if (ep->d_type == DT_LNK) {
+      strcat(buffer, "symlink");
+    }
+    else {
+      strcat(buffer, "other");
+    }
+    strcat(buffer, "\"}");
+  }
+
+  // Terminate the JSON array
+  if (!first) {
+    strcat(buffer, "], ");
+  }
+
+  // Check the close status of the process, and return the combined error status
+  if (closedir(dp) || error) {
+    strcat(buffer, "\"returnValue\": false}");
+  }
+  else {
+    strcat(buffer, "\"returnValue\": true}");
+  }
+
+  // Return the results to webOS.
+  if (!LSMessageRespond(message, buffer, &lserror)) goto error;
+
+  return true;
+ error:
+  LSErrorPrint(&lserror, stderr);
+  LSErrorFree(&lserror);
+ end:
+  return false;
+}
+
+bool get_file_method(LSHandle* lshandle, LSMessage *message, void *ctx) {
+  LSError lserror;
+  LSErrorInit(&lserror);
+
+  char run_command_buffer[MAXBUFLEN];
+  char command[MAXLINLEN];
+
+  json_t *object = json_parse_document(LSMessageGetPayload(message));
+  json_t *id;
+
+  // Extract the filename argument from the message
+  id = json_find_first_label(object, "filename");
+  if (!id || (id->child->type != JSON_STRING) ||
+      (strlen(id->child->text) >= MAXNAMLEN) ||
+      (strspn(id->child->text, ALLOWED_CHARS) != strlen(id->child->text))) {
+    if (!LSMessageRespond(message,
+			"{\"returnValue\": false, \"errorCode\": -1, "
+			"\"errorText\": \"Invalid or missing filename parameter\", "
+			"\"stage\": \"failed\"}",
+			&lserror)) goto error;
+    return true;
+  }
+  char filename[MAXNAMLEN];
+  sprintf(filename, "/media/internal/.temp/%s", id->child->text);
+
+  // Extract the url argument from the message
+  id = json_find_first_label(object, "url");               
+  if (!id || (id->child->type != JSON_STRING) ||
+      (strlen(id->child->text) >= MAXLINLEN)) {
+    if (!LSMessageRespond(message,
+			"{\"returnValue\": false, \"errorCode\": -1, "
+			"\"errorText\": \"Invalid or missing url parameter\", "
+			"\"stage\": \"failed\"}",
+			&lserror)) goto error;
+    return true;
+  }
+  char url[MAXLINLEN];
+  strcpy(url, id->child->text);
+
+  if (!strncmp(url, "file://", 7)) {
+    strcpy(filename, url+7);
+  }
+  else {
+
+    /* Download the package */
+
+    snprintf(command, MAXLINLEN,
+	     "/usr/bin/curl --create-dirs --insecure --location --fail --show-error --output %s %s 2>&1", filename, url);
+
+    strcpy(run_command_buffer, "{\"stdOut\": [");
+    if (run_command(command, true, run_command_buffer)) {
+      strcat(run_command_buffer, "], \"returnValue\": true, \"stage\": \"download\"}");
+      if (!LSMessageRespond(message, run_command_buffer, &lserror)) goto error;
+    }
+    else {
+      strcat(run_command_buffer, "]");
+      if (!report_command_failure(message, command, run_command_buffer+11, "\"stage\": \"failed\"")) goto end;
+      return true;
+    }
+  }
+
+  return read_file(message, filename, true);
+
+ error:
+  LSErrorPrint(&lserror, stderr);
+  LSErrorFree(&lserror);
+ end:
+  return false;
+}
+
+//
 // Remove the ran-first-use flag file, and return the output to webOS.
 //
 bool remove_first_use_flag_method(LSHandle* lshandle, LSMessage *message, void *ctx) {
-  return simple_command(lshandle, message, "/bin/rm -f /var/luna/preferences/ran-first-use 2>&1");
+  return simple_command(message, "/bin/rm -f /var/luna/preferences/ran-first-use 2>&1");
 }
 
 //
 // Restart Luna, and return the output to webOS.
 //
 bool restart_luna_method(LSHandle* lshandle, LSMessage *message, void *ctx) {
-  return simple_command(lshandle, message, "/usr/bin/killall -HUP LunaSysMgr 2>&1");
+  return simple_command(message, "/usr/bin/killall -HUP LunaSysMgr 2>&1");
 }
 
 LSMethod luna_methods[] = {
@@ -847,6 +1020,10 @@ LSMethod luna_methods[] = {
   { "listWebCookies",		listWebCookies_method },
 
   { "impersonate",		impersonate_method },
+
+  { "getDirListing",		get_dir_listing_method },
+
+  { "getFile",			get_file_method },
 
   { "removeFirstUseFlag",	remove_first_use_flag_method },
   { "restartLuna",		restart_luna_method },

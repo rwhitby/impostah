@@ -245,10 +245,9 @@ PalmProfileAssistant.prototype.palmProfileTap = function(event)
 PalmProfileAssistant.prototype.manageOverridesTap = function(event)
 {
 	if (this.palmProfile) {
-		var overrides = this.palmProfile;
-		delete overrides['_id']; delete overrides['_kind']; delete overrides['_rev'];
-		this.controller.stageController.pushScene("overrides", "Palm Profile Overrides",
-												  overrides,
+		var attributes = this.palmProfile;
+		delete attributes['_id']; delete attributes['_kind']; delete attributes['_rev'];
+		this.controller.stageController.pushScene("overrides", "Palm Profile Overrides", attributes,
 												  "org.webosinternals.impostah.palmprofile");
 	}
 };

@@ -9,6 +9,7 @@ function OverridesAssistant(label, attributes, id)
 	this.menuModel = {
 		visible: true,
 		items: [
+			{ label: $L("Load Overrides"), command: 'do-load' },
 			{ label: $L("Preferences"), command: 'do-prefs' },
 			{ label: $L("Help"), command: 'do-help' }
 		]
@@ -95,9 +96,11 @@ OverridesAssistant.prototype.setup = function()
 	
 	// make it so nothing is selected by default
 	this.controller.setInitialFocusedElement(null);
+};
 
+OverridesAssistant.prototype.activate = function()
+{
 	this.readOverrides();
-
 };
 
 OverridesAssistant.prototype.readOverrides = function()
@@ -140,10 +143,27 @@ OverridesAssistant.prototype.getOverrides = function(payload)
 	}
 
 	this.loadOverrides();
-}
+};
+
+OverridesAssistant.prototype.setOverrides = function(overrides)
+{
+	this.overrides = overrides;
+	this.saveOverrides();
+};
 
 OverridesAssistant.prototype.loadOverrides = function()
 {
+	var name = this.newNameModel.value;
+	if (name) {
+		if (name in this.overrides) {
+			this.newValueModel.value = this.overrides[name];
+		}
+		else {
+			this.newValueModel.value = this.attributes[name];
+		}
+		this.controller.modelChanged(this.newValueModel);
+	}
+
 	this.overridesModel.items = [];
 	this.overridesListElement.mojo.invalidateItems(0);
 
@@ -342,6 +362,10 @@ OverridesAssistant.prototype.handleCommand = function(event)
 {
 	if (event.type == Mojo.Event.command) {
 		switch (event.command) {
+		case 'do-load':
+		this.controller.stageController.pushScene('json-load',{'callback':this.setOverrides.bind(this)});
+		break;
+
 		case 'do-prefs':
 		this.controller.stageController.pushScene('preferences');
 		break;

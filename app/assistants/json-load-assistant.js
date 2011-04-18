@@ -2,6 +2,7 @@ function JsonLoadAssistant(params)
 {
 	this.launchFile = params.file;
 	this.id = params.id;
+	this.callback = params.callback;
 	
 	// setup menu
 	this.menuModel = {
@@ -146,10 +147,18 @@ JsonLoadAssistant.prototype.viewButtonPressed = function(event)
 	var url = this.fileElement.mojo.getValue();
 	var filename =	filePicker.getFileName(url);
 
-	this.subscription = ImpostahService.getFile(this.fileResponse.bindAsEventListener(this), url, filename);
+	this.subscription = ImpostahService.getFile(this.fileResponse.bindAsEventListener(this, false), url, filename);
 };
 
-JsonLoadAssistant.prototype.fileResponse = function(payload)
+JsonLoadAssistant.prototype.loadButtonPressed = function(event)
+{
+	var url = this.fileElement.mojo.getValue();
+	var filename = filePicker.getFileName(url);
+
+	this.subscription = ImpostahService.getFile(this.fileResponse.bindAsEventListener(this, true), url, filename);
+};
+
+JsonLoadAssistant.prototype.fileResponse = function(payload, doCallback)
 {
 	if (payload.returnValue == false) {
 		this.errorMessage('<b>Service Error (fileResponse):</b><br>'+payload.errorText);
@@ -178,17 +187,16 @@ JsonLoadAssistant.prototype.fileResponse = function(payload)
 					Mojo.Log.logException(e, 'fileResponse#parse: ' + this.rawData);
 				}
 			}
-			this.controller.stageController.pushScene("item", "JSON File", object);
 			this.viewButtonElement.mojo.deactivate();
+			if (doCallback && this.callback) {
+				this.callback(object);
+				this.controller.stageController.popScene();
+			}
+			else {
+				this.controller.stageController.pushScene("item", "JSON File", object);
+			}
 		}
 	}
-};
-
-JsonLoadAssistant.prototype.loadButtonPressed = function(event)
-{
-	var url = this.fileElement.mojo.getValue();
-	var filename = filePicker.getFileName(url);
-	// %%% Load the file here %%%
 };
 
 JsonLoadAssistant.prototype.errorMessage = function(msg)

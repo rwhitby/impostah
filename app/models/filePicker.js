@@ -11,7 +11,7 @@
  * 									   it will be passed either a file/folder based on type or false for a cancel
  * 									   this is the only required parameter
  * 
- * 		root: false,				//  whether or not to allow access to root
+ * 		root: false,				//  weather or not to allow access to root
  * 
  * 		folder: '/media/internal/',	// initial folder location, notice the trailing slash!
  * 
@@ -95,21 +95,44 @@ filePicker.prototype.parseDirectory = function(payload, dir, callback)
 	}
 	callback(returnArray);
 }
-filePicker.prototype.getDirectories = function(dir)
+filePicker.prototype.getDirectories = function(dir, callback)
+{
+	ImpostahService.getDirListing(this.parseDirectories.bindAsEventListener(this, dir, callback), dir);
+}
+filePicker.prototype.parseDirectories = function(payload, dir, callback)
 {
 	var returnArray = [];
-	var d = this.getDirectory(dir);
-	if (d.length > 0)
+	if (payload.contents.length > 0)
 	{
-		for (var f = 0; f < d.length; f++)
+		for (var c = 0; c < payload.contents.length; c++)
 		{
-			if (!d[f].name.match(filePicker.folderRegExp) && d[f].type == 'directory')
+			if (!payload.contents[c].name.match(filePicker.folderRegExp) && payload.contents[c].type == 'directory')
 			{
-				returnArray.push(d[f]);
+				returnArray.push({
+					name: payload.contents[c].name,
+					type: payload.contents[c].type,
+					location: dir + payload.contents[c].name
+				});
 			}
 		}
 	}
-	return returnArray;
+	if (returnArray.length > 0)
+	{
+		returnArray.sort(function(a, b)
+		{
+			if (a.name && b.name)
+			{
+				strA = a.name.toLowerCase();
+				strB = b.name.toLowerCase();
+				return ((strA < strB) ? -1 : ((strA > strB) ? 1 : 0));
+			}
+			else
+			{
+				return -1;
+			}
+		});
+	}
+	callback(returnArray, dir);
 }
 
 filePicker.prototype.ok = function(value)

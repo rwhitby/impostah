@@ -48,8 +48,25 @@ PreferencesAssistant.prototype.setup = function()
 			},
 			this.prefs
 		);
-		
+
 		this.controller.listen('theme', Mojo.Event.propertyChange, this.themeChanged.bindAsEventListener(this));
+
+		// Startup Group
+		this.controller.setupWidget
+		(
+			'resourceHandlerCheck',
+			{
+	  			trueLabel:  $L("Yes"),
+	 			falseLabel: $L("No"),
+	  			fieldName:  'resourceHandlerCheck'
+			},
+			{
+				value : this.prefs.resourceHandlerCheck,
+	 			disabled: false
+			}
+		);
+		
+		this.controller.listen('resourceHandlerCheck',    Mojo.Event.propertyChange, this.toggleChangeHandler);
 				
 	}
 	catch (e)

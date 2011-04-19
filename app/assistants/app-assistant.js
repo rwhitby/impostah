@@ -1,6 +1,15 @@
 var prefs = new preferenceCookie();
 var vers =  new versionCookie();
 
+// resource handler object
+var rh = new resourceHandler(
+{
+	extension:		'json',
+	mime:			'application/json',
+	addMessage:		'Impostah is not associated to open JSON data (.json files) from email or web.<br><br><b>Would you like to add Impostah to the association list for .json?</b>',
+	activeMessage:	'Impostah is not currently the default application for handling .json files.<br>Current Default: #{active}<br><br><b>Would you like to make Impostah the default application?</b>',
+});
+
 // stage names
 var mainStageName = 'impostah-main';
 var loadStageName = 'impostah-load';
@@ -31,14 +40,17 @@ AppAssistant.prototype.handleLaunch = function(params)
 			}
 		}
 		else if (params.target) {
-			var installStageController = this.controller.getStageController(installStageName);
-	        if (installStageController) {
-				installStageController.popScenesTo('json-load');
-				installStageController.delegateToSceneAssistant('updateText', params.target);
-				installStageController.activate();
+
+			if (params.target) params.file = params.target;
+
+			var loadStageController = this.controller.getStageController(loadStageName);
+	        if (loadStageController) {
+				loadStageController.popScenesTo('json-load');
+				loadStageController.delegateToSceneAssistant('updateText', params.file);
+				loadStageController.activate();
 			}
 			else {
-				this.controller.createStageWithCallback({name: installStageName, lightweight: true}, this.launchLoadScene.bindAsEventListener(this, params));
+				this.controller.createStageWithCallback({name: loadStageName, lightweight: true}, this.launchLoadScene.bindAsEventListener(this, params));
 			}
 		}
 	}

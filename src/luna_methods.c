@@ -1081,6 +1081,78 @@ bool restart_luna_method(LSHandle* lshandle, LSMessage *message, void *ctx) {
   return simple_command(message, "/usr/bin/killall -HUP LunaSysMgr 2>&1");
 }
 
+//
+// Handler for the addResourceHandler service.
+//
+bool addResource_handler(LSHandle* lshandle, LSMessage *reply, void *ctx) {
+  bool retVal;
+  LSError lserror;
+  LSErrorInit(&lserror);
+  LSMessage* message = (LSMessage*)ctx;
+  retVal = LSMessageRespond(message, LSMessageGetPayload(reply), &lserror);
+  LSMessageUnref(message);
+  if (!retVal) {
+    LSErrorPrint(&lserror, stderr);
+    LSErrorFree(&lserror);
+  }
+  return retVal;
+}
+
+//
+// Call the addResourceHandler service using liblunaservice and return the output to webOS.
+//
+bool addResource_method(LSHandle* lshandle, LSMessage *message, void *ctx) {
+  bool retVal;
+  LSError lserror;
+  LSErrorInit(&lserror);
+  LSMessageRef(message);
+  const char *payload;
+  payload = LSMessageGetPayload(message);
+  retVal = LSCall(priv_serviceHandle, "palm://com.palm.applicationManager/addResourceHandler",
+		  payload, addResource_handler, message, NULL, &lserror);
+  if (!retVal) {
+    LSErrorPrint(&lserror, stderr);
+    LSErrorFree(&lserror);
+  }
+  return retVal;
+}
+
+//
+// Handler for the swapResourceHandler service.
+//
+bool swapResource_handler(LSHandle* lshandle, LSMessage *reply, void *ctx) {
+  bool retVal;
+  LSError lserror;
+  LSErrorInit(&lserror);
+  LSMessage* message = (LSMessage*)ctx;
+  retVal = LSMessageRespond(message, LSMessageGetPayload(reply), &lserror);
+  LSMessageUnref(message);
+  if (!retVal) {
+    LSErrorPrint(&lserror, stderr);
+    LSErrorFree(&lserror);
+  }
+  return retVal;
+}
+
+//
+// Call the swapResourceHandler service using liblunaservice and return the output to webOS.
+//
+bool swapResource_method(LSHandle* lshandle, LSMessage *message, void *ctx) {
+  bool retVal;
+  LSError lserror;
+  LSErrorInit(&lserror);
+  LSMessageRef(message);
+  const char *payload;
+  payload = LSMessageGetPayload(message);
+  retVal = LSCall(priv_serviceHandle, "palm://com.palm.applicationManager/swapResourceHandler",
+		  payload, swapResource_handler, message, NULL, &lserror);
+  if (!retVal) {
+    LSErrorPrint(&lserror, stderr);
+    LSErrorFree(&lserror);
+  }
+  return retVal;
+}
+
 LSMethod luna_methods[] = {
   { "status",			dummy_method },
   { "version",			version_method },
@@ -1108,6 +1180,9 @@ LSMethod luna_methods[] = {
 
   { "removeFirstUseFlag",	remove_first_use_flag_method },
   { "restartLuna",		restart_luna_method },
+
+  { "addResource",		addResource_method },
+  { "swapResource",		swapResource_method },
 
   { 0, 0 }
 };

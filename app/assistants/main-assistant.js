@@ -27,7 +27,6 @@ function MainAssistant()
 	}
 				]
 	};
-	
 };
 
 MainAssistant.prototype.setup = function()
@@ -154,6 +153,16 @@ MainAssistant.prototype.setup = function()
     this.controller.setupWidget('mainList', {
 			itemTemplate: "main/rowTemplate", swipeToDelete: false, reorderable: false }, this.mainModel);
     this.controller.listen(this.listElement, Mojo.Event.listTap, this.listTapHandler);
+};
+
+MainAssistant.prototype.activate = function()
+{
+	if (!this.firstActivate) {
+		if (prefs.get().resourceHandlerCheck) {
+			rh.doIt(this);
+		}
+	}
+	this.firstActivate = true;
 };
 
 MainAssistant.prototype.listTap = function(event)

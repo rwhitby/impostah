@@ -16,6 +16,8 @@ preferenceCookie.prototype.get = function(reload)
 				// Global Group
 				theme: 'palm-default',
 				
+				// For Resource Handler Object
+				resourceHandlerCheck: true,
 				
 				// non-pref settings
 				lastDatabaseSet: '',

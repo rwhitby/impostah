@@ -59,6 +59,15 @@ function AppCatalogAssistant()
 		disabled: true
 	};
 
+	this.palmProfile = false;
+	this.deviceProfile = false;
+	this.appInfo = false;
+
+	this.requestPalmService = false;
+	this.requestWebService = false;
+
+	// %%% FIXME %%%
+	this.paymentServerUrl = "https://pmt.palmws.com/palmcspmtext/services/paymentJ/";
 };
 
 AppCatalogAssistant.prototype.setup = function()
@@ -129,54 +138,25 @@ AppCatalogAssistant.prototype.setup = function()
 	this.controller.listen(this.paymentInfoButton,  Mojo.Event.tap, this.paymentInfoTapHandler);
 	this.controller.setupWidget('billingCountriesButton', { }, this.billingCountriesButtonModel);
 	this.controller.listen(this.billingCountriesButton,  Mojo.Event.tap, this.billingCountriesTapHandler);
-	
-	// %%% FIXME %%%
-	this.paymentServerUrl = "https://pmt.palmws.com/palmcspmtext/services/paymentJ/";
-	this.palmProfile = false;
-	this.deviceProfile = false;
-	this.appInfo = false;
-
-	this.requestPalmProfile = ImpostahService.impersonate(this.getPalmProfileHandler,
-														  "com.palm.configurator",
-														  "com.palm.db",
-														  "get", {"ids":["com.palm.palmprofile.token"]});
-
-	this.updateSpinner();
 };
 
-AppCatalogAssistant.prototype.getPalmProfile = function(payload)
+AppCatalogAssistant.prototype.activate = function()
 {
-	if (this.requestPalmProfile) this.requestPalmProfile.cancel();
-	this.requestPalmProfile = false;
+	this.deviceProfile = false;
+
+	if (this.requestPalmService) this.requestPalmService.cancel();
+	this.requestPalmService = ImpostahService.impersonate(this.getDeviceProfileHandler,
+														  "com.palm.configurator",
+														  "com.palm.deviceprofile",
+														  "getDeviceProfile", {});
 
 	this.updateSpinner();
-
-	if (payload.returnValue === false) {
-		this.errorMessage('<b>Service Error (getPalmProfile):</b><br>'+payload.errorText);
-		this.palmProfile = false;
-		return;
-	}
-
-	this.palmProfile = payload.results[0];
-
-	if (this.palmProfile) {
-		this.palmProfileButtonModel.disabled = false;
-		this.controller.modelChanged(this.palmProfileButtonModel);
-	}
-
-	this.requestDeviceProfile = ImpostahService.impersonate(this.getDeviceProfileHandler,
-															"com.palm.configurator",
-															"com.palm.deviceprofile",
-															"getDeviceProfile", {});
-
-	this.updateSpinner();
-
 };
 
 AppCatalogAssistant.prototype.getDeviceProfile = function(payload)
 {
-	if (this.requestDeviceProfile) this.requestDeviceProfile.cancel();
-	this.requestDeviceProfile = false;
+	if (this.requestPalmService) this.requestPalmService.cancel();
+	this.requestPalmService = false;
 
 	this.updateSpinner();
 
@@ -199,6 +179,36 @@ AppCatalogAssistant.prototype.getDeviceProfile = function(payload)
 		this.controller.modelChanged(this.paymentInfoButtonModel);
 		this.billingCountriesButtonModel.disabled = false;
 		this.controller.modelChanged(this.billingCountriesButtonModel);
+	}
+
+	this.palmProfile = false;
+
+	this.requestPalmService = ImpostahService.impersonate(this.getPalmProfileHandler,
+														  "com.palm.configurator",
+														  "com.palm.db",
+														  "get", {"ids":["com.palm.palmprofile.token"]});
+
+	this.updateSpinner();
+
+};
+
+AppCatalogAssistant.prototype.getPalmProfile = function(payload)
+{
+	if (this.requestPalmService) this.requestPalmService.cancel();
+	this.requestPalmService = false;
+
+	this.updateSpinner();
+
+	if (payload.returnValue === false) {
+		this.errorMessage('<b>Service Error (getPalmProfile):</b><br>'+payload.errorText);
+		return;
+	}
+
+	this.palmProfile = payload.results[0];
+
+	if (this.palmProfile) {
+		this.palmProfileButtonModel.disabled = false;
+		this.controller.modelChanged(this.palmProfileButtonModel);
 	}
 };
 
@@ -281,10 +291,6 @@ AppCatalogAssistant.prototype.getAppInfoTap = function(event)
 
 	this.getAppInfoButtonModel.disabled = true;
 	this.controller.modelChanged(this.getAppInfoButtonModel);
-	this.showAppInfoButtonModel.disabled = true;
-	this.controller.modelChanged(this.showAppInfoButtonModel);
-	this.installAppButtonModel.disabled = true;
-	this.controller.modelChanged(this.installAppButtonModel);
 };
 
 AppCatalogAssistant.prototype.getAppInfo = function(payload)
@@ -311,13 +317,18 @@ AppCatalogAssistant.prototype.getAppInfo = function(payload)
 		this.installAppButtonModel.disabled = false;
 		this.controller.modelChanged(this.installAppButtonModel);
 	}
+	else {
+		this.errorMessage('<b>Application '+this.appIdInputFieldModel.value+' not found</b>');
+		this.getAppInfoButtonModel.disabled = true;
+		this.controller.modelChanged(this.getAppInfoButtonModel);
+	}
 
 };
 
 AppCatalogAssistant.prototype.showAppInfoTap = function(event)
 {
 	if (this.appInfo) {
-		this.controller.stageController.pushScene("item", "App Info", this.appInfo);
+		this.controller.stageController.pushScene("item", "Application Info", this.appInfo);
 	}
 };
 
@@ -325,7 +336,8 @@ AppCatalogAssistant.prototype.installAppTap = function(event)
 {
 	var callback = this.installAppHandler;
 
-	this.requestAppInstall = ImpostahService.impersonate(this.installAppHandler,
+	if (this.requestPalmService) this.requestPalmService.cancel();
+	this.requestPalmService = ImpostahService.impersonate(this.installAppHandler,
 														 "com.palm.app.swmanager",
 														 "com.palm.appInstallService",
 														 "install",{
@@ -355,8 +367,9 @@ AppCatalogAssistant.prototype.installApp = function(payload)
 	if (payload.returnValue === false) {
 		this.errorMessage('<b>Service Error (installApp):</b><br>'+payload.errorText);
 
-		this.requestAppInstall = false;
-		
+		if (this.requestPalmService) this.requestPalmService.cancel();
+		this.requestPalmService = false;
+
 		this.updateSpinner();
 
 		this.installAppButtonModel.disabled = false;
@@ -387,9 +400,10 @@ AppCatalogAssistant.prototype.installApp = function(payload)
 			break;
 		case 16: // "download failed"
 			status = "Package Download Failed";
-			if (this.requestAppInstall) this.requestAppInstall.cancel();
-			this.requestAppInstall = false;
+			if (this.requestPalmService) this.requestPalmService.cancel();
+			this.requestPalmService = false;
 			this.updateSpinner();
+			this.errorMessage('<b>Package Download Failed</b><br><br>Note that paid apps must be purchased before downloading.');
 			this.installAppButtonModel.disabled = false;
 			this.controller.modelChanged(this.installAppButtonModel);
 			break;
@@ -398,16 +412,16 @@ AppCatalogAssistant.prototype.installApp = function(payload)
 			break;
 		case 15: // "cancelled"
 			status = "Package Install Cancelled";
-			if (this.requestAppInstall) this.requestAppInstall.cancel();
-			this.requestAppInstall = false;
+			if (this.requestPalmService) this.requestPalmService.cancel();
+			this.requestPalmService = false;
 			this.updateSpinner();
 			this.installAppButtonModel.disabled = false;
 			this.controller.modelChanged(this.installAppButtonModel);
 			break;
 		case 11: // "installed"
 			status = "Package Installed";
-			if (this.requestAppInstall) this.requestAppInstall.cancel();
-			this.requestAppInstall = ImpostahService.impersonate(this.rescanAppHandler,
+			if (this.requestPalmService) this.requestPalmService.cancel();
+			this.requestPalmService = ImpostahService.impersonate(this.rescanAppHandler,
 																 "com.palm.app.swmanager",
 																 "com.palm.applicationManager",
 																 "rescan",{
@@ -420,8 +434,8 @@ AppCatalogAssistant.prototype.installApp = function(payload)
 					  ", progress: "+payload.details.progress+
 					  ", reason: "+payload.details.reason);
 			this.errorMessage('<b>Service Error (installApp):</b><br>'+status);
-			if (this.requestAppInstall) this.requestAppInstall.cancel();
-			this.requestAppInstall = false;
+			if (this.requestPalmService) this.requestPalmService.cancel();
+			this.requestPalmService = false;
 			this.updateSpinner();
 			this.installAppButtonModel.disabled = false;
 			this.controller.modelChanged(this.installAppButtonModel);
@@ -435,8 +449,9 @@ AppCatalogAssistant.prototype.installApp = function(payload)
 
 AppCatalogAssistant.prototype.rescanApp = function(payload)
 {
-	this.requestAppInstall = false;
-		
+	if (this.requestPalmService) this.requestPalmService.cancel();
+	this.requestPalmService = false;
+
 	this.updateSpinner();
 
 	this.installAppButtonModel.disabled = false;
@@ -778,7 +793,7 @@ AppCatalogAssistant.prototype.billingCountries = function(payload)
 
 AppCatalogAssistant.prototype.updateSpinner = function()
 {
-	if (this.requestDeviceProfile || this.requestPalmProfile || this.requestWebService || this.requestAppInstall)  {
+	if (this.requestPalmService || this.requestWebService)  {
 		this.iconElement.style.display = 'none';
 		this.spinnerModel.spinning = true;
 		this.controller.modelChanged(this.spinnerModel);

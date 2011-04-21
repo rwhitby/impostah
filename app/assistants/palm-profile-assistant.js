@@ -88,6 +88,15 @@ function PalmProfileAssistant()
 		label: $L("Create Device Account"),
 		disabled: true
 	};
+
+	this.deviceProfile = false;
+	this.palmProfile = false;
+
+	this.requestPalmService = false;
+	this.requestWebService = false;
+
+	// %%% FIXME %%%
+	this.accountServerUrl = "https://ps.palmws.com/palmcsext/services/deviceJ/";
 };
 
 PalmProfileAssistant.prototype.setup = function()
@@ -152,18 +161,12 @@ PalmProfileAssistant.prototype.setup = function()
 	this.controller.setupWidget('carrierSelector', { }, this.carrierSelectorModel);
 	this.controller.setupWidget('createDeviceAccountButton', { }, this.createDeviceAccountButtonModel);
 	this.controller.listen(this.createDeviceAccountButton, Mojo.Event.tap, this.createDeviceAccountTapHandler);
-	
-	// %%% FIXME %%%
-	this.accountServerUrl = "https://ps.palmws.com/palmcsext/services/deviceJ/";
-	this.deviceProfile = false;
-	this.palmProfile = false;
-
-	this.requestPalmService = false;
-	this.requestWebService = false;
 }
 
 PalmProfileAssistant.prototype.activate = function()
 {
+	this.deviceProfile = false;
+
 	if (this.requestPalmService) this.requestPalmService.cancel();
 	this.requestPalmService = ImpostahService.impersonate(this.getDeviceProfileHandler,
 														  "com.palm.configurator",
@@ -205,6 +208,8 @@ PalmProfileAssistant.prototype.getDeviceProfile = function(payload)
 		this.createDeviceAccountButtonModel.disabled = false;
 		this.controller.modelChanged(this.createDeviceAccountButtonModel);
 	}
+
+	this.palmProfile = false;
 
 	this.requestPalmService = ImpostahService.impersonate(this.getPalmProfileHandler,
 														  "com.palm.configurator",

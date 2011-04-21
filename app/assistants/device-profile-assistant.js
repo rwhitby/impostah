@@ -26,6 +26,9 @@ function DeviceProfileAssistant()
 		disabled: true
 	};
 
+	this.deviceProfile = false;
+
+	this.requestPalmService = false;
 };
 
 DeviceProfileAssistant.prototype.setup = function()
@@ -58,7 +61,8 @@ DeviceProfileAssistant.prototype.activate = function()
 {
 	this.deviceProfile = false;
 
-	this.requestDeviceProfile = ImpostahService.impersonate(this.getDeviceProfileHandler,
+	if (this.requestPalmService) this.requestPalmService.cancel();
+	this.requestPalmService = ImpostahService.impersonate(this.getDeviceProfileHandler,
 															"com.palm.configurator",
 															"com.palm.deviceprofile",
 															"getDeviceProfile", {});
@@ -69,8 +73,8 @@ DeviceProfileAssistant.prototype.activate = function()
 
 DeviceProfileAssistant.prototype.getDeviceProfile = function(payload)
 {
-	if (this.requestDeviceProfile) this.requestDeviceProfile.cancel();
-	this.requestDeviceProfile = false;
+	if (this.requestPalmService) this.requestPalmService.cancel();
+	this.requestPalmService = false;
 
 	this.updateSpinner();
 
@@ -107,7 +111,7 @@ DeviceProfileAssistant.prototype.manageOverridesTap = function(event)
 
 DeviceProfileAssistant.prototype.updateSpinner = function()
 {
-	if (this.requestDeviceProfile) {
+	if (this.requestPalmService) {
 		this.iconElement.style.display = 'none';
 		this.spinnerModel.spinning = true;
 		this.controller.modelChanged(this.spinnerModel);

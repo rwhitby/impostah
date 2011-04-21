@@ -15,10 +15,7 @@
       "object": "org.webosinternals.impostah:1",
       "caller": "com.palm.deviceprofile",
       "operations": {
-          "create": "deny",
-          "read": "allow",
-          "update": "deny",
-          "delete": "deny"
+          "read": "allow"
       }
   }
 ]

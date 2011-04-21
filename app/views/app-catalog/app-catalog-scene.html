@@ -10,21 +10,11 @@
     </div>
   </div>
 	
-  <div x-mojo-element="Button" id="palmProfileButton"></div>
-	
-  <div x-mojo-element="Button" id="paidAppsButton"></div>
-	
-  <div x-mojo-element="Button" id="accessCountryButton"></div>
-	
-  <div x-mojo-element="Button" id="paymentInfoButton"></div>
-	
-  <div x-mojo-element="Button" id="billingCountriesButton"></div>
-	
   <div class="palm-group">
-    <div class="palm-group-title" id="appid-title">Application ID</div>
+    <div class="palm-group-title" id="app-install-title">Application Installation</div>
     <div class="palm-list">
 			
-      <div class="palm-row single">
+      <div class="palm-row first">
 	<div class="palm-row-wrapper textfield-group" x-mojo-focus-highlight="true">
 	  <div class="title">
 	    <div id="appIdInputField" x-mojo-element="TextField"></div>
@@ -32,12 +22,68 @@
 	</div>
       </div>
       
+      <div class="palm-row">
+	<div class="palm-row-wrapper">
+	  <div x-mojo-element="Button" id="getAppInfoButton"></div>
+	</div>
+      </div>
+      
+      <div class="palm-row">
+	<div class="palm-row-wrapper">
+	  <div x-mojo-element="Button" id="showAppInfoButton"></div>
+	</div>
+      </div>
+      
+      <div class="palm-row">
+	<div class="palm-row-wrapper">
+	  <div x-mojo-element="Button" id="installAppButton"></div>
+	</div>
+      </div>
+	
+      <div class="palm-row last">
+	<div class="palm-row-wrapper">
+	  <div x-mojo-element="Label" id="installStatus"></div>
+	</div>
+      </div>
+	
     </div>
   </div>
 	
-  <div x-mojo-element="Button" id="getAppInfoButton"></div>
+  <div class="palm-group">
+    <div class="palm-group-title" id="profile-info-title">Profile Information</div>
+    <div class="palm-list">
+			
+      <div class="palm-row first">
+	<div class="palm-row-wrapper">
+	  <div x-mojo-element="Button" id="palmProfileButton"></div>
+	</div>
+      </div>
 	
-  <div x-mojo-element="Button" id="installAppButton"></div>
+      <div class="palm-row">
+	<div class="palm-row-wrapper">
+	  <div x-mojo-element="Button" id="paidAppsButton"></div>
+	</div>
+      </div>
+	
+      <div class="palm-row">
+	<div class="palm-row-wrapper">
+	  <div x-mojo-element="Button" id="accessCountryButton"></div>
+	</div>
+      </div>
+	
+      <div class="palm-row">
+	<div class="palm-row-wrapper">
+	  <div x-mojo-element="Button" id="paymentInfoButton"></div>
+	</div>
+      </div>
+	
+      <div class="palm-row last">
+	<div class="palm-row-wrapper">
+	  <div x-mojo-element="Button" id="billingCountriesButton"></div>
+	</div>
+      </div>
+    </div>
+  </div>
 	
   <div class="scene-fade-bottom" x-mojo-scroll-fade="bottom"></div>
 	

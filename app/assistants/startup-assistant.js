@@ -11,6 +11,7 @@ function StartupAssistant(changelog)
     this.newMessages =
 	[
 	 // Don't forget the comma on all but the last entry
+	 { version: '0.7.0', log: [ 'Added the ability to install free (not paid) geo-restricted apps' ] },
 	 { version: '0.6.2', log: [ 'Added load and save for JSON overrides files' ] },
 	 { version: '0.6.1', log: [ 'Refresh the device profile when exiting the overrides scene',
 								'Improved the overrides user interface' ] },

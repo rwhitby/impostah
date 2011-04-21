@@ -158,52 +158,25 @@ PalmProfileAssistant.prototype.setup = function()
 	this.deviceProfile = false;
 	this.palmProfile = false;
 
-	this.requestPalmProfile = ImpostahService.impersonate(this.getPalmProfileHandler,
-														  "com.palm.configurator",
-														  "com.palm.db",
-														  "get", {"ids":["com.palm.palmprofile.token"]});
+	this.requestPalmService = false;
+	this.requestWebService = false;
+}
 
-	this.updateSpinner();
-};
-
-PalmProfileAssistant.prototype.getPalmProfile = function(payload)
+PalmProfileAssistant.prototype.activate = function()
 {
-	if (this.requestPalmProfile) this.requestPalmProfile.cancel();
-	this.requestPalmProfile = false;
-
-	this.updateSpinner();
-
-	if (payload.returnValue === false) {
-		this.errorMessage('<b>Service Error (getPalmProfile):</b><br>'+payload.errorText);
-		return;
-	}
-
-	this.palmProfile = payload.results[0];
-
-	if (this.palmProfile) {
-		this.palmProfileButtonModel.disabled = false;
-		this.controller.modelChanged(this.palmProfileButtonModel);
-		this.manageOverridesButtonModel.disabled = false;
-		this.controller.modelChanged(this.manageOverridesButtonModel);
-		this.resetPalmProfileButtonModel.disabled = false;
-		this.controller.modelChanged(this.resetPalmProfileButtonModel);
-		this.emailInputFieldModel.disabled = false;
-		this.emailInputFieldModel.value = this.palmProfile.alias;
-		this.controller.modelChanged(this.emailInputFieldModel);
-	}
-
-	this.requestDeviceProfile = ImpostahService.impersonate(this.getDeviceProfileHandler,
-															"com.palm.configurator",
-															"com.palm.deviceprofile",
-															"getDeviceProfile", {});
+	if (this.requestPalmService) this.requestPalmService.cancel();
+	this.requestPalmService = ImpostahService.impersonate(this.getDeviceProfileHandler,
+														  "com.palm.configurator",
+														  "com.palm.deviceprofile",
+														  "getDeviceProfile", {});
 
 	this.updateSpinner();
 };
 
 PalmProfileAssistant.prototype.getDeviceProfile = function(payload)
 {
-	if (this.requestDeviceProfile) this.requestDeviceProfile.cancel();
-	this.requestDeviceProfile = false;
+	if (this.requestPalmService) this.requestPalmService.cancel();
+	this.requestPalmService = false;
 
 	this.updateSpinner();
 
@@ -233,6 +206,40 @@ PalmProfileAssistant.prototype.getDeviceProfile = function(payload)
 		this.controller.modelChanged(this.createDeviceAccountButtonModel);
 	}
 
+	this.requestPalmService = ImpostahService.impersonate(this.getPalmProfileHandler,
+														  "com.palm.configurator",
+														  "com.palm.db",
+														  "get", {"ids":["com.palm.palmprofile.token"]});
+
+	this.updateSpinner();
+
+};
+
+PalmProfileAssistant.prototype.getPalmProfile = function(payload)
+{
+	if (this.requestPalmService) this.requestPalmService.cancel();
+	this.requestPalmService = false;
+
+	this.updateSpinner();
+
+	if (payload.returnValue === false) {
+		this.errorMessage('<b>Service Error (getPalmProfile):</b><br>'+payload.errorText);
+		return;
+	}
+
+	this.palmProfile = payload.results[0];
+
+	if (this.palmProfile) {
+		this.palmProfileButtonModel.disabled = false;
+		this.controller.modelChanged(this.palmProfileButtonModel);
+		this.manageOverridesButtonModel.disabled = false;
+		this.controller.modelChanged(this.manageOverridesButtonModel);
+		this.resetPalmProfileButtonModel.disabled = false;
+		this.controller.modelChanged(this.resetPalmProfileButtonModel);
+		this.emailInputFieldModel.disabled = false;
+		this.emailInputFieldModel.value = this.palmProfile.alias;
+		this.controller.modelChanged(this.emailInputFieldModel);
+	}
 };
 
 PalmProfileAssistant.prototype.palmProfileTap = function(event)
@@ -269,8 +276,8 @@ PalmProfileAssistant.prototype.resetPalmProfileAck = function(value)
 
 	this.palmProfile = false;
 
-	if (this.requestPalmProfile) this.requestPalmProfile.cancel();
-	this.requestPalmProfile = ImpostahService.impersonate(this.palmProfileDeletedHandler,
+	if (this.requestPalmService) this.requestPalmService.cancel();
+	this.requestPalmService = ImpostahService.impersonate(this.palmProfileDeletedHandler,
 														  "com.palm.configurator",
 														  "com.palm.db",
 														  "del", {"ids":["com.palm.palmprofile.token"], "purge":true});
@@ -286,8 +293,8 @@ PalmProfileAssistant.prototype.resetPalmProfileAck = function(value)
 
 PalmProfileAssistant.prototype.palmProfileDeleted = function(payload)
 {
-	if (this.requestPalmProfile) this.requestPalmProfile.cancel();
-	this.requestPalmProfile = false;
+	if (this.requestPalmService) this.requestPalmService.cancel();
+	this.requestPalmService = false;
 
 	this.updateSpinner();
 
@@ -310,15 +317,15 @@ PalmProfileAssistant.prototype.palmProfileDeleted = function(payload)
 
 PalmProfileAssistant.prototype.palmProfileDeletionAck = function(value)
 {
-	if (this.requestPalmProfile) this.requestPalmProfile.cancel();
+	if (this.requestPalmService) this.requestPalmService.cancel();
 	if (value != "ok") {
-		this.requestPalmProfile = ImpostahService.impersonate(this.getPalmProfileHandler,
+		this.requestPalmService = ImpostahService.impersonate(this.getPalmProfileHandler,
 															  "com.palm.configurator",
 															  "com.palm.db",
 															  "get", {"ids":["com.palm.palmprofile.token"]});
 	}
 	else {
-		this.requestPalmProfile = ImpostahService.removeFirstUseFlag(this.palmProfileDeletionDoneHandler);
+		this.requestPalmService = ImpostahService.removeFirstUseFlag(this.palmProfileDeletionDoneHandler);
 	}
 
 	this.updateSpinner();
@@ -326,8 +333,8 @@ PalmProfileAssistant.prototype.palmProfileDeletionAck = function(value)
 
 PalmProfileAssistant.prototype.palmProfileDeletionDone = function(payload)
 {
-	if (this.requestPalmProfile) this.requestPalmProfile.cancel();
-	this.requestPalmProfile = false;
+	if (this.requestPalmService) this.requestPalmService.cancel();
+	this.requestPalmService = false;
 
 	this.updateSpinner();
 
@@ -336,7 +343,7 @@ PalmProfileAssistant.prototype.palmProfileDeletionDone = function(payload)
 		return;
 	}
 
-	this.requestPalmProfile = ImpostahService.restartLuna();
+	this.requestPalmService = ImpostahService.restartLuna();
 };
 
 PalmProfileAssistant.prototype.deviceInUseTap = function(event)
@@ -534,7 +541,7 @@ PalmProfileAssistant.prototype.authenticateFromDevice = function(payload)
 		var info = payload.response.AuthenticateInfoEx;
 
 		if (this.palmProfile) {
-			this.requestDb8 = ImpostahService.impersonate(this.authenticationUpdateHandler,
+			this.requestPalmService = ImpostahService.impersonate(this.authenticationUpdateHandler,
 														  "com.palm.configurator", "com.palm.db",
 														  "merge", {
 															  "objects" : [
@@ -546,7 +553,7 @@ PalmProfileAssistant.prototype.authenticateFromDevice = function(payload)
 														  });
 		}
 		else {
-			this.requestDb8 = ImpostahService.impersonate(this.authenticationUpdateHandler,
+			this.requestPalmService = ImpostahService.impersonate(this.authenticationUpdateHandler,
 														  "com.palm.configurator", "com.palm.db",
 														  "put", {
 															  "objects" : [
@@ -570,8 +577,8 @@ PalmProfileAssistant.prototype.authenticateFromDevice = function(payload)
 
 PalmProfileAssistant.prototype.authenticationUpdate = function(payload)
 {
-	if (this.requestDb8) this.requestDb8.cancel();
-	this.requestDb8 = false;
+	if (this.requestPalmService) this.requestPalmService.cancel();
+	this.requestPalmService = false;
 
 	this.updateSpinner();
 
@@ -585,7 +592,7 @@ PalmProfileAssistant.prototype.authenticationUpdate = function(payload)
 
 	this.controller.stageController.pushScene("item", "Authentication Update", payload);
 
-	this.requestPalmProfile = ImpostahService.impersonate(this.getPalmProfileHandler,
+	this.requestPalmService = ImpostahService.impersonate(this.getPalmProfileHandler,
 														  "com.palm.configurator",
 														  "com.palm.db",
 														  "get", {"ids":["com.palm.palmprofile.token"]});
@@ -714,7 +721,7 @@ PalmProfileAssistant.prototype.createDeviceAccount = function(payload)
 		var info = payload.response.AuthenticateInfoEx;
 
 		if (this.palmProfile) {
-			this.requestDb8 = ImpostahService.impersonate(this.authenticationUpdateHandler,
+			this.requestPalmService = ImpostahService.impersonate(this.authenticationUpdateHandler,
 														  "com.palm.configurator", "com.palm.db",
 														  "merge", {
 															  "objects" : [
@@ -726,7 +733,7 @@ PalmProfileAssistant.prototype.createDeviceAccount = function(payload)
 														  });
 		}
 		else {
-			this.requestDb8 = ImpostahService.impersonate(this.authenticationUpdateHandler,
+			this.requestPalmService = ImpostahService.impersonate(this.authenticationUpdateHandler,
 														  "com.palm.configurator", "com.palm.db",
 														  "put", {
 															  "objects" : [
@@ -750,8 +757,8 @@ PalmProfileAssistant.prototype.createDeviceAccount = function(payload)
 
 PalmProfileAssistant.prototype.profileCreation = function(payload)
 {
-	if (this.requestDb8) this.requestDb8.cancel();
-	this.requestDb8 = false;
+	if (this.requestPalmService) this.requestPalmService.cancel();
+	this.requestPalmService = false;
 
 	this.updateSpinner();
 
@@ -765,7 +772,7 @@ PalmProfileAssistant.prototype.profileCreation = function(payload)
 
 	this.controller.stageController.pushScene("item", "Profile Creation", payload);
 
-	this.requestPalmProfile = ImpostahService.impersonate(this.getPalmProfileHandler,
+	this.requestPalmService = ImpostahService.impersonate(this.getPalmProfileHandler,
 														  "com.palm.configurator",
 														  "com.palm.db",
 														  "get", {"ids":["com.palm.palmprofile.token"]});
@@ -773,7 +780,7 @@ PalmProfileAssistant.prototype.profileCreation = function(payload)
 
 PalmProfileAssistant.prototype.updateSpinner = function()
 {
-	if (this.requestDeviceProfile || this.requestPalmProfile || this.requestWebService || this.requestDb8)  {
+	if (this.requestPalmService || this.requestWebService)  {
 		this.iconElement.style.display = 'none';
 		this.spinnerModel.spinning = true;
 		this.controller.modelChanged(this.spinnerModel);
@@ -782,13 +789,6 @@ PalmProfileAssistant.prototype.updateSpinner = function()
 		this.iconElement.style.display = 'inline';
 		this.spinnerModel.spinning = false;
 		this.controller.modelChanged(this.spinnerModel);
-	}
-};
-
-PalmProfileAssistant.prototype.updateButtons = function()
-{
-
-	if (!this.requestPalmProfile && this.deviceProfile) {
 	}
 };
 

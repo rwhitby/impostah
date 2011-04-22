@@ -375,29 +375,29 @@ ActivationAssistant.prototype.authenticateFromDeviceAck = function(value)
 			"device": {
 				"serialNumber": this.deviceProfile.serialNumber,
 				"carrier": this.deviceProfile.carrier,
-				// "dataNetwork": this.deviceProfile.dataNetwork,
+				"dataNetwork": this.deviceProfile.dataNetwork,
 				"deviceID": this.deviceProfile.deviceId,
-				// "phoneNumber": this.deviceProfile.phoneNumber,
+				"phoneNumber": this.deviceProfile.phoneNumber,
 				"nduID": this.deviceProfile.nduId,
 				"deviceModel": this.deviceProfile.deviceModel,
-				// "firmwareVersion": this.deviceProfile.firmwareVersion,
+				"firmwareVersion": this.deviceProfile.firmwareVersion,
 				"network": this.deviceProfile.network,
 				"platform": this.deviceProfile.platform,
-				// "homeMcc": this.deviceProfile.homeMcc,
-				// "homeMnc": this.deviceProfile.homeMnc,
-				// "currentMcc": this.deviceProfile.currentMcc,
-				// "currentMnc": this.deviceProfile.currentMnc
+				"homeMcc": this.deviceProfile.homeMcc,
+				"homeMnc": this.deviceProfile.homeMnc,
+				"currentMcc": this.deviceProfile.currentMcc,
+				"currentMnc": this.deviceProfile.currentMnc
 			},
 			"romToken": {
 				"buildVariant": this.deviceProfile.dmSets,
-				// "serverAuthType": this.deviceProfile.serverAuthType,
+				"serverAuthType": this.deviceProfile.serverAuthType,
 				"serverPwd": this.deviceProfile.serverPwd,
 				"serverNonce": this.deviceProfile.serverNonce,
 				"clientCredential": this.deviceProfile.clientCredential,
 				"clientPwd": this.deviceProfile.clientPwd,
 				"clientNonce": this.deviceProfile.clientNonce,
-				// "softwareBuildBranch": this.deviceProfile.softwareBuildBranch,
-				// "swUpdateTarget": this.deviceProfile.swUpdateTarget,
+				"softwareBuildBranch": this.deviceProfile.softwareBuildBranch,
+				"swUpdateTarget": this.deviceProfile.swUpdateTarget,
 				"softwareBuildNumber": this.deviceProfile.softwareVersion
 			}
 		}

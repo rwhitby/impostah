@@ -99,6 +99,10 @@ DeviceProfileAssistant.prototype.manageOverridesTap = function(event)
 {
 	if (this.deviceProfile) {
 		var attributes = this.deviceProfile;
+		if (!attributes["homeMcc"]) attributes["homeMcc"] = '';
+		if (!attributes["homeMnc"]) attributes["homeMnc"] = '';
+		if (!attributes["currentMcc"]) attributes["currentMcc"] = '';
+		if (!attributes["currentMnc"]) attributes["currentMnc"] = '';
 		this.controller.stageController.pushScene("overrides", "Device Profile Overrides", attributes,
 												  "org.webosinternals.impostah.deviceprofile",
 												  this.dirtyDeviceProfile.bind(this));

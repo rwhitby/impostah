@@ -21,6 +21,11 @@ function ActivationAssistant()
 		disabled: true
 	};
 
+	this.emailAvailableButtonModel = {
+		label: $L("Check Email Available"),
+		disabled: true
+	};
+
 	this.deviceInUseButtonModel = {
 		label: $L("Check Device In Use"),
 		disabled: true
@@ -81,6 +86,7 @@ function ActivationAssistant()
 	this.requestWebService = false;
 
 	// %%% FIXME %%%
+	this.locationServerUrl = "https://lcn.palmws.com/location-dir/getdomain/";
 	this.accountServerUrl = "https://ps.palmws.com/palmcsext/services/deviceJ/";
 };
 
@@ -94,6 +100,7 @@ ActivationAssistant.prototype.setup = function()
 	this.iconElement.style.display = 'none';
 	this.spinnerElement = 		this.controller.get('spinner');
 	this.emailInputField = this.controller.get('emailInputField');
+	this.emailAvailableButton = this.controller.get('emailAvailableButton');
 	this.deviceInUseButton = this.controller.get('deviceInUseButton');
 	this.passwordInputField = this.controller.get('passwordInputField');
 	this.authenticateFromDeviceButton = this.controller.get('authenticateFromDeviceButton');
@@ -102,6 +109,8 @@ ActivationAssistant.prototype.setup = function()
 	this.createDeviceAccountButton = this.controller.get('createDeviceAccountButton');
 	
 	// setup handlers
+	this.emailAvailableTapHandler = this.emailAvailableTap.bindAsEventListener(this);
+	this.emailAvailableHandler =	this.emailAvailable.bindAsEventListener(this);
 	this.deviceInUseTapHandler = this.deviceInUseTap.bindAsEventListener(this);
 	this.deviceInUseHandler =	this.deviceInUse.bindAsEventListener(this);
 	this.authenticateFromDeviceTapHandler = this.authenticateFromDeviceTap.bindAsEventListener(this);
@@ -118,6 +127,8 @@ ActivationAssistant.prototype.setup = function()
 	this.controller.setupWidget('spinner', {spinnerSize: 'small'}, this.spinnerModel);
 	this.controller.setupWidget('emailInputField', { 'textCase':Mojo.Widget.steModeLowerCase },
 								this.emailInputFieldModel);
+	this.controller.setupWidget('emailAvailableButton', { }, this.emailAvailableButtonModel);
+	this.controller.listen(this.emailAvailableButton, Mojo.Event.tap, this.emailAvailableTapHandler);
 	this.controller.setupWidget('deviceInUseButton', { }, this.deviceInUseButtonModel);
 	this.controller.listen(this.deviceInUseButton, Mojo.Event.tap, this.deviceInUseTapHandler);
 	this.controller.setupWidget('passwordInputField', { 'textCase':Mojo.Widget.steModeLowerCase },
@@ -151,6 +162,8 @@ ActivationAssistant.prototype.getDeviceProfile = function(returnValue, devicePro
 	if (this.deviceProfile) {
 		this.emailInputFieldModel.disabled = false;
 		this.controller.modelChanged(this.emailInputFieldModel);
+		this.emailAvailableButtonModel.disabled = false;
+		this.controller.modelChanged(this.emailAvailableButtonModel);
 		this.deviceInUseButtonModel.disabled = false;
 		this.controller.modelChanged(this.deviceInUseButtonModel);
 		this.passwordInputFieldModel.disabled = false;
@@ -187,6 +200,75 @@ ActivationAssistant.prototype.getPalmProfile = function(returnValue, palmProfile
 		this.emailInputFieldModel.disabled = false;
 		this.emailInputFieldModel.value = this.palmProfile.alias;
 		this.controller.modelChanged(this.emailInputFieldModel);
+	}
+};
+
+ActivationAssistant.prototype.emailAvailableTap = function(event)
+{
+	var callback = this.emailAvailableHandler;
+
+	var url = this.locationServerUrl+"?email="+encodeURIComponent(this.emailInputFieldModel.value);
+
+	Mojo.Log.warn("request %j", url);
+
+	this.requestWebService = new Ajax.Request(url, {
+			method: 'POST',
+			contentType: 'application/json',
+			evalJSON: 'force',
+			onSuccess: function(response) {
+				response = response.responseJSON;
+				Mojo.Log.warn("onSuccess %j", response);
+				if (!response) {
+					callback({"returnValue":true}); // Empty replies are okay
+				}
+				else {
+					var exception = response.JSONException;
+					if (exception) {
+						Mojo.Log.error("CatalogServer._callServer %j", exception);
+						callback({"returnValue":false, "errorText":Object.toJSON(exception)});
+					}
+					else {
+						callback({"returnValue":true, "response":response});
+					}
+				}
+			},
+			onFailure: function(response) {
+				Mojo.Log.warn("onFailure %j", response);
+				if (response.responseJSON && response.responseJSON.JSONException) {
+					callback({"returnValue":false, "errorText":Object.toJSON(response.responseJSON.JSONException)});
+				}
+				else {
+					callback({"returnValue":false, "errorText":response.status});
+				}
+			},
+			on0: function(response) {
+				Mojo.Log.warn("on0 %j", response);
+				callback({"returnValue":false, "errorText":response.status});
+			}
+	});
+
+	this.updateSpinner(true);
+
+	this.emailAvailableButtonModel.disabled = true;
+	this.controller.modelChanged(this.emailAvailableButtonModel);
+};
+
+ActivationAssistant.prototype.emailAvailable = function(payload)
+{
+	this.requestWebService = false;
+
+	this.updateSpinner(false);
+
+	this.emailAvailableButtonModel.disabled = false;
+	this.controller.modelChanged(this.emailAvailableButtonModel);
+
+	if (payload.returnValue === false) {
+		this.errorMessage('<b>Service Error (emailAvailable):</b><br>'+payload.errorText);
+		return;
+	}
+
+	if (payload.response.getdomain) {
+		this.controller.stageController.pushScene("item", "Email Available", payload.response.getdomain);
 	}
 };
 
@@ -662,6 +744,8 @@ ActivationAssistant.prototype.handleCommand = function(event)
 
 ActivationAssistant.prototype.cleanup = function(event)
 {
+	this.controller.stopListening(this.emailAvailableButton,  Mojo.Event.tap,
+								  this.emailAvailableTapHandler);
 	this.controller.stopListening(this.deviceInUseButton,  Mojo.Event.tap,
 								  this.deviceInUseTapHandler);
 	this.controller.stopListening(this.authenticateFromDeviceButton,  Mojo.Event.tap,

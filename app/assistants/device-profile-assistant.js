@@ -59,16 +59,12 @@ DeviceProfileAssistant.prototype.setup = function()
 
 DeviceProfileAssistant.prototype.activate = function()
 {
-	this.deviceProfile = false;
-
 	if (this.requestPalmService) this.requestPalmService.cancel();
 	this.requestPalmService = ImpostahService.impersonate(this.getDeviceProfileHandler,
-															"com.palm.configurator",
-															"com.palm.deviceprofile",
-															"getDeviceProfile", {});
-
+														  "com.palm.configurator",
+														  "com.palm.deviceprofile",
+														  "getDeviceProfile", {});
 	this.updateSpinner();
-
 };
 
 DeviceProfileAssistant.prototype.getDeviceProfile = function(payload)

@@ -60,6 +60,12 @@ MainAssistant.prototype.setup = function()
 				});
 
     this.mainModel.items.push({
+			name:     $L('Activation'),
+				scene:   'activation',
+				disabled: (Mojo.Environment.DeviceInfo.platformVersionMajor == 1)
+				});
+
+    this.mainModel.items.push({
 			name:     $L('Palm Profile'),
 				scene:   'palm-profile',
 				disabled: (Mojo.Environment.DeviceInfo.platformVersionMajor == 1)
@@ -78,8 +84,8 @@ MainAssistant.prototype.setup = function()
 				});
 
     this.mainModel.items.push({
-			name:     $L('Applications'),
-				scene:   'application-explore',
+			name:     $L('Accounts'),
+				scene:   'account-explore',
 				disabled: (Mojo.Environment.DeviceInfo.platformVersionMajor == 1)
 				});
 
@@ -88,15 +94,15 @@ MainAssistant.prototype.setup = function()
 				scene:   'database-explore',
 				disabled: (Mojo.Environment.DeviceInfo.platformVersionMajor == 1)
 				});
-
-    this.mainModel.items.push({
-			name:     $L('Accounts'),
-				scene:   'account-explore',
-				disabled: (Mojo.Environment.DeviceInfo.platformVersionMajor == 1)
-				});
     this.mainModel.items.push({
 			name:     $L('Permissions'),
 				scene:   'permission-explore',
+				disabled: (Mojo.Environment.DeviceInfo.platformVersionMajor == 1)
+				});
+
+    this.mainModel.items.push({
+			name:     $L('Applications'),
+				scene:   'application-explore',
 				disabled: (Mojo.Environment.DeviceInfo.platformVersionMajor == 1)
 				});
 
@@ -125,6 +131,7 @@ MainAssistant.prototype.setup = function()
 				scene:   'keystore-explore',
 				disabled: (Mojo.Environment.DeviceInfo.platformVersionMajor == 1)
 				});
+
     this.mainModel.items.push({
 			name:     $L('Web Cookies'),
 				scene:   'web-cookie-explore',
@@ -135,6 +142,7 @@ MainAssistant.prototype.setup = function()
 				scene:   'backup-explore',
 				disabled: (Mojo.Environment.DeviceInfo.platformVersionMajor == 1)
 				});
+
     this.mainModel.items.push({
 			name:     $L('File Cache'),
 				scene:   'filecache-explore',

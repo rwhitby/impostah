@@ -36,12 +36,16 @@
         "source": "app/assistants/help-assistant.js"
     },
     {
-        "scenes": "palm-profile",
-        "source": "app/assistants/palm-profile-assistant.js"
-    },
-    {
         "scenes": "device-profile",
         "source": "app/assistants/device-profile-assistant.js"
+    },
+    {
+        "scenes": "activation",
+        "source": "app/assistants/activation-assistant.js"
+    },
+    {
+        "scenes": "palm-profile",
+        "source": "app/assistants/palm-profile-assistant.js"
     },
     {
         "scenes": "app-catalog",

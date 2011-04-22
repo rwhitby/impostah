@@ -44,6 +44,12 @@ function BackupsAssistant()
 	this.requestWebService = false;
 
 	// %%% FIXME %%%
+	// palm://com.palm.accountservices/getServerUrl '{}'
+	// {"serverUrl":"https://ps.palmws.com/palmcsext/services/deviceJ/","returnValue":true}
+	this.accountServerUrl = "https://ps.palmws.com/palmcsext/services/deviceJ/";
+	// https://ps.palmws.com/palmcsext/services/deviceJ/getPreferences
+	// {"InPreferences":{"preferenceKey":"APPLICATIONS, BKUP2_SRV","category":""}}
+	// {"OutParameterInfo":{"parameterInfos":[{"category":"SETTINGS","key":"METADATA_URL","value":"https://brm.palmws.com/backupmeta"},{"category":"SETTINGS","key":"STORAGE_AUTH_URL","value":"https://sta.palmws.com/storageauth"},{"category":"SETTINGS","key":"STORAGE_URL","value":"https://backup.st.palmws.com/storage"}],"size":3}}
 	this.authServerUrl = "https://sta.palmws.com/storageauth/";
 };
 

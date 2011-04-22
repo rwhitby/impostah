@@ -67,6 +67,12 @@ function AppCatalogAssistant()
 	this.requestWebService = false;
 
 	// %%% FIXME %%%
+	// palm://com.palm.accountservices/getServerUrl '{}'
+	// {"serverUrl":"https://ps.palmws.com/palmcsext/services/deviceJ/","returnValue":true}
+	this.accountServerUrl = "https://ps.palmws.com/palmcsext/services/deviceJ/";
+	// https://ps.palmws.com/palmcsext/services/deviceJ/getPreferences
+	// {"InPreferences":{"preferenceKey":"APPLICATIONS, PAYMENT","category":""}}
+	// {"OutParameterInfo":{"parameterInfos":{"category":"SETTINGS","key":"PAYMENT_URL","value":"https://pmt.palmws.com/palmcspmtext/services/paymentJ/"},"size":1}}
 	this.paymentServerUrl = "https://pmt.palmws.com/palmcspmtext/services/paymentJ/";
 };
 

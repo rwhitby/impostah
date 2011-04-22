@@ -68,10 +68,41 @@ function ActivationAssistant()
 		disabled: true,
 		choices: [
 	{label:"AT&T", value:'ATT'},
+	{label:"Bell", value:'Bell'},
 	{label:"Global", value:'ROW'},
 	{label:"Sprint", value:'Sprint'},
 	{label:"Verizon", value:'Verizon'},
 				  ]
+	};
+
+	this.languageSelectorModel = {
+		label: $L("Language"),
+		disabled: true,
+		choices: [
+	{label:"German", value:'de'},
+	{label:"English", value:'en'},
+	{label:"Spanish", value:'es'},
+	{label:"French", value:'fr'},
+	{label:"Italian", value:'it'},
+				  ],
+		value: 'en'
+	};
+
+	this.countrySelectorModel = {
+		label: $L("Country"),
+		disabled: true,
+		choices: [
+	{label:"United Kingdom", value:'GB'},
+	{label:"United States", value:'US'},
+	{label:"Canada", value:'CA'},
+	{label:"France", value:'FR'},
+	{label:"Germany", value:'DE'},
+	{label:"Ireland", value:'IE'},
+	{label:"Italy", value:'IT'},
+	{label:"Spain", value:'ES'},
+	{label:"Mexico", value:'MX'},
+				  ],
+		value: 'US'
 	};
 
 	this.createDeviceAccountButtonModel = {
@@ -106,6 +137,8 @@ ActivationAssistant.prototype.setup = function()
 	this.authenticateFromDeviceButton = this.controller.get('authenticateFromDeviceButton');
 	this.deviceModelSelector = this.controller.get('deviceModelSelector');
 	this.carrierSelector = this.controller.get('carrierSelector');
+	this.languageSelector = this.controller.get('languageSelector');
+	this.countrySelector = this.controller.get('countrySelector');
 	this.createDeviceAccountButton = this.controller.get('createDeviceAccountButton');
 	
 	// setup handlers
@@ -137,6 +170,8 @@ ActivationAssistant.prototype.setup = function()
 	this.controller.listen(this.authenticateFromDeviceButton, Mojo.Event.tap, this.authenticateFromDeviceTapHandler);
 	this.controller.setupWidget('deviceModelSelector', { }, this.deviceModelSelectorModel);
 	this.controller.setupWidget('carrierSelector', { }, this.carrierSelectorModel);
+	this.controller.setupWidget('languageSelector', { }, this.languageSelectorModel);
+	this.controller.setupWidget('countrySelector', { }, this.countrySelectorModel);
 	this.controller.setupWidget('createDeviceAccountButton', { }, this.createDeviceAccountButtonModel);
 	this.controller.listen(this.createDeviceAccountButton, Mojo.Event.tap, this.createDeviceAccountTapHandler);
 }
@@ -176,6 +211,10 @@ ActivationAssistant.prototype.getDeviceProfile = function(returnValue, devicePro
 		this.carrierSelectorModel.disabled = false;
 		this.carrierSelectorModel.value = this.deviceProfile.carrier;
 		this.controller.modelChanged(this.carrierSelectorModel);
+		this.languageSelectorModel.disabled = false;
+		this.controller.modelChanged(this.languageSelectorModel);
+		this.countrySelectorModel.disabled = false;
+		this.controller.modelChanged(this.countrySelectorModel);
 		this.createDeviceAccountButtonModel.disabled = false;
 		this.controller.modelChanged(this.createDeviceAccountButtonModel);
 	}
@@ -546,36 +585,36 @@ ActivationAssistant.prototype.createDeviceAccountAck = function(value)
 				"email": this.emailInputFieldModel.value,
 				"firstName": "Impostah",
 				"lastName": "User",
-				"language": "en",
-				"country": "US"
+				"language": this.languageSelectorModel.value,
+				"country": this.countrySelectorModel.value
 			},
 			"password": this.passwordInputFieldModel.value,
 			"device": {
 				"serialNumber": this.deviceProfile.serialNumber,
 				"carrier": this.carrierSelectorModel.value,
-				// "dataNetwork": this.deviceProfile.dataNetwork,
+				"dataNetwork": this.deviceProfile.dataNetwork,
 				"deviceID": this.deviceProfile.deviceId,
-				// "phoneNumber": this.deviceProfile.phoneNumber,
+				"phoneNumber": this.deviceProfile.phoneNumber,
 				"nduID": this.deviceProfile.nduId,
 				"deviceModel": this.deviceModelSelectorModel.value,
-				// "firmwareVersion": this.deviceProfile.firmwareVersion,
+				"firmwareVersion": this.deviceProfile.firmwareVersion,
 				"network": this.deviceProfile.network,
 				"platform": this.deviceProfile.platform,
-				// "homeMcc": this.deviceProfile.homeMcc,
-				// "homeMnc": this.deviceProfile.homeMnc,
-				// "currentMcc": this.deviceProfile.currentMcc,
-				// "currentMnc": this.deviceProfile.currentMnc
+				"homeMcc": this.deviceProfile.homeMcc,
+				"homeMnc": this.deviceProfile.homeMnc,
+				"currentMcc": this.deviceProfile.currentMcc,
+				"currentMnc": this.deviceProfile.currentMnc
 			},
 			"romToken": {
 				"buildVariant": this.deviceProfile.dmSets,
-				// "serverAuthType": this.deviceProfile.serverAuthType,
+				"serverAuthType": this.deviceProfile.serverAuthType,
 				"serverPwd": this.deviceProfile.serverPwd,
 				"serverNonce": this.deviceProfile.serverNonce,
 				"clientCredential": this.deviceProfile.clientCredential,
 				"clientPwd": this.deviceProfile.clientPwd,
 				"clientNonce": this.deviceProfile.clientNonce,
-				// "softwareBuildBranch": this.deviceProfile.softwareBuildBranch,
-				// "swUpdateTarget": this.deviceProfile.swUpdateTarget,
+				"softwareBuildBranch": this.deviceProfile.softwareBuildBranch,
+				"swUpdateTarget": this.deviceProfile.swUpdateTarget,
 				"softwareBuildNumber": this.deviceProfile.softwareVersion
 			}
 		}

@@ -97,8 +97,6 @@ AppCatalogAssistant.prototype.setup = function()
 	this.billingCountriesButton = this.controller.get('billingCountriesButton');
 	
 	// setup handlers
-	this.getPalmProfileHandler =	this.getPalmProfile.bindAsEventListener(this);
-	this.getDeviceProfileHandler =	this.getDeviceProfile.bindAsEventListener(this);
 	this.appIdChangedHandler = this.appIdChanged.bindAsEventListener(this);
 	this.getAppInfoTapHandler = this.getAppInfoTap.bindAsEventListener(this);
 	this.getAppInfoHandler =	this.getAppInfo.bindAsEventListener(this);
@@ -149,30 +147,20 @@ AppCatalogAssistant.prototype.setup = function()
 AppCatalogAssistant.prototype.activate = function()
 {
 	this.deviceProfile = false;
-
-	if (this.requestPalmService) this.requestPalmService.cancel();
-	this.requestPalmService = ImpostahService.impersonate(this.getDeviceProfileHandler,
-														  "com.palm.configurator",
-														  "com.palm.deviceprofile",
-														  "getDeviceProfile", {});
-
-	this.updateSpinner();
+	this.updateSpinner(true);
+	DeviceProfile.getDeviceProfile(this.getDeviceProfile.bind(this), false);
 };
 
-AppCatalogAssistant.prototype.getDeviceProfile = function(payload)
+AppCatalogAssistant.prototype.getDeviceProfile = function(returnValue, deviceProfile, errorText)
 {
-	if (this.requestPalmService) this.requestPalmService.cancel();
-	this.requestPalmService = false;
+	this.updateSpinner(false);
 
-	this.updateSpinner();
-
-	if (payload.returnValue === false) {
-		this.errorMessage('<b>Service Error (getDeviceProfile):</b><br>'+payload.errorText);
-		this.deviceProfile = false;
+	if (returnValue === false) {
+		this.errorMessage('<b>Service Error (getDeviceProfile):</b><br>'+errorText);
 		return;
 	}
 
-	this.deviceProfile = payload.deviceInfo;
+	this.deviceProfile = deviceProfile;
 
 	if (this.deviceProfile) {
 		this.appIdInputFieldModel.disabled = false;
@@ -188,29 +176,20 @@ AppCatalogAssistant.prototype.getDeviceProfile = function(payload)
 	}
 
 	this.palmProfile = false;
-
-	this.requestPalmService = ImpostahService.impersonate(this.getPalmProfileHandler,
-														  "com.palm.configurator",
-														  "com.palm.db",
-														  "get", {"ids":["com.palm.palmprofile.token"]});
-
-	this.updateSpinner();
-
+	this.updateSpinner(true);
+	PalmProfile.getPalmProfile(this.getPalmProfile.bind(this), false);
 };
 
-AppCatalogAssistant.prototype.getPalmProfile = function(payload)
+AppCatalogAssistant.prototype.getPalmProfile = function(returnValue, palmProfile, errorText)
 {
-	if (this.requestPalmService) this.requestPalmService.cancel();
-	this.requestPalmService = false;
+	this.updateSpinner(false);
 
-	this.updateSpinner();
-
-	if (payload.returnValue === false) {
-		this.errorMessage('<b>Service Error (getPalmProfile):</b><br>'+payload.errorText);
+	if (returnValue === false) {
+		this.errorMessage('<b>Service Error (getPalmProfile):</b><br>'+errorText);
 		return;
 	}
 
-	this.palmProfile = payload.results[0];
+	this.palmProfile = palmProfile;
 
 	if (this.palmProfile) {
 		this.palmProfileButtonModel.disabled = false;
@@ -293,7 +272,7 @@ AppCatalogAssistant.prototype.getAppInfoTap = function(event)
 			}
 	});
 
-	this.updateSpinner();
+	this.updateSpinner(true);
 
 	this.getAppInfoButtonModel.disabled = true;
 	this.controller.modelChanged(this.getAppInfoButtonModel);
@@ -303,7 +282,7 @@ AppCatalogAssistant.prototype.getAppInfo = function(payload)
 {
 	this.requestWebService = false;
 
-	this.updateSpinner();
+	this.updateSpinner(false);
 
 	this.getAppInfoButtonModel.disabled = false;
 	this.controller.modelChanged(this.getAppInfoButtonModel);
@@ -362,7 +341,7 @@ AppCatalogAssistant.prototype.installAppTap = function(event)
 															 "subscribe": true
 														 });
 
-	this.updateSpinner();
+	this.updateSpinner(true);
 
 	this.installAppButtonModel.disabled = true;
 	this.controller.modelChanged(this.installAppButtonModel);
@@ -376,7 +355,7 @@ AppCatalogAssistant.prototype.installApp = function(payload)
 		if (this.requestPalmService) this.requestPalmService.cancel();
 		this.requestPalmService = false;
 
-		this.updateSpinner();
+		this.updateSpinner(false);
 
 		this.installAppButtonModel.disabled = false;
 		this.controller.modelChanged(this.installAppButtonModel);
@@ -408,7 +387,7 @@ AppCatalogAssistant.prototype.installApp = function(payload)
 			status = "Package Download Failed";
 			if (this.requestPalmService) this.requestPalmService.cancel();
 			this.requestPalmService = false;
-			this.updateSpinner();
+			this.updateSpinner(false);
 			this.errorMessage('<b>Package Download Failed</b><br><br>Note that paid apps must be purchased before downloading.');
 			this.installAppButtonModel.disabled = false;
 			this.controller.modelChanged(this.installAppButtonModel);
@@ -420,7 +399,7 @@ AppCatalogAssistant.prototype.installApp = function(payload)
 			status = "Package Install Cancelled";
 			if (this.requestPalmService) this.requestPalmService.cancel();
 			this.requestPalmService = false;
-			this.updateSpinner();
+			this.updateSpinner(false);
 			this.installAppButtonModel.disabled = false;
 			this.controller.modelChanged(this.installAppButtonModel);
 			break;
@@ -442,7 +421,7 @@ AppCatalogAssistant.prototype.installApp = function(payload)
 			this.errorMessage('<b>Service Error (installApp):</b><br>'+status);
 			if (this.requestPalmService) this.requestPalmService.cancel();
 			this.requestPalmService = false;
-			this.updateSpinner();
+			this.updateSpinner(false);
 			this.installAppButtonModel.disabled = false;
 			this.controller.modelChanged(this.installAppButtonModel);
 			break;
@@ -458,7 +437,7 @@ AppCatalogAssistant.prototype.rescanApp = function(payload)
 	if (this.requestPalmService) this.requestPalmService.cancel();
 	this.requestPalmService = false;
 
-	this.updateSpinner();
+	this.updateSpinner(false);
 
 	this.installAppButtonModel.disabled = false;
 	this.controller.modelChanged(this.installAppButtonModel);
@@ -531,7 +510,7 @@ AppCatalogAssistant.prototype.paidAppsTap = function(event)
 			}
 	});
 
-	this.updateSpinner();
+	this.updateSpinner(true);
 
 	this.paidAppsButtonModel.disabled = true;
 	this.controller.modelChanged(this.paidAppsButtonModel);
@@ -541,7 +520,7 @@ AppCatalogAssistant.prototype.paidApps = function(payload)
 {
 	this.requestWebService = false;
 
-	this.updateSpinner();
+	this.updateSpinner(false);
 
 	this.paidAppsButtonModel.disabled = false;
 	this.controller.modelChanged(this.paidAppsButtonModel);
@@ -614,7 +593,7 @@ AppCatalogAssistant.prototype.accessCountryTap = function(event)
 			}
 	});
 
-	this.updateSpinner();
+	this.updateSpinner(true);
 
 	this.accessCountryButtonModel.disabled = true;
 	this.controller.modelChanged(this.accessCountryButtonModel);
@@ -624,7 +603,7 @@ AppCatalogAssistant.prototype.accessCountry = function(payload)
 {
 	this.requestWebService = false;
 
-	this.updateSpinner();
+	this.updateSpinner(false);
 
 	this.accessCountryButtonModel.disabled = false;
 	this.controller.modelChanged(this.accessCountryButtonModel);
@@ -692,7 +671,7 @@ AppCatalogAssistant.prototype.paymentInfoTap = function(event)
 			}
 	});
 
-	this.updateSpinner();
+	this.updateSpinner(true);
 
 	this.paymentInfoButtonModel.disabled = true;
 	this.controller.modelChanged(this.paymentInfoButtonModel);
@@ -702,7 +681,7 @@ AppCatalogAssistant.prototype.paymentInfo = function(payload)
 {
 	this.requestWebService = false;
 
-	this.updateSpinner();
+	this.updateSpinner(false);
 
 	this.paymentInfoButtonModel.disabled = false;
 	this.controller.modelChanged(this.paymentInfoButtonModel);
@@ -771,7 +750,7 @@ AppCatalogAssistant.prototype.billingCountriesTap = function(event)
 			}
 	});
 
-	this.updateSpinner();
+	this.updateSpinner(true);
 
 	this.billingCountriesButtonModel.disabled = true;
 	this.controller.modelChanged(this.billingCountriesButtonModel);
@@ -781,7 +760,7 @@ AppCatalogAssistant.prototype.billingCountries = function(payload)
 {
 	this.requestWebService = false;
 
-	this.updateSpinner();
+	this.updateSpinner(false);
 
 	this.billingCountriesButtonModel.disabled = false;
 	this.controller.modelChanged(this.billingCountriesButtonModel);
@@ -797,9 +776,9 @@ AppCatalogAssistant.prototype.billingCountries = function(payload)
 	}
 };
 
-AppCatalogAssistant.prototype.updateSpinner = function()
+AppCatalogAssistant.prototype.updateSpinner = function(active)
 {
-	if (this.requestPalmService || this.requestWebService)  {
+	if (active)  {
 		this.iconElement.style.display = 'none';
 		this.spinnerModel.spinning = true;
 		this.controller.modelChanged(this.spinnerModel);

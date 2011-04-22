@@ -27,6 +27,7 @@ function DeviceProfileAssistant()
 	};
 
 	this.deviceProfile = false;
+	this.reloadDeviceProfile = false;
 
 	this.requestPalmService = false;
 };
@@ -44,7 +45,6 @@ DeviceProfileAssistant.prototype.setup = function()
 	this.manageOverridesButton = this.controller.get('manageOverridesButton');
 	
 	// setup handlers
-	this.getDeviceProfileHandler =	this.getDeviceProfile.bindAsEventListener(this);
 	this.deviceProfileTapHandler = this.deviceProfileTap.bindAsEventListener(this);
 	this.manageOverridesTapHandler = this.manageOverridesTap.bindAsEventListener(this);
 	
@@ -59,27 +59,26 @@ DeviceProfileAssistant.prototype.setup = function()
 
 DeviceProfileAssistant.prototype.activate = function()
 {
-	if (this.requestPalmService) this.requestPalmService.cancel();
-	this.requestPalmService = ImpostahService.impersonate(this.getDeviceProfileHandler,
-														  "com.palm.configurator",
-														  "com.palm.deviceprofile",
-														  "getDeviceProfile", {});
-	this.updateSpinner();
+	this.deviceProfile = false;
+	this.updateSpinner(true);
+	DeviceProfile.getDeviceProfile(this.getDeviceProfile.bind(this), this.reloadDeviceProfile);
 };
 
-DeviceProfileAssistant.prototype.getDeviceProfile = function(payload)
+DeviceProfileAssistant.prototype.dirtyDeviceProfile = function()
 {
-	if (this.requestPalmService) this.requestPalmService.cancel();
-	this.requestPalmService = false;
+	this.reloadDeviceProfile = true;
+};
 
-	this.updateSpinner();
+DeviceProfileAssistant.prototype.getDeviceProfile = function(returnValue, deviceProfile, errorText)
+{
+	this.updateSpinner(false);
 
-	if (payload.returnValue === false) {
-		this.errorMessage('<b>Service Error (getDeviceProfile):</b><br>'+payload.errorText);
+	if (returnValue === false) {
+		this.errorMessage('<b>Service Error (getDeviceProfile):</b><br>'+errorText);
 		return;
 	}
 
-	this.deviceProfile = payload.deviceInfo;
+	this.deviceProfile = deviceProfile;
 
 	if (this.deviceProfile) {
 		this.deviceProfileButtonModel.disabled = false;
@@ -101,13 +100,14 @@ DeviceProfileAssistant.prototype.manageOverridesTap = function(event)
 	if (this.deviceProfile) {
 		var attributes = this.deviceProfile;
 		this.controller.stageController.pushScene("overrides", "Device Profile Overrides", attributes,
-												  "org.webosinternals.impostah.deviceprofile");
+												  "org.webosinternals.impostah.deviceprofile",
+												  this.dirtyDeviceProfile.bind(this));
 	}
 };
 
-DeviceProfileAssistant.prototype.updateSpinner = function()
+DeviceProfileAssistant.prototype.updateSpinner = function(active)
 {
-	if (this.requestPalmService) {
+	if (active) {
 		this.iconElement.style.display = 'none';
 		this.spinnerModel.spinning = true;
 		this.controller.modelChanged(this.spinnerModel);

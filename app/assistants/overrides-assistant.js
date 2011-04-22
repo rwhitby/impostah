@@ -1,9 +1,10 @@
-function OverridesAssistant(label, attributes, id)
+function OverridesAssistant(label, attributes, id, dirtyCallback)
 {
 
 	this.label = label;
 	this.attributes = attributes;
 	this.id = id;
+	this.dirtyCallback = dirtyCallback;
 
 	// setup menu
 	this.menuModel = {
@@ -116,7 +117,7 @@ OverridesAssistant.prototype.readOverrides = function()
 			onFailure: this.getOverridesHandler
 		});
 
-	this.updateSpinner();
+	this.updateSpinner(true);
 };
 
 OverridesAssistant.prototype.getOverrides = function(payload)
@@ -124,7 +125,7 @@ OverridesAssistant.prototype.getOverrides = function(payload)
 	if (this.requestDb8) this.requestDb8.cancel();
 	this.requestDb8 = false;
 
-	this.updateSpinner();
+	this.updateSpinner(false);
 
 	if (payload.returnValue === false) {
 		this.errorMessage('<b>Service Error (getOverrides):</b><br>'+payload.errorText);
@@ -287,7 +288,7 @@ OverridesAssistant.prototype.saveOverrides = function()
 			onFailure: this.delOverridesHandler
 		});
 
-	this.updateSpinner();
+	this.updateSpinner(true);
 };
 
 OverridesAssistant.prototype.delOverrides = function(payload)
@@ -302,7 +303,7 @@ OverridesAssistant.prototype.delOverrides = function(payload)
 			onFailure: this.putOverridesHandler
 		});
 	
-	this.updateSpinner();
+	this.updateSpinner(true);
 }
 
 OverridesAssistant.prototype.putOverrides = function(payload)
@@ -310,7 +311,7 @@ OverridesAssistant.prototype.putOverrides = function(payload)
 	if (this.requestDb8) this.requestDb8.cancel();
 	this.requestDb8 = false;
 
-	this.updateSpinner();
+	this.updateSpinner(false);
 
 	this.newButtonElement.mojo.deactivate();
 
@@ -319,12 +320,13 @@ OverridesAssistant.prototype.putOverrides = function(payload)
 		return;
 	}
 
+	if (this.dirtyCallback) this.dirtyCallback();
 	this.readOverrides();
 }
 
-OverridesAssistant.prototype.updateSpinner = function()
+OverridesAssistant.prototype.updateSpinner = function(active)
 {
-	if (this.requestDb8)  {
+	if (active)  {
 		this.iconElement.style.display = 'none';
 		this.spinnerModel.spinning = true;
 		this.controller.modelChanged(this.spinnerModel);

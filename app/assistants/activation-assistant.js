@@ -102,8 +102,6 @@ ActivationAssistant.prototype.setup = function()
 	this.createDeviceAccountButton = this.controller.get('createDeviceAccountButton');
 	
 	// setup handlers
-	this.getDeviceProfileHandler =	this.getDeviceProfile.bindAsEventListener(this);
-	this.getPalmProfileHandler =	this.getPalmProfile.bindAsEventListener(this);
 	this.deviceInUseTapHandler = this.deviceInUseTap.bindAsEventListener(this);
 	this.deviceInUseHandler =	this.deviceInUse.bindAsEventListener(this);
 	this.authenticateFromDeviceTapHandler = this.authenticateFromDeviceTap.bindAsEventListener(this);
@@ -135,29 +133,20 @@ ActivationAssistant.prototype.setup = function()
 ActivationAssistant.prototype.activate = function()
 {
 	this.deviceProfile = false;
-
-	if (this.requestPalmService) this.requestPalmService.cancel();
-	this.requestPalmService = ImpostahService.impersonate(this.getDeviceProfileHandler,
-														  "com.palm.configurator",
-														  "com.palm.deviceprofile",
-														  "getDeviceProfile", {});
-
-	this.updateSpinner();
+	this.updateSpinner(true);
+	DeviceProfile.getDeviceProfile(this.getDeviceProfile.bind(this), false);
 };
 
-ActivationAssistant.prototype.getDeviceProfile = function(payload)
+ActivationAssistant.prototype.getDeviceProfile = function(returnValue, deviceProfile, errorText)
 {
-	if (this.requestPalmService) this.requestPalmService.cancel();
-	this.requestPalmService = false;
+	this.updateSpinner(false);
 
-	this.updateSpinner();
-
-	if (payload.returnValue === false) {
-		this.errorMessage('<b>Service Error (getDeviceProfile):</b><br>'+payload.errorText);
+	if (returnValue === false) {
+		this.errorMessage('<b>Service Error (getDeviceProfile):</b><br>'+errorText);
 		return;
 	}
 
-	this.deviceProfile = payload.deviceInfo;
+	this.deviceProfile = deviceProfile;
 
 	if (this.deviceProfile) {
 		this.emailInputFieldModel.disabled = false;
@@ -179,29 +168,20 @@ ActivationAssistant.prototype.getDeviceProfile = function(payload)
 	}
 
 	this.palmProfile = false;
-
-	this.requestPalmService = ImpostahService.impersonate(this.getPalmProfileHandler,
-														  "com.palm.configurator",
-														  "com.palm.db",
-														  "get", {"ids":["com.palm.palmprofile.token"]});
-
-	this.updateSpinner();
-
+	this.updateSpinner(true);
+	PalmProfile.getPalmProfile(this.getPalmProfile.bind(this), false);
 };
 
-ActivationAssistant.prototype.getPalmProfile = function(payload)
+ActivationAssistant.prototype.getPalmProfile = function(returnValue, palmProfile, errorText)
 {
-	if (this.requestPalmService) this.requestPalmService.cancel();
-	this.requestPalmService = false;
+	this.updateSpinner(false);
 
-	this.updateSpinner();
-
-	if (payload.returnValue === false) {
-		this.errorMessage('<b>Service Error (getPalmProfile):</b><br>'+payload.errorText);
+	if (returnValue === false) {
+		this.errorMessage('<b>Service Error (getPalmProfile):</b><br>'+errorText);
 		return;
 	}
 
-	this.palmProfile = payload.results[0];
+	this.palmProfile = palmProfile;
 
 	if (this.palmProfile) {
 		this.emailInputFieldModel.disabled = false;
@@ -262,7 +242,7 @@ ActivationAssistant.prototype.deviceInUseTap = function(event)
 			}
 	});
 
-	this.updateSpinner();
+	this.updateSpinner(true);
 
 	this.deviceInUseButtonModel.disabled = true;
 	this.controller.modelChanged(this.deviceInUseButtonModel);
@@ -272,7 +252,7 @@ ActivationAssistant.prototype.deviceInUse = function(payload)
 {
 	this.requestWebService = false;
 
-	this.updateSpinner();
+	this.updateSpinner(false);
 
 	this.deviceInUseButtonModel.disabled = false;
 	this.controller.modelChanged(this.deviceInUseButtonModel);
@@ -380,7 +360,7 @@ ActivationAssistant.prototype.authenticateFromDeviceAck = function(value)
 			}
 	});
 
-	this.updateSpinner();
+	this.updateSpinner(true);
 
 	this.authenticateFromDeviceButtonModel.disabled = true;
 	this.controller.modelChanged(this.authenticateFromDeviceButtonModel);
@@ -390,7 +370,7 @@ ActivationAssistant.prototype.authenticateFromDevice = function(payload)
 {
 	this.requestWebService = false;
 
-	this.updateSpinner();
+	this.updateSpinner(false);
 
 	this.authenticateFromDeviceButtonModel.disabled = false;
 	this.controller.modelChanged(this.authenticateFromDeviceButtonModel);
@@ -430,7 +410,7 @@ ActivationAssistant.prototype.authenticateFromDevice = function(payload)
 														  });
 		}
 
-		this.updateSpinner();
+		this.updateSpinner(true);
 
 		this.authenticateFromDeviceButtonModel.disabled = true;
 		this.controller.modelChanged(this.authenticateFromDeviceButtonModel);
@@ -443,7 +423,7 @@ ActivationAssistant.prototype.authenticationUpdate = function(payload)
 	if (this.requestPalmService) this.requestPalmService.cancel();
 	this.requestPalmService = false;
 
-	this.updateSpinner();
+	this.updateSpinner(false);
 
 	this.authenticateFromDeviceButtonModel.disabled = false;
 	this.controller.modelChanged(this.authenticateFromDeviceButtonModel);
@@ -455,10 +435,9 @@ ActivationAssistant.prototype.authenticationUpdate = function(payload)
 
 	this.controller.stageController.pushScene("item", "Authentication Update", payload);
 
-	this.requestPalmService = ImpostahService.impersonate(this.getPalmProfileHandler,
-														  "com.palm.configurator",
-														  "com.palm.db",
-														  "get", {"ids":["com.palm.palmprofile.token"]});
+	this.palmProfile = false;
+	this.updateSpinner(true);
+	PalmProfile.getPalmProfile(this.getPalmProfile.bind(this), true);
 };
 
 ActivationAssistant.prototype.createDeviceAccountTap = function(event)
@@ -559,7 +538,7 @@ ActivationAssistant.prototype.createDeviceAccountAck = function(value)
 			}
 	});
 
-	this.updateSpinner();
+	this.updateSpinner(true);
 
 	this.createDeviceAccountButtonModel.disabled = true;
 	this.controller.modelChanged(this.createDeviceAccountButtonModel);
@@ -569,7 +548,7 @@ ActivationAssistant.prototype.createDeviceAccount = function(payload)
 {
 	this.requestWebService = false;
 
-	this.updateSpinner();
+	this.updateSpinner(false);
 
 	this.createDeviceAccountButtonModel.disabled = false;
 	this.controller.modelChanged(this.createDeviceAccountButtonModel);
@@ -610,7 +589,7 @@ ActivationAssistant.prototype.createDeviceAccount = function(payload)
 														  });
 		}
 		
-		this.updateSpinner();
+		this.updateSpinner(true);
 
 		this.createDeviceAccountButtonModel.disabled = true;
 		this.controller.modelChanged(this.createDeviceAccountButtonModel);
@@ -623,7 +602,7 @@ ActivationAssistant.prototype.profileCreation = function(payload)
 	if (this.requestPalmService) this.requestPalmService.cancel();
 	this.requestPalmService = false;
 
-	this.updateSpinner();
+	this.updateSpinner(false);
 
 	this.createDeviceAccountButtonModel.disabled = false;
 	this.controller.modelChanged(this.createDeviceAccountButtonModel);
@@ -635,15 +614,14 @@ ActivationAssistant.prototype.profileCreation = function(payload)
 
 	this.controller.stageController.pushScene("item", "Profile Creation", payload);
 
-	this.requestPalmService = ImpostahService.impersonate(this.getPalmProfileHandler,
-														  "com.palm.configurator",
-														  "com.palm.db",
-														  "get", {"ids":["com.palm.palmprofile.token"]});
+	this.palmProfile = false;
+	this.updateSpinner(true);
+	PalmProfile.getPalmProfile(this.getPalmProfile.bind(this), true);
 };
 
-ActivationAssistant.prototype.updateSpinner = function()
+ActivationAssistant.prototype.updateSpinner = function(active)
 {
-	if (this.requestPalmService || this.requestWebService)  {
+	if (active)  {
 		this.iconElement.style.display = 'none';
 		this.spinnerModel.spinning = true;
 		this.controller.modelChanged(this.spinnerModel);

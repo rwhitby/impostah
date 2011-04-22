@@ -36,6 +36,15 @@ function BackupsAssistant()
 		label: $L("Restore Backup"),
 		disabled: true
 	};
+
+	this.deviceProfile = false;
+	this.palmProfile = false;
+
+	this.requestPalmService = false;
+	this.requestWebService = false;
+
+	// %%% FIXME %%%
+	this.authServerUrl = "https://sta.palmws.com/storageauth/";
 };
 
 BackupsAssistant.prototype.setup = function()
@@ -77,26 +86,24 @@ BackupsAssistant.prototype.setup = function()
 	this.controller.listen(this.showManifestButton, Mojo.Event.tap, this.showManifestTapHandler);
 	this.controller.setupWidget('restoreBackupButton', { }, this.restoreBackupButtonModel);
 	this.controller.listen(this.restoreBackupButton, Mojo.Event.tap, this.restoreBackupTapHandler);
-	
-	// %%% FIXME %%%
-	this.authServerUrl = "https://sta.palmws.com/storageauth/";
+};
+
+BackupsAssistant.prototype.activate = function()
+{
 	this.deviceProfile = false;
-	this.palmProfile = false;
 
-	if (this.requestDeviceProfile) this.requestDeviceProfile.cancel();
-	this.requestDeviceProfile = ImpostahService.impersonate(this.getDeviceProfileHandler,
-															"com.palm.configurator",
-															"com.palm.deviceprofile",
-															"getDeviceProfile", {});
-
+	if (this.requestPalmService) this.requestPalmService.cancel();
+	this.requestPalmService = ImpostahService.impersonate(this.getDeviceProfileHandler,
+														  "com.palm.configurator",
+														  "com.palm.deviceprofile",
+														  "getDeviceProfile", {});
 	this.updateSpinner();
 };
 
 BackupsAssistant.prototype.getDeviceProfile = function(payload)
 {
-	if (this.requestDeviceProfile) this.requestDeviceProfile.cancel();
-	this.requestDeviceProfile = false;
-
+	if (this.requestPalmService) this.requestPalmService.cancel();
+	this.requestPalmService = false;
 	this.updateSpinner();
 
 	if (payload.returnValue === false) {
@@ -106,8 +113,9 @@ BackupsAssistant.prototype.getDeviceProfile = function(payload)
 
 	this.deviceProfile = payload.deviceInfo;
 
-	if (this.requestPalmProfile) this.requestPalmProfile.cancel();
-	this.requestPalmProfile = ImpostahService.impersonate(this.getPalmProfileHandler,
+	this.palmProfile = false;
+
+	this.requestPalmService = ImpostahService.impersonate(this.getPalmProfileHandler,
 														  "com.palm.configurator",
 														  "com.palm.db",
 														  "get", {"ids":["com.palm.palmprofile.token"]});
@@ -117,9 +125,8 @@ BackupsAssistant.prototype.getDeviceProfile = function(payload)
 
 BackupsAssistant.prototype.getPalmProfile = function(payload)
 {
-	if (this.requestPalmProfile) this.requestPalmProfile.cancel();
-	this.requestPalmProfile = false;
-
+	if (this.requestPalmService) this.requestPalmService.cancel();
+	this.requestPalmService = false;
 	this.updateSpinner();
 
 	if (payload.returnValue === false) {
@@ -181,14 +188,12 @@ BackupsAssistant.prototype.getAuthTokenStart = function()
 				callback({"returnValue":false, "errorText":response.status});
 			}
 	});
-
 	this.updateSpinner();
 };
 
 BackupsAssistant.prototype.getAuthToken = function(payload)
 {
 	this.requestWebService = false;
-
 	this.updateSpinner();
 
 	if (payload.returnValue === false) {
@@ -200,13 +205,11 @@ BackupsAssistant.prototype.getAuthToken = function(payload)
 
 	if (payload.response) {
 		this.storageAuthToken = payload.response.substring(0, payload.response.length-2);
-		this.authServerUrl = "https://sta.palmws.com/storageauth/";
 		var fields = this.storageAuthToken.split(":", 5);
-		Mojo.Log.warn("fields %j", fields);
 		if (fields) {
 			var host = fields[1];
-			Mojo.Log.warn("host %s", host);
 			if (host) {
+				// %%% FIXME %%%
 				this.storageServerUrl = "https://"+host+".backup.st.palmws.com/storage/";
 				this.retrieveManifestList();
 			}
@@ -261,14 +264,12 @@ BackupsAssistant.prototype.retrieveManifestList = function()
 				callback({"returnValue":false, "errorText":response.status});
 			}
 	});
-
 	this.updateSpinner();
 };
 
 BackupsAssistant.prototype.getManifestList = function(payload)
 {
 	this.requestWebService = false;
-
 	this.updateSpinner();
 
 	if (payload.returnValue === false) {
@@ -287,7 +288,6 @@ BackupsAssistant.prototype.getManifestList = function(payload)
 
 	if (payload.response) {
 		var manifests = payload.response;
-		// this.controller.stageController.pushScene("item", "Manifest List", manifests);
 		this.manifestSelectorModel.choices = [];
 		for (i = 0; i < manifests.length; i++) {
 			var manifest = manifests[i];
@@ -347,7 +347,6 @@ BackupsAssistant.prototype.showManifestTap = function(event)
 				callback({"returnValue":false, "errorText":response.status});
 			}
 	});
-
 	this.updateSpinner();
 
 	this.showManifestButtonModel.disabled = true;
@@ -357,7 +356,6 @@ BackupsAssistant.prototype.showManifestTap = function(event)
 BackupsAssistant.prototype.showManifest = function(payload)
 {
 	this.requestWebService = false;
-
 	this.updateSpinner();
 
 	this.showManifestButtonModel.disabled = false;
@@ -388,25 +386,24 @@ BackupsAssistant.prototype.restoreBackupAck = function(value)
 {
 	if (value != "restore") return;
 
-	this.updateSpinner();
-
-	this.restoreBackupButtonModel.disabled = true;
-	this.controller.modelChanged(this.restoreBackupButtonModel);
-
-	this.requestDb8 = ImpostahService.impersonate(this.restoreBackupGetHandler,
+	if (this.requestPalmService) this.requestPalmService.cancel();
+	this.requestPalmService = ImpostahService.impersonate(this.restoreBackupGetHandler,
 												  "com.palm.configurator", "com.palm.db",
 												  "find", {
 													  "query" : {
 														  "from": "com.palm.service.backup.prefs:1"
 													  }
 												  });
+	this.updateSpinner();
+
+	this.restoreBackupButtonModel.disabled = true;
+	this.controller.modelChanged(this.restoreBackupButtonModel);
 };
 
 BackupsAssistant.prototype.restoreBackupGet = function(payload)
 {
-	if (this.requestDb8) this.requestDb8.cancel();
-	this.requestDb8 = false;
-
+	if (this.requestPalmService) this.requestPalmService.cancel();
+	this.requestPalmService = false;
 	this.updateSpinner();
 
 	this.restoreBackupButtonModel.disabled = false;
@@ -419,14 +416,13 @@ BackupsAssistant.prototype.restoreBackupGet = function(payload)
 
 	if (payload.results) {
 		if (payload.results.length) {
-			this.requestDb8 = ImpostahService.impersonate(this.restoreBackupSetHandler,
-														  "com.palm.configurator", "com.palm.db",
-														  "merge", {
-															  "objects" : [
+			this.requestPalmService = ImpostahService.impersonate(this.restoreBackupSetHandler,
+																  "com.palm.configurator", "com.palm.db",
+																  "merge", {
+																	  "objects" : [
 			{ "_id": payload.results[0]._id, "overrideManifestName": this.manifestSelectorModel.value }
-																		   ]
-														  });
-
+																				   ]
+																  });
 			this.updateSpinner();
 
 			this.restoreBackupButtonModel.disabled = true;
@@ -438,9 +434,8 @@ BackupsAssistant.prototype.restoreBackupGet = function(payload)
 
 BackupsAssistant.prototype.restoreBackupSet = function(payload)
 {
-	if (this.requestDb8) this.requestDb8.cancel();
-	this.requestDb8 = false;
-
+	if (this.requestPalmService) this.requestPalmService.cancel();
+	this.requestPalmService = false;
 	this.updateSpinner();
 
 	this.restoreBackupButtonModel.disabled = false;
@@ -452,12 +447,11 @@ BackupsAssistant.prototype.restoreBackupSet = function(payload)
 	}
 
 	if (payload.results) {
-		this.requestBackup = ImpostahService.impersonate(this.restoreBackupStatusHandler,
-													  "com.palm.configurator", "com.palm.service.backup",
-														 "startRestore", {
-															 "subscribe" : true
-														 });
-
+		this.requestPalmService = ImpostahService.impersonate(this.restoreBackupStatusHandler,
+															  "com.palm.configurator", "com.palm.service.backup",
+															  "startRestore", {
+																  "subscribe" : true
+															  });
 		this.updateSpinner();
 
 		this.restoreBackupButtonModel.disabled = true;
@@ -485,9 +479,8 @@ BackupsAssistant.prototype.restoreBackupStatus = function(payload)
 			this.errorMessage('<b>Restore Complete</b>');
 		}
 
-		if (this.requestBackup) this.requestBackup.cancel();
-		this.requestBackup = false;
-
+		if (this.requestPalmService) this.requestPalmService.cancel();
+		this.requestPalmService = false;
 		this.updateSpinner();
 
 		this.restoreBackupButtonModel.disabled = false;
@@ -502,8 +495,7 @@ BackupsAssistant.prototype.restoreBackupStatus = function(payload)
 
 BackupsAssistant.prototype.updateSpinner = function()
 {
-	if (this.requestDeviceProfile || this.requestPalmProfile ||
-		this.requestWebService || this.requestDb8 || this.requestBackup )  {
+	if (this.requestPalmService || this.requestWebService )  {
 		this.iconElement.style.display = 'none';
 		this.spinnerModel.spinning = true;
 		this.controller.modelChanged(this.spinnerModel);

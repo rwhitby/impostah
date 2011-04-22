@@ -186,6 +186,7 @@ OverridesAssistant.prototype.overrideTapped = function(event)
 	this.controller.modelChanged(this.newNameModel);
 	this.newValueModel.value = this.overrides[event.item.label];
 	this.controller.modelChanged(this.newValueModel);
+	this.controller.getSceneScroller().mojo.revealTop();
 };
 
 OverridesAssistant.prototype.overrideDeleted = function(event)

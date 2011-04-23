@@ -267,16 +267,9 @@ BackupsAssistant.prototype.getManifestList = function(payload)
 		return;
 	}
 
-	this.manifestSelectorModel.disabled = false;
-	this.controller.modelChanged(this.manifestSelectorModel);
-	this.showManifestButtonModel.disabled = false;
-	this.controller.modelChanged(this.showManifestButtonModel);
-	this.restoreBackupButtonModel.disabled = false;
-	this.controller.modelChanged(this.restoreBackupButtonModel);
-
 	Mojo.Log.warn("getManifestList %j", payload.response);
 
-	if (payload.response) {
+	if (payload.response && payload.response.length) {
 		var manifests = payload.response;
 		this.manifestSelectorModel.choices = [];
 		for (i = 0; i < manifests.length; i++) {
@@ -286,7 +279,12 @@ BackupsAssistant.prototype.getManifestList = function(payload)
 			this.manifestSelectorModel.choices.push({"label": label, "value": value});
 			this.manifestSelectorModel.value = value;
 		}
+		this.manifestSelectorModel.disabled = false;
 		this.controller.modelChanged(this.manifestSelectorModel);
+		this.showManifestButtonModel.disabled = false;
+		this.controller.modelChanged(this.showManifestButtonModel);
+		this.restoreBackupButtonModel.disabled = false;
+		this.controller.modelChanged(this.restoreBackupButtonModel);
 	}
 };
 

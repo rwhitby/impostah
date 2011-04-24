@@ -18,6 +18,7 @@ function ActivationAssistant()
 	
 	this.emailInputFieldModel = {
 		label: $L("Email Address"),
+		value: '',
 		disabled: true
 	};
 
@@ -33,6 +34,7 @@ function ActivationAssistant()
 
 	this.passwordInputFieldModel = {
 		label: $L("Password"),
+		value: '',
 		disabled: true
 	};
 
@@ -41,66 +43,30 @@ function ActivationAssistant()
 		disabled: true
 	};
 
-	this.deviceModelSelectorModel = {
-		label: $L("Device Model"),
-		disabled: true,
-		choices: [
-	{label:"Pre (CDMA)", value:'P100EWW'},
-	{label:"Pre (EU UMTS)", value:'P100UEU'},
-	{label:"Pre (NA UMTS)", value:'P100UNA'},
-	{label:"Pre Plus (CDMA)", value:'P101EWW'},
-	{label:"Pre Plus (EU UMTS)", value:'P101UEU'},
-	{label:"Pre Plus (NA UMTS)", value:'P101UNA'},
-	{label:"Pre 2 (CDMA)", value:'P102EWW'},
-	{label:"Pre 2 (EU UMTS)", value:'P102UEU'},
-	{label:"Pre 2 (NA UMTS)", value:'P102UNA'},
-	{label:"Pixi (CDMA)", value:'P120EWW'},
-	{label:"Pixi (EU UMTS)", value:'P120UEU'},
-	{label:"Pixi (NA UMTS)", value:'P120UNA'},
-	{label:"Pixi Plus (CDMA)", value:'P121EWW'},
-	{label:"Pixi Plus (EU UMTS)", value:'P121UEU'},
-	{label:"Pixi Plus (NA UMTS)", value:'P121UNA'},
-				  ]
-	};
-
-	this.carrierSelectorModel = {
-		label: $L("Carrier"),
-		disabled: true,
-		choices: [
-	{label:"AT&T", value:'ATT'},
-	{label:"Bell", value:'Bell'},
-	{label:"Global", value:'ROW'},
-	{label:"Sprint", value:'Sprint'},
-	{label:"Verizon", value:'Verizon'},
-				  ]
-	};
-
 	this.languageSelectorModel = {
-		label: $L("Language"),
 		disabled: true,
 		choices: [
-	{label:"German", value:'de'},
 	{label:"English", value:'en'},
-	{label:"Spanish", value:'es'},
 	{label:"French", value:'fr'},
-	{label:"Italian", value:'it'},
+	// {label:"Italian", value:'it'},
+	{label:"German", value:'de'},
+	// {label:"Spanish", value:'es'},
 				  ],
 		value: 'en'
 	};
 
 	this.countrySelectorModel = {
-		label: $L("Country"),
 		disabled: true,
 		choices: [
-	{label:"United Kingdom", value:'GB'},
 	{label:"United States", value:'US'},
+	{label:"United Kingdom", value:'GB'},
 	{label:"Canada", value:'CA'},
 	{label:"France", value:'FR'},
 	{label:"Germany", value:'DE'},
-	{label:"Ireland", value:'IE'},
-	{label:"Italy", value:'IT'},
-	{label:"Spain", value:'ES'},
-	{label:"Mexico", value:'MX'},
+	// {label:"Ireland", value:'IE'},
+	// {label:"Italy", value:'IT'},
+	// {label:"Spain", value:'ES'},
+	// {label:"Mexico", value:'MX'},
 				  ],
 		value: 'US'
 	};
@@ -112,6 +78,9 @@ function ActivationAssistant()
 
 	this.deviceProfile = false;
 	this.palmProfile = false;
+	this.overrideMcc = false;
+	this.overrideMnc = false;
+	this.authenticationInfo = false;
 
 	this.requestPalmService = false;
 	this.requestWebService = false;
@@ -130,22 +99,23 @@ ActivationAssistant.prototype.setup = function()
 	this.iconElement =			this.controller.get('icon');
 	this.iconElement.style.display = 'none';
 	this.spinnerElement = 		this.controller.get('spinner');
+	this.languageSelector = this.controller.get('languageSelector');
+	this.countrySelector = this.controller.get('countrySelector');
 	this.emailInputField = this.controller.get('emailInputField');
 	this.emailAvailableButton = this.controller.get('emailAvailableButton');
 	this.deviceInUseButton = this.controller.get('deviceInUseButton');
 	this.passwordInputField = this.controller.get('passwordInputField');
 	this.authenticateFromDeviceButton = this.controller.get('authenticateFromDeviceButton');
-	this.deviceModelSelector = this.controller.get('deviceModelSelector');
-	this.carrierSelector = this.controller.get('carrierSelector');
-	this.languageSelector = this.controller.get('languageSelector');
-	this.countrySelector = this.controller.get('countrySelector');
 	this.createDeviceAccountButton = this.controller.get('createDeviceAccountButton');
 	
 	// setup handlers
+	this.countryChangedHandler = this.countryChanged.bindAsEventListener(this);
+	this.emailChangedHandler = this.emailChanged.bindAsEventListener(this);
 	this.emailAvailableTapHandler = this.emailAvailableTap.bindAsEventListener(this);
 	this.emailAvailableHandler =	this.emailAvailable.bindAsEventListener(this);
 	this.deviceInUseTapHandler = this.deviceInUseTap.bindAsEventListener(this);
 	this.deviceInUseHandler =	this.deviceInUse.bindAsEventListener(this);
+	this.passwordChangedHandler = this.passwordChanged.bindAsEventListener(this);
 	this.authenticateFromDeviceTapHandler = this.authenticateFromDeviceTap.bindAsEventListener(this);
 	this.authenticateFromDeviceAckHandler = this.authenticateFromDeviceAck.bind(this);
 	this.authenticateFromDeviceHandler =	this.authenticateFromDevice.bindAsEventListener(this);
@@ -158,20 +128,31 @@ ActivationAssistant.prototype.setup = function()
 	// setup wigets
 	this.spinnerModel = {spinning: true};
 	this.controller.setupWidget('spinner', {spinnerSize: 'small'}, this.spinnerModel);
-	this.controller.setupWidget('emailInputField', { 'textCase':Mojo.Widget.steModeLowerCase },
-								this.emailInputFieldModel);
+	this.controller.setupWidget('countrySelector', { label: $L("Country") }, this.countrySelectorModel);
+	this.controller.listen(this.countrySelector, Mojo.Event.propertyChange, this.countryChangedHandler);
+	this.controller.setupWidget('languageSelector', { label: $L("Language") }, this.languageSelectorModel);
+	this.controller.setupWidget('emailInputField', {
+			autoReplace: false,
+				hintText: 'Enter email address ...',
+				changeOnKeyPress: true,
+				'textCase':Mojo.Widget.steModeLowerCase,
+				focusMode: Mojo.Widget.focusSelectMode },
+		this.emailInputFieldModel);
+	this.controller.listen(this.emailInputField, Mojo.Event.propertyChange, this.emailChangedHandler);
 	this.controller.setupWidget('emailAvailableButton', { }, this.emailAvailableButtonModel);
 	this.controller.listen(this.emailAvailableButton, Mojo.Event.tap, this.emailAvailableTapHandler);
 	this.controller.setupWidget('deviceInUseButton', { }, this.deviceInUseButtonModel);
 	this.controller.listen(this.deviceInUseButton, Mojo.Event.tap, this.deviceInUseTapHandler);
-	this.controller.setupWidget('passwordInputField', { 'textCase':Mojo.Widget.steModeLowerCase },
-								this.passwordInputFieldModel);
+	this.controller.setupWidget('passwordInputField', {
+			autoReplace: false,
+				hintText: 'Enter password ...',
+				changeOnKeyPress: true,
+				'textCase':Mojo.Widget.steModeLowerCase,
+				focusMode: Mojo.Widget.focusSelectMode },
+		this.passwordInputFieldModel);
+	this.controller.listen(this.passwordInputField, Mojo.Event.propertyChange, this.passwordChangedHandler);
 	this.controller.setupWidget('authenticateFromDeviceButton', { }, this.authenticateFromDeviceButtonModel);
 	this.controller.listen(this.authenticateFromDeviceButton, Mojo.Event.tap, this.authenticateFromDeviceTapHandler);
-	this.controller.setupWidget('deviceModelSelector', { }, this.deviceModelSelectorModel);
-	this.controller.setupWidget('carrierSelector', { }, this.carrierSelectorModel);
-	this.controller.setupWidget('languageSelector', { }, this.languageSelectorModel);
-	this.controller.setupWidget('countrySelector', { }, this.countrySelectorModel);
 	this.controller.setupWidget('createDeviceAccountButton', { }, this.createDeviceAccountButtonModel);
 	this.controller.listen(this.createDeviceAccountButton, Mojo.Event.tap, this.createDeviceAccountTapHandler);
 }
@@ -195,28 +176,26 @@ ActivationAssistant.prototype.getDeviceProfile = function(returnValue, devicePro
 	this.deviceProfile = deviceProfile;
 
 	if (this.deviceProfile) {
-		this.emailInputFieldModel.disabled = false;
-		this.controller.modelChanged(this.emailInputFieldModel);
-		this.emailAvailableButtonModel.disabled = false;
-		this.controller.modelChanged(this.emailAvailableButtonModel);
-		this.deviceInUseButtonModel.disabled = false;
-		this.controller.modelChanged(this.deviceInUseButtonModel);
-		this.passwordInputFieldModel.disabled = false;
-		this.controller.modelChanged(this.passwordInputFieldModel);
-		this.authenticateFromDeviceButtonModel.disabled = false;
-		this.controller.modelChanged(this.authenticateFromDeviceButtonModel);
-		this.deviceModelSelectorModel.disabled = false;
-		this.deviceModelSelectorModel.value = this.deviceProfile.deviceModel;
-		this.controller.modelChanged(this.deviceModelSelectorModel);
-		this.carrierSelectorModel.disabled = false;
-		this.carrierSelectorModel.value = this.deviceProfile.carrier;
-		this.controller.modelChanged(this.carrierSelectorModel);
-		this.languageSelectorModel.disabled = false;
-		this.controller.modelChanged(this.languageSelectorModel);
 		this.countrySelectorModel.disabled = false;
 		this.controller.modelChanged(this.countrySelectorModel);
-		this.createDeviceAccountButtonModel.disabled = false;
-		this.controller.modelChanged(this.createDeviceAccountButtonModel);
+		this.languageSelectorModel.disabled = false;
+		this.controller.modelChanged(this.languageSelectorModel);
+		this.emailInputFieldModel.disabled = false;
+		this.controller.modelChanged(this.emailInputFieldModel);
+		if (this.emailInputFieldModel.value != '') {
+			this.emailAvailableButtonModel.disabled = false;
+			this.controller.modelChanged(this.emailAvailableButtonModel);
+			this.deviceInUseButtonModel.disabled = false;
+			this.controller.modelChanged(this.deviceInUseButtonModel);
+			this.passwordInputFieldModel.disabled = false;
+			this.controller.modelChanged(this.passwordInputFieldModel);
+			if (this.passwordInputFieldModel.value != '') {
+				this.authenticateFromDeviceButtonModel.disabled = false;
+				this.controller.modelChanged(this.authenticateFromDeviceButtonModel);
+				this.createDeviceAccountButtonModel.disabled = false;
+				this.controller.modelChanged(this.createDeviceAccountButtonModel);
+			}
+		}
 	}
 
 	this.palmProfile = false;
@@ -239,6 +218,73 @@ ActivationAssistant.prototype.getPalmProfile = function(returnValue, palmProfile
 		this.emailInputFieldModel.disabled = false;
 		this.emailInputFieldModel.value = this.palmProfile.alias;
 		this.controller.modelChanged(this.emailInputFieldModel);
+		if (this.emailInputFieldModel.value != '') {
+			this.emailAvailableButtonModel.disabled = false;
+			this.controller.modelChanged(this.emailAvailableButtonModel);
+			this.deviceInUseButtonModel.disabled = false;
+			this.controller.modelChanged(this.deviceInUseButtonModel);
+			this.passwordInputFieldModel.disabled = false;
+			this.controller.modelChanged(this.passwordInputFieldModel);
+			if (this.passwordInputFieldModel.value != '') {
+				this.authenticateFromDeviceButtonModel.disabled = false;
+				this.controller.modelChanged(this.authenticateFromDeviceButtonModel);
+				this.createDeviceAccountButtonModel.disabled = false;
+				this.controller.modelChanged(this.createDeviceAccountButtonModel);
+			}
+		}
+	}
+};
+
+ActivationAssistant.prototype.countryChanged = function(event)
+{
+	var country = event.value;
+
+	switch (country) {
+	case 'GB':
+		this.overrideMcc = '234'; this.overrideMnc = '10';
+		break;
+	case 'CA':
+		this.overrideMcc = '302'; this.overrideMnc = '720';
+		break;
+	case 'FR':
+		this.overrideMcc = '208'; this.overrideMnc = '10';
+		break;
+	case 'DE':
+		this.overrideMcc = '262'; this.overrideMnc = '07';
+		break;
+	default:
+		this.overrideMcc = false; this.overrideMnc = false;
+		break;
+	}
+};
+
+ActivationAssistant.prototype.emailChanged = function(event)
+{
+	if (event.value != '') {
+		this.emailAvailableButtonModel.disabled = false;
+		this.controller.modelChanged(this.emailAvailableButtonModel);
+		this.deviceInUseButtonModel.disabled = false;
+		this.controller.modelChanged(this.deviceInUseButtonModel);
+		this.passwordInputFieldModel.disabled = false;
+		this.controller.modelChanged(this.passwordInputFieldModel);
+		if (this.passwordInputFieldModel.value != '') {
+			this.authenticateFromDeviceButtonModel.disabled = false;
+			this.controller.modelChanged(this.authenticateFromDeviceButtonModel);
+			this.createDeviceAccountButtonModel.disabled = false;
+			this.controller.modelChanged(this.createDeviceAccountButtonModel);
+		}
+	}
+	else {
+		this.emailAvailableButtonModel.disabled = true;
+		this.controller.modelChanged(this.emailAvailableButtonModel);
+		this.deviceInUseButtonModel.disabled = true;
+		this.controller.modelChanged(this.deviceInUseButtonModel);
+		this.passwordInputFieldModel.disabled = true;
+		this.controller.modelChanged(this.passwordInputFieldModel);
+		this.authenticateFromDeviceButtonModel.disabled = true;
+		this.controller.modelChanged(this.authenticateFromDeviceButtonModel);
+		this.createDeviceAccountButtonModel.disabled = true;
+		this.controller.modelChanged(this.createDeviceAccountButtonModel);
 	}
 };
 
@@ -388,6 +434,22 @@ ActivationAssistant.prototype.deviceInUse = function(payload)
 	}
 };
 
+ActivationAssistant.prototype.passwordChanged = function(event)
+{
+	if (event.value != '') {
+		this.authenticateFromDeviceButtonModel.disabled = false;
+		this.controller.modelChanged(this.authenticateFromDeviceButtonModel);
+		this.createDeviceAccountButtonModel.disabled = false;
+		this.controller.modelChanged(this.createDeviceAccountButtonModel);
+	}
+	else {
+		this.authenticateFromDeviceButtonModel.disabled = true;
+		this.controller.modelChanged(this.authenticateFromDeviceButtonModel);
+		this.createDeviceAccountButtonModel.disabled = true;
+		this.controller.modelChanged(this.createDeviceAccountButtonModel);
+	}
+};
+
 ActivationAssistant.prototype.authenticateFromDeviceTap = function(event)
 {
 	this.controller.showAlertDialog({
@@ -402,6 +464,8 @@ ActivationAssistant.prototype.authenticateFromDeviceTap = function(event)
 ActivationAssistant.prototype.authenticateFromDeviceAck = function(value)
 {
 	if (value != "authenticate") return;
+	
+	this.authenticationInfo = false;
 
 	var callback = this.authenticateFromDeviceHandler;
 
@@ -422,10 +486,10 @@ ActivationAssistant.prototype.authenticateFromDeviceAck = function(value)
 				"firmwareVersion": this.deviceProfile.firmwareVersion,
 				"network": this.deviceProfile.network,
 				"platform": this.deviceProfile.platform,
-				"homeMcc": this.deviceProfile.homeMcc,
-				"homeMnc": this.deviceProfile.homeMnc,
-				"currentMcc": this.deviceProfile.currentMcc,
-				"currentMnc": this.deviceProfile.currentMnc
+				"homeMcc": this.overrideMcc || this.deviceProfile.homeMcc,
+				"homeMnc": this.overrideMnc || this.deviceProfile.homeMnc,
+				"currentMcc": this.overrideMcc || this.deviceProfile.currentMcc,
+				"currentMnc": this.overrideMnc || this.deviceProfile.currentMnc
 			},
 			"romToken": {
 				"buildVariant": this.deviceProfile.dmSets,
@@ -503,6 +567,7 @@ ActivationAssistant.prototype.authenticateFromDevice = function(payload)
 
 	if (payload.response.AuthenticateInfoEx) {
 		var info = payload.response.AuthenticateInfoEx;
+		this.authenticationInfo = info;
 
 		if (this.palmProfile) {
 			this.requestPalmService = ImpostahService.impersonate(this.authenticationUpdateHandler,
@@ -554,7 +619,9 @@ ActivationAssistant.prototype.authenticationUpdate = function(payload)
 		return;
 	}
 
-	this.controller.stageController.pushScene("item", "Authentication Update", payload);
+	if (this.authenticationInfo) {
+		this.controller.stageController.pushScene("item", "Authenticate From Device", this.authenticationInfo);
+	}
 
 	this.palmProfile = false;
 	this.updateSpinner(true);
@@ -576,6 +643,8 @@ ActivationAssistant.prototype.createDeviceAccountAck = function(value)
 {
 	if (value != "create") return;
 
+	this.authenticationInfo = false;
+
 	var callback = this.createDeviceAccountHandler;
 
 	var url = this.accountServerUrl+"createDeviceAccount";
@@ -591,19 +660,19 @@ ActivationAssistant.prototype.createDeviceAccountAck = function(value)
 			"password": this.passwordInputFieldModel.value,
 			"device": {
 				"serialNumber": this.deviceProfile.serialNumber,
-				"carrier": this.carrierSelectorModel.value,
+				"carrier": this.deviceProfile.carrier,
 				"dataNetwork": this.deviceProfile.dataNetwork,
 				"deviceID": this.deviceProfile.deviceId,
 				"phoneNumber": this.deviceProfile.phoneNumber,
 				"nduID": this.deviceProfile.nduId,
-				"deviceModel": this.deviceModelSelectorModel.value,
+				"deviceModel": this.deviceProfile.deviceModel,
 				"firmwareVersion": this.deviceProfile.firmwareVersion,
 				"network": this.deviceProfile.network,
 				"platform": this.deviceProfile.platform,
-				"homeMcc": this.deviceProfile.homeMcc,
-				"homeMnc": this.deviceProfile.homeMnc,
-				"currentMcc": this.deviceProfile.currentMcc,
-				"currentMnc": this.deviceProfile.currentMnc
+				"homeMcc": this.overrideMcc || this.deviceProfile.homeMcc,
+				"homeMnc": this.overrideMnc || this.deviceProfile.homeMnc,
+				"currentMcc": this.overrideMcc || this.deviceProfile.currentMcc,
+				"currentMnc": this.overrideMnc || this.deviceProfile.currentMnc
 			},
 			"romToken": {
 				"buildVariant": this.deviceProfile.dmSets,
@@ -682,6 +751,7 @@ ActivationAssistant.prototype.createDeviceAccount = function(payload)
 	if (payload.response.AuthenticateInfoEx) {
 		// this.controller.stageController.pushScene("item", "Authentication Info", payload.response.AuthenticateInfoEx);
 		var info = payload.response.AuthenticateInfoEx;
+		this.authenticationInfo = info;
 
 		if (this.palmProfile) {
 			this.requestPalmService = ImpostahService.impersonate(this.authenticationUpdateHandler,
@@ -733,7 +803,9 @@ ActivationAssistant.prototype.profileCreation = function(payload)
 		return;
 	}
 
-	this.controller.stageController.pushScene("item", "Profile Creation", payload);
+	if (this.authenticationInfo) {
+		this.controller.stageController.pushScene("item", "Create Device Account", this.authenticationInfo);
+	}
 
 	this.palmProfile = false;
 	this.updateSpinner(true);
@@ -783,10 +855,16 @@ ActivationAssistant.prototype.handleCommand = function(event)
 
 ActivationAssistant.prototype.cleanup = function(event)
 {
+	this.controller.stopListening(this.countrySelector, Mojo.Event.propertyChange,
+								  this.countryChangedHandler);
+	this.controller.stopListening(this.emailInputField, Mojo.Event.propertyChange,
+								  this.emailChangedHandler);
 	this.controller.stopListening(this.emailAvailableButton,  Mojo.Event.tap,
 								  this.emailAvailableTapHandler);
 	this.controller.stopListening(this.deviceInUseButton,  Mojo.Event.tap,
 								  this.deviceInUseTapHandler);
+	this.controller.stopListening(this.passwordInputField, Mojo.Event.propertyChange,
+								  this.passwordChangedHandler);
 	this.controller.stopListening(this.authenticateFromDeviceButton,  Mojo.Event.tap,
 								  this.authenticateFromDeviceTapHandler);
 	this.controller.stopListening(this.createDeviceAccountButton,  Mojo.Event.tap,

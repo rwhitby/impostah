@@ -56,12 +56,12 @@ function ActivationAssistant()
 		disabled: true
 	};
 
-	this.authenticateFromDeviceButtonModel = {
-		label: $L("Sign In To Profile"),
+	this.loginToProfileButtonModel = {
+		label: $L("Login To Profile"),
 		disabled: true
 	};
 
-	this.createDeviceAccountButtonModel = {
+	this.createNewProfileButtonModel = {
 		label: $L("Create New Profile"),
 		disabled: true
 	};
@@ -93,20 +93,20 @@ ActivationAssistant.prototype.setup = function()
 	this.countrySelector = this.controller.get('countrySelector');
 	this.emailInputField = this.controller.get('emailInputField');
 	this.passwordInputField = this.controller.get('passwordInputField');
-	this.authenticateFromDeviceButton = this.controller.get('authenticateFromDeviceButton');
-	this.createDeviceAccountButton = this.controller.get('createDeviceAccountButton');
+	this.loginToProfileButton = this.controller.get('loginToProfileButton');
+	this.createNewProfileButton = this.controller.get('createNewProfileButton');
 	
 	// setup handlers
 	this.countryChangedHandler = this.countryChanged.bindAsEventListener(this);
 	this.emailChangedHandler = this.emailChanged.bindAsEventListener(this);
 	this.passwordChangedHandler = this.passwordChanged.bindAsEventListener(this);
-	this.authenticateFromDeviceTapHandler = this.authenticateFromDeviceTap.bindAsEventListener(this);
-	this.authenticateFromDeviceAckHandler = this.authenticateFromDeviceAck.bind(this);
-	this.authenticateFromDeviceHandler =	this.authenticateFromDevice.bindAsEventListener(this);
+	this.loginToProfileTapHandler = this.loginToProfileTap.bindAsEventListener(this);
+	this.loginToProfileAckHandler = this.loginToProfileAck.bind(this);
+	this.loginToProfileHandler =	this.loginToProfile.bindAsEventListener(this);
 	this.authenticationUpdateHandler =	this.authenticationUpdate.bindAsEventListener(this);
-	this.createDeviceAccountTapHandler = this.createDeviceAccountTap.bindAsEventListener(this);
-	this.createDeviceAccountAckHandler = this.createDeviceAccountAck.bind(this);
-	this.createDeviceAccountHandler =	this.createDeviceAccount.bindAsEventListener(this);
+	this.createNewProfileTapHandler = this.createNewProfileTap.bindAsEventListener(this);
+	this.createNewProfileAckHandler = this.createNewProfileAck.bind(this);
+	this.createNewProfileHandler =	this.createNewProfile.bindAsEventListener(this);
 	this.profileCreationHandler =	this.profileCreation.bindAsEventListener(this);
 	
 	// setup wigets
@@ -131,10 +131,10 @@ ActivationAssistant.prototype.setup = function()
 				focusMode: Mojo.Widget.focusSelectMode },
 		this.passwordInputFieldModel);
 	this.controller.listen(this.passwordInputField, Mojo.Event.propertyChange, this.passwordChangedHandler);
-	this.controller.setupWidget('authenticateFromDeviceButton', { }, this.authenticateFromDeviceButtonModel);
-	this.controller.listen(this.authenticateFromDeviceButton, Mojo.Event.tap, this.authenticateFromDeviceTapHandler);
-	this.controller.setupWidget('createDeviceAccountButton', { }, this.createDeviceAccountButtonModel);
-	this.controller.listen(this.createDeviceAccountButton, Mojo.Event.tap, this.createDeviceAccountTapHandler);
+	this.controller.setupWidget('loginToProfileButton', { }, this.loginToProfileButtonModel);
+	this.controller.listen(this.loginToProfileButton, Mojo.Event.tap, this.loginToProfileTapHandler);
+	this.controller.setupWidget('createNewProfileButton', { }, this.createNewProfileButtonModel);
+	this.controller.listen(this.createNewProfileButton, Mojo.Event.tap, this.createNewProfileTapHandler);
 }
 
 ActivationAssistant.prototype.activate = function()
@@ -166,10 +166,10 @@ ActivationAssistant.prototype.getDeviceProfile = function(returnValue, devicePro
 			this.passwordInputFieldModel.disabled = false;
 			this.controller.modelChanged(this.passwordInputFieldModel);
 			if (this.passwordInputFieldModel.value != '') {
-				this.authenticateFromDeviceButtonModel.disabled = false;
-				this.controller.modelChanged(this.authenticateFromDeviceButtonModel);
-				this.createDeviceAccountButtonModel.disabled = false;
-				this.controller.modelChanged(this.createDeviceAccountButtonModel);
+				this.loginToProfileButtonModel.disabled = false;
+				this.controller.modelChanged(this.loginToProfileButtonModel);
+				this.createNewProfileButtonModel.disabled = false;
+				this.controller.modelChanged(this.createNewProfileButtonModel);
 			}
 		}
 	}
@@ -200,10 +200,10 @@ ActivationAssistant.prototype.getPalmProfile = function(returnValue, palmProfile
 			this.passwordInputFieldModel.disabled = false;
 			this.controller.modelChanged(this.passwordInputFieldModel);
 			if (this.passwordInputFieldModel.value != '') {
-				this.authenticateFromDeviceButtonModel.disabled = false;
-				this.controller.modelChanged(this.authenticateFromDeviceButtonModel);
-				this.createDeviceAccountButtonModel.disabled = false;
-				this.controller.modelChanged(this.createDeviceAccountButtonModel);
+				this.loginToProfileButtonModel.disabled = false;
+				this.controller.modelChanged(this.loginToProfileButtonModel);
+				this.createNewProfileButtonModel.disabled = false;
+				this.controller.modelChanged(this.createNewProfileButtonModel);
 			}
 		}
 	}
@@ -238,56 +238,56 @@ ActivationAssistant.prototype.emailChanged = function(event)
 		this.passwordInputFieldModel.disabled = false;
 		this.controller.modelChanged(this.passwordInputFieldModel);
 		if (this.passwordInputFieldModel.value != '') {
-			this.authenticateFromDeviceButtonModel.disabled = false;
-			this.controller.modelChanged(this.authenticateFromDeviceButtonModel);
-			this.createDeviceAccountButtonModel.disabled = false;
-			this.controller.modelChanged(this.createDeviceAccountButtonModel);
+			this.loginToProfileButtonModel.disabled = false;
+			this.controller.modelChanged(this.loginToProfileButtonModel);
+			this.createNewProfileButtonModel.disabled = false;
+			this.controller.modelChanged(this.createNewProfileButtonModel);
 		}
 	}
 	else {
 		this.passwordInputFieldModel.disabled = true;
 		this.controller.modelChanged(this.passwordInputFieldModel);
-		this.authenticateFromDeviceButtonModel.disabled = true;
-		this.controller.modelChanged(this.authenticateFromDeviceButtonModel);
-		this.createDeviceAccountButtonModel.disabled = true;
-		this.controller.modelChanged(this.createDeviceAccountButtonModel);
+		this.loginToProfileButtonModel.disabled = true;
+		this.controller.modelChanged(this.loginToProfileButtonModel);
+		this.createNewProfileButtonModel.disabled = true;
+		this.controller.modelChanged(this.createNewProfileButtonModel);
 	}
 };
 
 ActivationAssistant.prototype.passwordChanged = function(event)
 {
 	if (event.value != '') {
-		this.authenticateFromDeviceButtonModel.disabled = false;
-		this.controller.modelChanged(this.authenticateFromDeviceButtonModel);
-		this.createDeviceAccountButtonModel.disabled = false;
-		this.controller.modelChanged(this.createDeviceAccountButtonModel);
+		this.loginToProfileButtonModel.disabled = false;
+		this.controller.modelChanged(this.loginToProfileButtonModel);
+		this.createNewProfileButtonModel.disabled = false;
+		this.controller.modelChanged(this.createNewProfileButtonModel);
 	}
 	else {
-		this.authenticateFromDeviceButtonModel.disabled = true;
-		this.controller.modelChanged(this.authenticateFromDeviceButtonModel);
-		this.createDeviceAccountButtonModel.disabled = true;
-		this.controller.modelChanged(this.createDeviceAccountButtonModel);
+		this.loginToProfileButtonModel.disabled = true;
+		this.controller.modelChanged(this.loginToProfileButtonModel);
+		this.createNewProfileButtonModel.disabled = true;
+		this.controller.modelChanged(this.createNewProfileButtonModel);
 	}
 };
 
-ActivationAssistant.prototype.authenticateFromDeviceTap = function(event)
+ActivationAssistant.prototype.loginToProfileTap = function(event)
 {
 	this.controller.showAlertDialog({
 			allowHTMLMessage:	true,
-			title:				'Authenticate From Device',
-			message:			"Are you sure? This will replace the current Palm Profile on your device, which may have an unknown impact on your apps and data in your Palm Profile.",
-			choices:			[{label:$L("Authenticate"), value:'authenticate', type:'negative'},{label:$L("Cancel"), value:'cancel', type:'dismiss'}],
-			onChoose:			this.authenticateFromDeviceAckHandler
+			title:				'Login To Profile',
+			message:			"Are you sure? This will replace any current Palm Profile on your device, which may have an unknown impact on your apps and data in your Palm Profile.",
+			choices:			[{label:$L("Login To Profile"), value:'login', type:'affirmative'},{label:$L("Cancel"), value:'cancel', type:'negative'}],
+			onChoose:			this.loginToProfileAckHandler
 		});
 };
 
-ActivationAssistant.prototype.authenticateFromDeviceAck = function(value)
+ActivationAssistant.prototype.loginToProfileAck = function(value)
 {
-	if (value != "authenticate") return;
+	if (value != "login") return;
 	
 	this.authenticationInfo = false;
 
-	var callback = this.authenticateFromDeviceHandler;
+	var callback = this.loginToProfileHandler;
 
 	var url = this.accountServerUrl+"authenticateFromDevice";
 	var body = {
@@ -367,18 +367,18 @@ ActivationAssistant.prototype.authenticateFromDeviceAck = function(value)
 
 	this.updateSpinner(true);
 
-	this.authenticateFromDeviceButtonModel.disabled = true;
-	this.controller.modelChanged(this.authenticateFromDeviceButtonModel);
+	this.loginToProfileButtonModel.disabled = true;
+	this.controller.modelChanged(this.loginToProfileButtonModel);
 };
 
-ActivationAssistant.prototype.authenticateFromDevice = function(payload)
+ActivationAssistant.prototype.loginToProfile = function(payload)
 {
 	this.requestWebService = false;
 
 	this.updateSpinner(false);
 
-	this.authenticateFromDeviceButtonModel.disabled = false;
-	this.controller.modelChanged(this.authenticateFromDeviceButtonModel);
+	this.loginToProfileButtonModel.disabled = false;
+	this.controller.modelChanged(this.loginToProfileButtonModel);
 
 	if (payload.returnValue === false) {
 		this.errorMessage('<b>Service Error (authenticateFromDevice):</b><br>'+payload.errorText);
@@ -418,8 +418,8 @@ ActivationAssistant.prototype.authenticateFromDevice = function(payload)
 
 		this.updateSpinner(true);
 
-		this.authenticateFromDeviceButtonModel.disabled = true;
-		this.controller.modelChanged(this.authenticateFromDeviceButtonModel);
+		this.loginToProfileButtonModel.disabled = true;
+		this.controller.modelChanged(this.loginToProfileButtonModel);
 
 	}
 };
@@ -431,8 +431,8 @@ ActivationAssistant.prototype.authenticationUpdate = function(payload)
 
 	this.updateSpinner(false);
 
-	this.authenticateFromDeviceButtonModel.disabled = false;
-	this.controller.modelChanged(this.authenticateFromDeviceButtonModel);
+	this.loginToProfileButtonModel.disabled = false;
+	this.controller.modelChanged(this.loginToProfileButtonModel);
 
 	if (payload.returnValue === false) {
 		this.errorMessage('<b>Service Error (authenticationUpdate):</b><br>'+payload.errorText);
@@ -440,7 +440,7 @@ ActivationAssistant.prototype.authenticationUpdate = function(payload)
 	}
 
 	if (this.authenticationInfo) {
-		this.controller.stageController.pushScene("item", "Authenticate From Device", this.authenticationInfo);
+		this.controller.stageController.pushScene("item", "Palm Profile", this.authenticationInfo);
 	}
 
 	this.palmProfile = false;
@@ -448,24 +448,24 @@ ActivationAssistant.prototype.authenticationUpdate = function(payload)
 	PalmProfile.getPalmProfile(this.getPalmProfile.bind(this), true);
 };
 
-ActivationAssistant.prototype.createDeviceAccountTap = function(event)
+ActivationAssistant.prototype.createNewProfileTap = function(event)
 {
 	this.controller.showAlertDialog({
 			allowHTMLMessage:	true,
-			title:				'Create Device Account',
-			message:			"Are you sure? This will replace the current Palm Profile on your device, which may have an unknown impact on your apps and data in your Palm Profile.",
-			choices:			[{label:$L("Create"), value:'create', type:'negative'},{label:$L("Cancel"), value:'cancel', type:'dismiss'}],
-			onChoose:			this.createDeviceAccountAckHandler
+			title:				'Create New Profile',
+			message:			"Are you sure? This will replace any current Palm Profile on your device, which may have an unknown impact on your apps and data in your Palm Profile.",
+			choices:			[{label:$L("Create New Profile"), value:'create', type:'affirmative'},{label:$L("Cancel"), value:'cancel', type:'negative'}],
+			onChoose:			this.createNewProfileAckHandler
 		});
 };
 
-ActivationAssistant.prototype.createDeviceAccountAck = function(value)
+ActivationAssistant.prototype.createNewProfileAck = function(value)
 {
 	if (value != "create") return;
 
 	this.authenticationInfo = false;
 
-	var callback = this.createDeviceAccountHandler;
+	var callback = this.createNewProfileHandler;
 
 	var url = this.accountServerUrl+"createDeviceAccount";
 	var body = {
@@ -550,18 +550,18 @@ ActivationAssistant.prototype.createDeviceAccountAck = function(value)
 
 	this.updateSpinner(true);
 
-	this.createDeviceAccountButtonModel.disabled = true;
-	this.controller.modelChanged(this.createDeviceAccountButtonModel);
+	this.createNewProfileButtonModel.disabled = true;
+	this.controller.modelChanged(this.createNewProfileButtonModel);
 };
 
-ActivationAssistant.prototype.createDeviceAccount = function(payload)
+ActivationAssistant.prototype.createNewProfile = function(payload)
 {
 	this.requestWebService = false;
 
 	this.updateSpinner(false);
 
-	this.createDeviceAccountButtonModel.disabled = false;
-	this.controller.modelChanged(this.createDeviceAccountButtonModel);
+	this.createNewProfileButtonModel.disabled = false;
+	this.controller.modelChanged(this.createNewProfileButtonModel);
 
 	if (payload.returnValue === false) {
 		this.errorMessage('<b>Service Error (createDeviceAccount):</b><br>'+payload.errorText);
@@ -602,8 +602,8 @@ ActivationAssistant.prototype.createDeviceAccount = function(payload)
 		
 		this.updateSpinner(true);
 
-		this.createDeviceAccountButtonModel.disabled = true;
-		this.controller.modelChanged(this.createDeviceAccountButtonModel);
+		this.createNewProfileButtonModel.disabled = true;
+		this.controller.modelChanged(this.createNewProfileButtonModel);
 
 	}
 };
@@ -615,8 +615,8 @@ ActivationAssistant.prototype.profileCreation = function(payload)
 
 	this.updateSpinner(false);
 
-	this.createDeviceAccountButtonModel.disabled = false;
-	this.controller.modelChanged(this.createDeviceAccountButtonModel);
+	this.createNewProfileButtonModel.disabled = false;
+	this.controller.modelChanged(this.createNewProfileButtonModel);
 
 	if (payload.returnValue === false) {
 		this.errorMessage('<b>Service Error (profileCreation):</b><br>'+payload.errorText);
@@ -624,7 +624,7 @@ ActivationAssistant.prototype.profileCreation = function(payload)
 	}
 
 	if (this.authenticationInfo) {
-		this.controller.stageController.pushScene("item", "Create Device Account", this.authenticationInfo);
+		this.controller.stageController.pushScene("item", "Palm Profile", this.authenticationInfo);
 	}
 
 	this.palmProfile = false;
@@ -681,10 +681,10 @@ ActivationAssistant.prototype.cleanup = function(event)
 								  this.emailChangedHandler);
 	this.controller.stopListening(this.passwordInputField, Mojo.Event.propertyChange,
 								  this.passwordChangedHandler);
-	this.controller.stopListening(this.authenticateFromDeviceButton,  Mojo.Event.tap,
-								  this.authenticateFromDeviceTapHandler);
-	this.controller.stopListening(this.createDeviceAccountButton,  Mojo.Event.tap,
-								  this.createDeviceAccountTapHandler);
+	this.controller.stopListening(this.loginToProfileButton,  Mojo.Event.tap,
+								  this.loginToProfileTapHandler);
+	this.controller.stopListening(this.createNewProfileButton,  Mojo.Event.tap,
+								  this.createNewProfileTapHandler);
 };
 
 // Local Variables:

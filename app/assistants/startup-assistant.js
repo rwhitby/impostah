@@ -11,6 +11,7 @@ function StartupAssistant(changelog)
     this.newMessages =
 	[
 	 // Don't forget the comma on all but the last entry
+	 { version: '0.8.3', log: [ 'Improved the activation scene button labels' ] },
 	 { version: '0.8.2', log: [ 'Simplified the activation scene user interface' ] },
 	 { version: '0.8.1', log: [ 'Added automatic MCC and MNC override for activation' ] },
 	 { version: '0.8.0', log: [ 'Added the language and country selectors for profile creation',

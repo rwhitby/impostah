@@ -11,6 +11,7 @@ function StartupAssistant(changelog)
     this.newMessages =
 	[
 	 // Don't forget the comma on all but the last entry
+	 { version: '0.8.5', log: [ 'Now useable on devices without a back gesture (tap the top-left icon instead)' ] },
 	 { version: '0.8.4', log: [ 'Added the ability to check promo code status' ] },
 	 { version: '0.8.3', log: [ 'Improved the activation scene button labels' ] },
 	 { version: '0.8.2', log: [ 'Simplified the activation scene user interface' ] },

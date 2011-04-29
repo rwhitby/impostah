@@ -31,21 +31,26 @@ JsonSaveAssistant.prototype.setup = function()
 	// setup menu
 	this.controller.setupWidget(Mojo.Menu.appMenu, { omitDefaultItems: true }, this.menuModel);
 	
-	// setup spinner widget
-	this.spinnerModel = {spinning: false};
-	this.controller.setupWidget('spinner', {spinnerSize: 'large'}, this.spinnerModel);
-	
-	
+	this.iconElement =			this.controller.get('icon');
+	this.spinnerElement = 		this.controller.get('spinner');
+
 	this.fileElement =			this.controller.get('file');
 	this.browseButtonElement =	this.controller.get('browseButton');
 	this.viewButtonElement =	this.controller.get('viewButton');
 	this.saveButtonElement =	this.controller.get('saveButton');
 	
+	this.iconTapHandler =		this.iconTap.bindAsEventListener(this);
 	this.textChanged =			this.textChanged.bindAsEventListener(this);
 	this.browseButtonPressed =	this.browseButtonPressed.bindAsEventListener(this);
 	this.viewButtonPressed =	this.viewButtonPressed.bindAsEventListener(this);
 	this.saveButtonPressed =	this.saveButtonPressed.bindAsEventListener(this);
 	
+	// setup spinner widget
+	this.spinnerModel = {spinning: false};
+	this.controller.setupWidget('spinner', {spinnerSize: 'large'}, this.spinnerModel);
+	
+	this.controller.listen(this.iconElement,  Mojo.Event.tap, this.iconTapHandler);
+	this.controller.listen(this.spinnerElement,  Mojo.Event.tap, this.iconTapHandler);
 	
 	this.controller.setupWidget
 	(
@@ -181,6 +186,11 @@ JsonSaveAssistant.prototype.errorMessage = function(msg)
 		});
 };
 
+JsonSaveAssistant.prototype.iconTap = function(event)
+{
+	this.controller.stageController.popScene();
+};
+
 JsonSaveAssistant.prototype.handleCommand = function(event)
 {
 	if (event.type == Mojo.Event.command) {
@@ -198,6 +208,10 @@ JsonSaveAssistant.prototype.handleCommand = function(event)
 
 JsonSaveAssistant.prototype.cleanup = function(event)
 {
+	this.controller.stopListening(this.iconElement,  Mojo.Event.tap,
+								  this.iconTapHandler);
+	this.controller.stopListening(this.spinnerElement,  Mojo.Event.tap,
+								  this.iconTapHandler);
 };
 
 // Local Variables:

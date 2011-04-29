@@ -18,6 +18,7 @@ function AppCatalogAssistant()
 	
 	this.appIdInputFieldModel = {
 		label: $L("Application ID"),
+		value: '',
 		disabled: true
 	};
 
@@ -59,9 +60,26 @@ function AppCatalogAssistant()
 		disabled: true
 	};
 
+	this.promoCodeInputFieldModel = {
+		label: $L("Promo Code"),
+		value: '',
+		disabled: true
+	};
+
+	this.getCodeInfoButtonModel = {
+		label: $L("Get Code Info"),
+		disabled: true
+	};
+
+ 	this.checkCodeStatusButtonModel = {
+		label: $L("Check Code Status"),
+		disabled: true
+	};
+
 	this.palmProfile = false;
 	this.deviceProfile = false;
 	this.appInfo = false;
+	this.promoCodeInfo = false;
 
 	this.requestPalmService = false;
 	this.requestWebService = false;
@@ -95,6 +113,9 @@ AppCatalogAssistant.prototype.setup = function()
 	this.accessCountryButton = this.controller.get('accessCountryButton');
 	this.paymentInfoButton = this.controller.get('paymentInfoButton');
 	this.billingCountriesButton = this.controller.get('billingCountriesButton');
+	this.promoCodeInputField = this.controller.get('promoCodeInputField');
+	this.getCodeInfoButton = this.controller.get('getCodeInfoButton');
+	this.checkCodeStatusButton = this.controller.get('checkCodeStatusButton');
 	
 	// setup handlers
 	this.appIdChangedHandler = this.appIdChanged.bindAsEventListener(this);
@@ -113,6 +134,11 @@ AppCatalogAssistant.prototype.setup = function()
 	this.paymentInfoHandler =	this.paymentInfo.bindAsEventListener(this);
 	this.billingCountriesTapHandler = this.billingCountriesTap.bindAsEventListener(this);
 	this.billingCountriesHandler =	this.billingCountries.bindAsEventListener(this);
+	this.promoCodeChangedHandler = this.promoCodeChanged.bindAsEventListener(this);
+	this.getCodeInfoTapHandler = this.getCodeInfoTap.bindAsEventListener(this);
+	this.getCodeInfoHandler =	this.getCodeInfo.bindAsEventListener(this);
+	this.checkCodeStatusTapHandler = this.checkCodeStatusTap.bindAsEventListener(this);
+	this.checkCodeStatusHandler =	this.checkCodeStatus.bindAsEventListener(this);
 	
 	// setup wigets
 	this.spinnerModel = {spinning: true};
@@ -142,6 +168,19 @@ AppCatalogAssistant.prototype.setup = function()
 	this.controller.listen(this.paymentInfoButton,  Mojo.Event.tap, this.paymentInfoTapHandler);
 	this.controller.setupWidget('billingCountriesButton', { }, this.billingCountriesButtonModel);
 	this.controller.listen(this.billingCountriesButton,  Mojo.Event.tap, this.billingCountriesTapHandler);
+	this.controller.setupWidget('promoCodeInputField', {
+			autoFocus: true,
+				autoReplace: false,
+				hintText: 'Enter promo code ...',
+				changeOnKeyPress: true,
+				textCase: Mojo.Widget.steModeLowerCase,
+				focusMode: Mojo.Widget.focusSelectMode },
+		this.promoCodeInputFieldModel);
+	this.controller.listen(this.promoCodeInputField, Mojo.Event.propertyChange, this.promoCodeChangedHandler);
+	this.controller.setupWidget('getCodeInfoButton', { }, this.getCodeInfoButtonModel);
+	this.controller.listen(this.getCodeInfoButton,  Mojo.Event.tap, this.getCodeInfoTapHandler);
+	this.controller.setupWidget('checkCodeStatusButton', { }, this.checkCodeStatusButtonModel);
+	this.controller.listen(this.checkCodeStatusButton,  Mojo.Event.tap, this.checkCodeStatusTapHandler);
 };
 
 AppCatalogAssistant.prototype.activate = function()
@@ -173,6 +212,8 @@ AppCatalogAssistant.prototype.getDeviceProfile = function(returnValue, devicePro
 		this.controller.modelChanged(this.paymentInfoButtonModel);
 		this.billingCountriesButtonModel.disabled = false;
 		this.controller.modelChanged(this.billingCountriesButtonModel);
+		this.promoCodeInputFieldModel.disabled = false;
+		this.controller.modelChanged(this.promoCodeInputFieldModel);
 	}
 
 	this.palmProfile = false;
@@ -776,6 +817,186 @@ AppCatalogAssistant.prototype.billingCountries = function(payload)
 	}
 };
 
+AppCatalogAssistant.prototype.promoCodeChanged = function(event)
+{
+	if (event.value != '') {
+		this.getCodeInfoButtonModel.disabled = false;
+		this.controller.modelChanged(this.getCodeInfoButtonModel);
+	}
+	else {
+		this.getCodeInfoButtonModel.disabled = true;
+		this.controller.modelChanged(this.getCodeInfoButtonModel);
+	}
+	this.checkCodeStatusButtonModel.disabled = true;
+	this.controller.modelChanged(this.checkCodeStatusButtonModel);
+};
+
+AppCatalogAssistant.prototype.getCodeInfoTap = function(event)
+{
+	var callback = this.getCodeInfoHandler;
+
+	var url = this.paymentServerUrl+"getPromoCodeInfos";
+	var body = {
+		"InGetPromoCodeInfos": {
+			"authToken": this.palmProfile.token,
+			"accountAlias": this.palmProfile.alias,
+			"deviceId": this.deviceProfile.deviceId,
+			"code": this.promoCodeInputFieldModel.value
+		}
+	};
+
+	Mojo.Log.warn("request %j", body);
+
+	this.promoCodeInfo = false;
+
+	this.requestWebService = new Ajax.Request(url, {
+			method: 'POST',
+			contentType: 'application/json',
+			postBody: Object.toJSON(body),
+			evalJSON: 'force',
+			onSuccess: function(response) {
+				response = response.responseJSON;
+				Mojo.Log.warn("onSuccess %j", response);
+				if (!response) {
+					callback({"returnValue":true}); // Empty replies are okay
+				}
+				else {
+					var exception = response.JSONException;
+					if (exception) {
+						Mojo.Log.error("CatalogServer._callServer %j", exception);
+						callback({"returnValue":false, "errorText":Object.toJSON(exception)});
+					}
+					else {
+						callback({"returnValue":true, "response":response});
+					}
+				}
+			},
+			onFailure: function(response) {
+				Mojo.Log.warn("onFailure %j", response);
+				if (response.responseJSON && response.responseJSON.JSONException) {
+					callback({"returnValue":false, "errorText":Object.toJSON(response.responseJSON.JSONException)});
+				}
+				else {
+					callback({"returnValue":false, "errorText":response.status});
+				}
+			},
+			on0: function(response) {
+				Mojo.Log.warn("on0 %j", response);
+				callback({"returnValue":false, "errorText":response.status});
+			}
+	});
+
+	this.updateSpinner(true);
+
+	this.getCodeInfoButtonModel.disabled = true;
+	this.controller.modelChanged(this.getCodeInfoButtonModel);
+};
+
+AppCatalogAssistant.prototype.getCodeInfo = function(payload)
+{
+	this.requestWebService = false;
+
+	this.updateSpinner(false);
+
+	this.getCodeInfoButtonModel.disabled = false;
+	this.controller.modelChanged(this.getCodeInfoButtonModel);
+
+	if (payload.returnValue === false) {
+		this.errorMessage('<b>Service Error (getCodeInfo):</b><br>'+payload.errorText);
+		return;
+	}
+
+	this.promoCodeInfo = payload.response.OutGetPromoCodeInfos;
+
+	if (this.promoCodeInfo) {
+		this.controller.stageController.pushScene("item", "Promo Code Info", this.promoCodeInfo);
+		this.checkCodeStatusButtonModel.disabled = false;
+		this.controller.modelChanged(this.checkCodeStatusButtonModel);
+	}
+};
+
+AppCatalogAssistant.prototype.checkCodeStatusTap = function(event)
+{
+	var callback = this.checkCodeStatusHandler;
+
+	var url = this.paymentServerUrl+"checkPromoCodeStatus";
+
+	var body = {
+		"InCheckPromoCodeStatus": {
+			"authToken": this.palmProfile.token,
+			"accountAlias": this.palmProfile.alias,
+			"deviceId": this.deviceProfile.deviceId,
+			"code": this.promoCodeInputFieldModel.value,
+			"id": this.promoCodeInfo.items[0].id,
+			"version": this.promoCodeInfo.items[0].version
+		}
+	};
+
+	Mojo.Log.warn("request %j", body);
+
+	this.requestWebService = new Ajax.Request(url, {
+			method: 'POST',
+			contentType: 'application/json',
+			postBody: Object.toJSON(body),
+			evalJSON: 'force',
+			onSuccess: function(response) {
+				response = response.responseJSON;
+				Mojo.Log.warn("onSuccess %j", response);
+				if (!response) {
+					callback({"returnValue":true}); // Empty replies are okay
+				}
+				else {
+					var exception = response.JSONException;
+					if (exception) {
+						Mojo.Log.error("CatalogServer._callServer %j", exception);
+						callback({"returnValue":false, "errorText":Object.toJSON(exception)});
+					}
+					else {
+						callback({"returnValue":true, "response":response});
+					}
+				}
+			},
+			onFailure: function(response) {
+				Mojo.Log.warn("onFailure %j", response);
+				if (response.responseJSON && response.responseJSON.JSONException) {
+					callback({"returnValue":false, "errorText":Object.toJSON(response.responseJSON.JSONException)});
+				}
+				else {
+					callback({"returnValue":false, "errorText":response.status});
+				}
+			},
+			on0: function(response) {
+				Mojo.Log.warn("on0 %j", response);
+				callback({"returnValue":false, "errorText":response.status});
+			}
+	});
+
+	this.updateSpinner(true);
+
+	this.checkCodeStatusButtonModel.disabled = true;
+	this.controller.modelChanged(this.checkCodeStatusButtonModel);
+};
+
+AppCatalogAssistant.prototype.checkCodeStatus = function(payload)
+{
+	this.requestWebService = false;
+
+	this.updateSpinner(false);
+
+	this.checkCodeStatusButtonModel.disabled = false;
+	this.controller.modelChanged(this.checkCodeStatusButtonModel);
+
+	if (payload.returnValue === false) {
+		this.errorMessage('<b>Service Error (checkCodeStatus):</b><br>'+payload.errorText);
+		return;
+	}
+
+	if (payload.response.OutCheckPromoCodeStatus) {
+		var status = payload.response.OutCheckPromoCodeStatus;
+		this.controller.stageController.pushScene("item", "Promo Code Status", status);
+	}
+};
+
 AppCatalogAssistant.prototype.updateSpinner = function(active)
 {
 	if (active)  {
@@ -835,6 +1056,12 @@ AppCatalogAssistant.prototype.cleanup = function(event)
 								  this.paymentInfoTapHandler);
 	this.controller.stopListening(this.billingCountriesButton,  Mojo.Event.tap,
 								  this.billingCountriesTapHandler);
+	this.controller.stopListening(this.promoCodeInputField, Mojo.Event.propertyChange,
+								  this.promoCodeChangedHandler);
+	this.controller.stopListening(this.getCodeInfoButton,  Mojo.Event.tap,
+								  this.getCodeInfoTapHandler);
+	this.controller.stopListening(this.checkCodeStatusButton,  Mojo.Event.tap,
+								  this.checkCodeStatusTapHandler);
 };
 
 // Local Variables:

@@ -35,17 +35,20 @@ BackupExploreAssistant.prototype.setup = function()
 	this.controller.setupWidget(Mojo.Menu.appMenu, { omitDefaultItems: true }, this.menuModel);
 	
 	// get elements
+	this.iconElement =			this.controller.get('icon');
 	this.backupKindElement =		this.controller.get('backupKind');
 	this.showButton =			this.controller.get('showButton');
 	this.bodyElement =			this.controller.get('body');
 	
 	// setup handlers
+	this.iconTapHandler = this.iconTap.bindAsEventListener(this);
 	this.backupKindsHandler =		this.backupKinds.bindAsEventListener(this);
 	this.backupKindHandler =		this.backupKind.bindAsEventListener(this);
 	this.backupKindChangedHandler = this.backupKindChanged.bindAsEventListener(this);
 	this.showTapHandler =		this.showTap.bindAsEventListener(this);
 	
 	// setup widgets
+	this.controller.listen(this.iconElement,  Mojo.Event.tap, this.iconTapHandler);
 	this.controller.setupWidget('backupKind', { multiline: true }, this.backupKindsModel);
 	this.controller.listen(this.backupKindElement, Mojo.Event.propertyChange, this.backupKindChangedHandler);
 	this.controller.setupWidget('showButton', {}, this.showButtonModel);
@@ -171,6 +174,11 @@ BackupExploreAssistant.prototype.errorMessage = function(msg)
 		});
 };
 
+BackupExploreAssistant.prototype.iconTap = function(event)
+{
+	this.controller.stageController.popScene();
+};
+
 BackupExploreAssistant.prototype.handleCommand = function(event)
 {
 	if (event.type == Mojo.Event.command) {
@@ -188,6 +196,7 @@ BackupExploreAssistant.prototype.handleCommand = function(event)
 
 BackupExploreAssistant.prototype.cleanup = function(event)
 {
+	this.controller.stopListening(this.iconElement,  Mojo.Event.tap, this.iconTapHandler);
 	this.controller.stopListening(this.backupKindElement, Mojo.Event.propertyChange, this.backupKindChangedHandler);
 	this.controller.stopListening(this.showButton,	Mojo.Event.tap, this.showTapHandler);
 };

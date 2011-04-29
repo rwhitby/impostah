@@ -38,15 +38,18 @@ ConnectionExploreAssistant.prototype.setup = function()
 	this.controller.setupWidget(Mojo.Menu.appMenu, { omitDefaultItems: true }, this.menuModel);
 	
 	// get elements
+	this.iconElement =			this.controller.get('icon');
 	this.connectionKindElement =	this.controller.get('connectionKind');
 	this.showButton =			this.controller.get('showButton');
 	
 	// setup handlers
+	this.iconTapHandler = this.iconTap.bindAsEventListener(this);
 	this.connectionKindsHandler =			this.connectionKinds.bindAsEventListener(this);
 	this.connectionKindChangedHandler = this.connectionKindChanged.bindAsEventListener(this);
 	this.showTapHandler =		this.showTap.bindAsEventListener(this);
 	
 	// setup widgets
+	this.controller.listen(this.iconElement,  Mojo.Event.tap, this.iconTapHandler);
 	this.controller.setupWidget('connectionKind', { multiline: true }, this.connectionKindsModel);
 	this.controller.listen(this.connectionKindElement, Mojo.Event.propertyChange, this.connectionKindChangedHandler);
 	this.controller.setupWidget('showButton', {}, this.showButtonModel);
@@ -158,6 +161,11 @@ ConnectionExploreAssistant.prototype.errorMessage = function(msg)
 		});
 };
 
+ConnectionExploreAssistant.prototype.iconTap = function(event)
+{
+	this.controller.stageController.popScene();
+};
+
 ConnectionExploreAssistant.prototype.handleCommand = function(event)
 {
 	if (event.type == Mojo.Event.command) {
@@ -175,6 +183,8 @@ ConnectionExploreAssistant.prototype.handleCommand = function(event)
 
 ConnectionExploreAssistant.prototype.cleanup = function(event)
 {
+	this.controller.stopListening(this.iconElement,  Mojo.Event.tap, this.iconTapHandler);
+	this.controller.stopListening(this.spinnerElement,  Mojo.Event.tap, this.iconTapHandler);
 	this.controller.stopListening(this.connectionKindElement, Mojo.Event.propertyChange, this.connectionKindChangedHandler);
 	this.controller.stopListening(this.showButton,	Mojo.Event.tap, this.showTapHandler);
 };

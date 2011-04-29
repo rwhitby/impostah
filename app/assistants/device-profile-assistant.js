@@ -45,12 +45,15 @@ DeviceProfileAssistant.prototype.setup = function()
 	this.manageOverridesButton = this.controller.get('manageOverridesButton');
 	
 	// setup handlers
+	this.iconTapHandler = this.iconTap.bindAsEventListener(this);
 	this.deviceProfileTapHandler = this.deviceProfileTap.bindAsEventListener(this);
 	this.manageOverridesTapHandler = this.manageOverridesTap.bindAsEventListener(this);
 	
 	// setup wigets
 	this.spinnerModel = {spinning: true};
 	this.controller.setupWidget('spinner', {spinnerSize: 'small'}, this.spinnerModel);
+	this.controller.listen(this.iconElement,  Mojo.Event.tap, this.iconTapHandler);
+	this.controller.listen(this.spinnerElement,  Mojo.Event.tap, this.iconTapHandler);
 	this.controller.setupWidget('deviceProfileButton', { }, this.deviceProfileButtonModel);
 	this.controller.listen(this.deviceProfileButton,  Mojo.Event.tap, this.deviceProfileTapHandler);
 	this.controller.setupWidget('manageOverridesButton', { }, this.manageOverridesButtonModel);
@@ -135,6 +138,11 @@ DeviceProfileAssistant.prototype.errorMessage = function(msg)
 		});
 };
 
+DeviceProfileAssistant.prototype.iconTap = function(event)
+{
+	this.controller.stageController.popScene();
+};
+
 DeviceProfileAssistant.prototype.handleCommand = function(event)
 {
 	if (event.type == Mojo.Event.command) {
@@ -152,6 +160,10 @@ DeviceProfileAssistant.prototype.handleCommand = function(event)
 
 DeviceProfileAssistant.prototype.cleanup = function(event)
 {
+	this.controller.stopListening(this.iconElement,  Mojo.Event.tap,
+								  this.iconTapHandler);
+	this.controller.stopListening(this.spinnerElement,  Mojo.Event.tap,
+								  this.iconTapHandler);
 	this.controller.stopListening(this.deviceProfileButton,  Mojo.Event.tap,
 								  this.deviceProfileTapHandler);
 	this.controller.stopListening(this.manageOverridesButton,  Mojo.Event.tap,

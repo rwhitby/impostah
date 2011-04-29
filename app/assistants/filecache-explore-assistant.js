@@ -36,16 +36,19 @@ FilecacheExploreAssistant.prototype.setup = function()
 	this.controller.setupWidget(Mojo.Menu.appMenu, { omitDefaultItems: true }, this.menuModel);
 	
 	// get elements
+	this.iconElement =			this.controller.get('icon');
 	this.filecacheKindElement =	this.controller.get('filecacheKind');
 	this.showButton =			this.controller.get('showButton');
 	
 	// setup handlers
+	this.iconTapHandler = this.iconTap.bindAsEventListener(this);
 	this.filecacheKindsHandler = 		this.filecacheKinds.bindAsEventListener(this);
 	this.filecacheKindHandler = 		this.filecacheKind.bindAsEventListener(this);
 	this.filecacheKindChangedHandler =	this.filecacheKindChanged.bindAsEventListener(this);
 	this.showTapHandler = 				this.showTap.bindAsEventListener(this);
 	
 	// setup widgets
+	this.controller.listen(this.iconElement,  Mojo.Event.tap, this.iconTapHandler);
 	this.controller.setupWidget('filecacheKind', { multiline: true }, this.filecacheKindsModel);
 	this.controller.listen(this.filecacheKindElement, Mojo.Event.propertyChange, this.filecacheKindChangedHandler);
 	this.controller.setupWidget('showButton', { }, this.showButtonModel);
@@ -135,6 +138,11 @@ FilecacheExploreAssistant.prototype.errorMessage = function(msg)
 		});
 };
 
+FilecacheExploreAssistant.prototype.iconTap = function(event)
+{
+	this.controller.stageController.popScene();
+};
+
 FilecacheExploreAssistant.prototype.handleCommand = function(event)
 {
 	if (event.type == Mojo.Event.command) {
@@ -152,6 +160,8 @@ FilecacheExploreAssistant.prototype.handleCommand = function(event)
 
 FilecacheExploreAssistant.prototype.cleanup = function(event)
 {
+	this.controller.stopListening(this.iconElement,  Mojo.Event.tap,
+								  this.iconTapHandler);
 	this.controller.stopListening(this.filecacheKindElement, Mojo.Event.propertyChange,
 								  this.filecacheKindChangedHandler);
 	this.controller.stopListening(this.showButton,  Mojo.Event.tap,

@@ -56,6 +56,7 @@ ActivityExploreAssistant.prototype.setup = function()
 	this.showButton =			this.controller.get('showButton');
 	
 	// setup handlers
+	this.iconTapHandler = this.iconTap.bindAsEventListener(this);
 	this.activitySetChangedHandler = this.activitySetChanged.bindAsEventListener(this);
 	this.activityKindsHandler = this.activityKinds.bindAsEventListener(this);
 	this.activityKindChangedHandler = this.activityKindChanged.bindAsEventListener(this);
@@ -65,6 +66,8 @@ ActivityExploreAssistant.prototype.setup = function()
 	// setup wigets
 	this.spinnerModel = {spinning: true};
 	this.controller.setupWidget('spinner', {spinnerSize: 'small'}, this.spinnerModel);
+	this.controller.listen(this.iconElement,  Mojo.Event.tap, this.iconTapHandler);
+	this.controller.listen(this.spinnerElement,  Mojo.Event.tap, this.iconTapHandler);
 	this.controller.setupWidget('activitySet', {}, this.activitySetsModel);
 	this.controller.listen(this.activitySetElement, Mojo.Event.propertyChange, this.activitySetChangedHandler);
 	this.controller.setupWidget('activityKind', { multiline: true }, this.activityKindsModel);
@@ -225,6 +228,11 @@ ActivityExploreAssistant.prototype.errorMessage = function(msg)
 		});
 };
 
+ActivityExploreAssistant.prototype.iconTap = function(event)
+{
+	this.controller.stageController.popScene();
+};
+
 ActivityExploreAssistant.prototype.handleCommand = function(event)
 {
 	if (event.type == Mojo.Event.command) {
@@ -242,6 +250,8 @@ ActivityExploreAssistant.prototype.handleCommand = function(event)
 
 ActivityExploreAssistant.prototype.cleanup = function(event)
 {
+	this.controller.stopListening(this.iconElement,  Mojo.Event.tap, this.iconTapHandler);
+	this.controller.stopListening(this.spinnerElement,  Mojo.Event.tap, this.iconTapHandler);
 	this.controller.stopListening(this.activitySetElement, Mojo.Event.propertyChange, this.activitySetChangedHandler);
 	this.controller.stopListening(this.activityKindElement, Mojo.Event.propertyChange, this.activityKindChangedHandler);
 	this.controller.stopListening(this.showButton,	Mojo.Event.tap, this.showTapHandler);

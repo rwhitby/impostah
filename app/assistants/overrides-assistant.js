@@ -49,6 +49,7 @@ OverridesAssistant.prototype.setup = function()
 	// set this scene's default transition
 	this.controller.setDefaultTransition(Mojo.Transition.zoomFade);
 	
+	this.iconTapHandler = this.iconTap.bindAsEventListener(this);
 	this.newNameChangedHandler =  this.newNameChanged.bindAsEventListener(this);
 	this.getOverridesHandler =  this.getOverrides.bindAsEventListener(this);
 	this.delOverridesHandler =  this.delOverrides.bindAsEventListener(this);
@@ -57,6 +58,8 @@ OverridesAssistant.prototype.setup = function()
 	// setup widgets
 	this.spinnerModel = {spinning: true};
 	this.controller.setupWidget('spinner', {spinnerSize: 'small'}, this.spinnerModel);
+	this.controller.listen(this.iconElement,  Mojo.Event.tap, this.iconTapHandler);
+	this.controller.listen(this.spinnerElement,  Mojo.Event.tap, this.iconTapHandler);
 	this.controller.setupWidget('newName', { label: "Attribute" }, this.newNameModel);
 	this.controller.listen(this.newNameElement, Mojo.Event.propertyChange, this.newNameChangedHandler);
 	this.controller.setupWidget('newValue', {
@@ -362,6 +365,11 @@ OverridesAssistant.prototype.errorMessage = function(msg)
 		});
 };
 
+OverridesAssistant.prototype.iconTap = function(event)
+{
+	this.controller.stageController.popScene();
+};
+
 OverridesAssistant.prototype.handleCommand = function(event)
 {
 	if (event.type == Mojo.Event.command) {
@@ -386,6 +394,8 @@ OverridesAssistant.prototype.handleCommand = function(event)
 };
 
 OverridesAssistant.prototype.cleanup = function(event) {
+	this.controller.stopListening(this.iconElement,  Mojo.Event.tap, this.iconTapHandler);
+	this.controller.stopListening(this.spinnerElement,  Mojo.Event.tap, this.iconTapHandler);
 	this.controller.stopListening(this.newNameElement, Mojo.Event.propertyChange, this.newNameChangedHandler);
 	this.controller.stopListening(this.newButtonElement, Mojo.Event.tap, this.newOverrideButton.bindAsEventListener(this));
 	this.controller.stopListening(this.overridesListElement, Mojo.Event.listDelete, this.overrideDeleted.bindAsEventListener(this));

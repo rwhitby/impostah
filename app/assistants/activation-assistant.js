@@ -97,6 +97,7 @@ ActivationAssistant.prototype.setup = function()
 	this.createNewProfileButton = this.controller.get('createNewProfileButton');
 	
 	// setup handlers
+	this.iconTapHandler = this.iconTap.bindAsEventListener(this);
 	this.countryChangedHandler = this.countryChanged.bindAsEventListener(this);
 	this.emailChangedHandler = this.emailChanged.bindAsEventListener(this);
 	this.passwordChangedHandler = this.passwordChanged.bindAsEventListener(this);
@@ -112,6 +113,8 @@ ActivationAssistant.prototype.setup = function()
 	// setup wigets
 	this.spinnerModel = {spinning: true};
 	this.controller.setupWidget('spinner', {spinnerSize: 'small'}, this.spinnerModel);
+	this.controller.listen(this.iconElement,  Mojo.Event.tap, this.iconTapHandler);
+	this.controller.listen(this.spinnerElement,  Mojo.Event.tap, this.iconTapHandler);
 	this.controller.setupWidget('countrySelector', { label: $L("Country") }, this.countrySelectorModel);
 	this.controller.listen(this.countrySelector, Mojo.Event.propertyChange, this.countryChangedHandler);
 	this.controller.setupWidget('languageSelector', { label: $L("Language") }, this.languageSelectorModel);
@@ -658,6 +661,11 @@ ActivationAssistant.prototype.errorMessage = function(msg)
 		});
 };
 
+ActivationAssistant.prototype.iconTap = function(event)
+{
+	this.controller.stageController.popScene();
+};
+
 ActivationAssistant.prototype.handleCommand = function(event)
 {
 	if (event.type == Mojo.Event.command) {
@@ -675,6 +683,10 @@ ActivationAssistant.prototype.handleCommand = function(event)
 
 ActivationAssistant.prototype.cleanup = function(event)
 {
+	this.controller.stopListening(this.iconElement,  Mojo.Event.tap,
+								  this.iconTapHandler);
+	this.controller.stopListening(this.spinnerElement,  Mojo.Event.tap,
+								  this.iconTapHandler);
 	this.controller.stopListening(this.countrySelector, Mojo.Event.propertyChange,
 								  this.countryChangedHandler);
 	this.controller.stopListening(this.emailInputField, Mojo.Event.propertyChange,

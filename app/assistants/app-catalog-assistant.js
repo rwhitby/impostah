@@ -118,6 +118,7 @@ AppCatalogAssistant.prototype.setup = function()
 	this.checkCodeStatusButton = this.controller.get('checkCodeStatusButton');
 	
 	// setup handlers
+	this.iconTapHandler = this.iconTap.bindAsEventListener(this);
 	this.appIdChangedHandler = this.appIdChanged.bindAsEventListener(this);
 	this.getAppInfoTapHandler = this.getAppInfoTap.bindAsEventListener(this);
 	this.getAppInfoHandler =	this.getAppInfo.bindAsEventListener(this);
@@ -143,6 +144,8 @@ AppCatalogAssistant.prototype.setup = function()
 	// setup wigets
 	this.spinnerModel = {spinning: true};
 	this.controller.setupWidget('spinner', {spinnerSize: 'small'}, this.spinnerModel);
+	this.controller.listen(this.iconElement,  Mojo.Event.tap, this.iconTapHandler);
+	this.controller.listen(this.spinnerElement,  Mojo.Event.tap, this.iconTapHandler);
 	this.controller.setupWidget('appIdInputField', {
 			autoFocus: true,
 				autoReplace: false,
@@ -200,21 +203,6 @@ AppCatalogAssistant.prototype.getDeviceProfile = function(returnValue, devicePro
 	}
 
 	this.deviceProfile = deviceProfile;
-
-	if (this.deviceProfile) {
-		this.appIdInputFieldModel.disabled = false;
-		this.controller.modelChanged(this.appIdInputFieldModel);
-		this.paidAppsButtonModel.disabled = false;
-		this.controller.modelChanged(this.paidAppsButtonModel);
-		this.accessCountryButtonModel.disabled = false;
-		this.controller.modelChanged(this.accessCountryButtonModel);
-		this.paymentInfoButtonModel.disabled = false;
-		this.controller.modelChanged(this.paymentInfoButtonModel);
-		this.billingCountriesButtonModel.disabled = false;
-		this.controller.modelChanged(this.billingCountriesButtonModel);
-		this.promoCodeInputFieldModel.disabled = false;
-		this.controller.modelChanged(this.promoCodeInputFieldModel);
-	}
 
 	this.palmProfile = false;
 	this.updateSpinner(true);
@@ -1023,6 +1011,11 @@ AppCatalogAssistant.prototype.errorMessage = function(msg)
 		});
 };
 
+AppCatalogAssistant.prototype.iconTap = function(event)
+{
+	this.controller.stageController.popScene();
+};
+
 AppCatalogAssistant.prototype.handleCommand = function(event)
 {
 	if (event.type == Mojo.Event.command) {
@@ -1040,6 +1033,10 @@ AppCatalogAssistant.prototype.handleCommand = function(event)
 
 AppCatalogAssistant.prototype.cleanup = function(event)
 {
+	this.controller.stopListening(this.iconElement,  Mojo.Event.tap,
+								  this.iconTapHandler);
+	this.controller.stopListening(this.spinnerElement,  Mojo.Event.tap,
+								  this.iconTapHandler);
 	this.controller.stopListening(this.appIdInputField, Mojo.Event.propertyChange,
 								  this.appIdChangedHandler);
 	this.controller.stopListening(this.getAppInfoButton,  Mojo.Event.tap,

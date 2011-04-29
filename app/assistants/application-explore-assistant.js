@@ -55,6 +55,7 @@ ApplicationExploreAssistant.prototype.setup = function()
 	this.showButton =			this.controller.get('showButton');
 	
 	// setup handlers
+	this.iconTapHandler = this.iconTap.bindAsEventListener(this);
 	this.applicationSetChangedHandler = this.applicationSetChanged.bindAsEventListener(this);
 	this.applicationKindsHandler = this.applicationKinds.bindAsEventListener(this);
 	this.applicationKindChangedHandler = this.applicationKindChanged.bindAsEventListener(this);
@@ -63,6 +64,8 @@ ApplicationExploreAssistant.prototype.setup = function()
 	// setup wigets
 	this.spinnerModel = {spinning: true};
 	this.controller.setupWidget('spinner', {spinnerSize: 'small'}, this.spinnerModel);
+	this.controller.listen(this.iconElement,  Mojo.Event.tap, this.iconTapHandler);
+	this.controller.listen(this.spinnerElement,  Mojo.Event.tap, this.iconTapHandler);
 	this.controller.setupWidget('applicationSet', {}, this.applicationSetsModel);
 	this.controller.listen(this.applicationSetElement, Mojo.Event.propertyChange, this.applicationSetChangedHandler);
 	this.controller.setupWidget('applicationKind', { multiline: true }, this.applicationKindsModel);
@@ -194,6 +197,11 @@ ApplicationExploreAssistant.prototype.errorMessage = function(msg)
 		});
 };
 
+ApplicationExploreAssistant.prototype.iconTap = function(event)
+{
+	this.controller.stageController.popScene();
+};
+
 ApplicationExploreAssistant.prototype.handleCommand = function(event)
 {
 	if (event.type == Mojo.Event.command) {
@@ -211,6 +219,8 @@ ApplicationExploreAssistant.prototype.handleCommand = function(event)
 
 ApplicationExploreAssistant.prototype.cleanup = function(event)
 {
+	this.controller.stopListening(this.iconElement,  Mojo.Event.tap, this.iconTapHandler);
+	this.controller.stopListening(this.spinnerElement,  Mojo.Event.tap, this.iconTapHandler);
 	this.controller.stopListening(this.applicationSetElement, Mojo.Event.propertyChange, this.applicationSetChangedHandler);
 	this.controller.stopListening(this.applicationKindElement, Mojo.Event.propertyChange, this.applicationKindChangedHandler);
 	this.controller.stopListening(this.showButton,	Mojo.Event.tap, this.showTapHandler);

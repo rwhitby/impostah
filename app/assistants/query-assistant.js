@@ -39,12 +39,15 @@ QueryAssistant.prototype.setup = function() {
 	this.listElement = this.controller.get('mainList');
 
     // handlers
+	this.iconTapHandler = this.iconTap.bindAsEventListener(this);
     this.listTapHandler = this.listTap.bindAsEventListener(this);
     this.impersonateHandler = this.impersonate.bindAsEventListener(this);
 	
     // setup widgets
 	this.spinnerModel = {spinning: true};
 	this.controller.setupWidget('spinner', {spinnerSize: 'small'}, this.spinnerModel);
+	this.controller.listen(this.iconElement,  Mojo.Event.tap, this.iconTapHandler);
+	this.controller.listen(this.spinnerElement,  Mojo.Event.tap, this.iconTapHandler);
     this.controller.setupWidget('mainList', {
 			itemTemplate: "query/rowTemplate", swipeToDelete: false, reorderable: false }, this.mainModel);
     this.controller.listen(this.listElement, Mojo.Event.listTap, this.listTapHandler);
@@ -131,6 +134,11 @@ QueryAssistant.prototype.errorMessage = function(msg)
     });
 };
 
+QueryAssistant.prototype.iconTap = function(event)
+{
+	this.controller.stageController.popScene();
+};
+
 QueryAssistant.prototype.handleCommand = function(event)
 {
 	if (event.type == Mojo.Event.command)
@@ -149,6 +157,8 @@ QueryAssistant.prototype.handleCommand = function(event)
 };
 
 QueryAssistant.prototype.cleanup = function(event) {
+	this.controller.stopListening(this.iconElement,  Mojo.Event.tap, this.iconTapHandler);
+	this.controller.stopListening(this.spinnerElement,  Mojo.Event.tap, this.iconTapHandler);
     this.controller.stopListening(this.listElement, Mojo.Event.listTap, this.listTapHandler);
 };
 

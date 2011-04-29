@@ -54,6 +54,7 @@ AppDataExploreAssistant.prototype.setup = function()
 	this.showButton =			this.controller.get('showButton');
 	
 	// setup handlers
+	this.iconTapHandler = this.iconTap.bindAsEventListener(this);
 	this.appIdsHandler =		  this.appIds.bindAsEventListener(this);
 	this.appIdChangedHandler =	  this.appIdChanged.bindAsEventListener(this);
 	this.dbNameChangedHandler =	  this.dbNameChanged.bindAsEventListener(this);
@@ -62,6 +63,8 @@ AppDataExploreAssistant.prototype.setup = function()
 	// setup widgets
 	this.spinnerModel = {spinning: true};
 	this.controller.setupWidget('spinner', {spinnerSize: 'small'}, this.spinnerModel);
+	this.controller.listen(this.iconElement,  Mojo.Event.tap, this.iconTapHandler);
+	this.controller.listen(this.spinnerElement,  Mojo.Event.tap, this.iconTapHandler);
 	this.controller.setupWidget('appId', {}, this.appIdsModel);
 	this.controller.listen(this.appIdElement, Mojo.Event.propertyChange, this.appIdChangedHandler);
 	this.controller.setupWidget('dbName', { multiline: true }, this.dbNamesModel);
@@ -128,19 +131,21 @@ AppDataExploreAssistant.prototype.appIds = function(payload)
 
 	if (payload.stage == "end") {
 
-		if (this.appIdsModel.value == "") {
-			this.appIdsModel.value = this.appIdsModel.choices[0].value;
-		}
-
 		// Stop the spinner
 		this.iconElement.style.display = 'inline';
 		this.spinnerModel.spinning = false;
 		this.controller.modelChanged(this.spinnerModel);
 
-		// Enable the drop-down list
-		this.appIdsModel.disabled = false;
-		this.controller.modelChanged(this.appIdsModel);
-		this.appIdChanged({value: this.appIdsModel.value});
+		if (this.appIdsModel.choices.length) {
+			if (this.appIdsModel.value == "") {
+				this.appIdsModel.value = this.appIdsModel.choices[0].value;
+			}
+
+			// Enable the drop-down list
+			this.appIdsModel.disabled = false;
+			this.controller.modelChanged(this.appIdsModel);
+			this.appIdChanged({value: this.appIdsModel.value});
+		}
 	}
 };
 
@@ -234,6 +239,11 @@ AppDataExploreAssistant.prototype.errorMessage = function(msg)
 		});
 };
 
+AppDataExploreAssistant.prototype.iconTap = function(event)
+{
+	this.controller.stageController.popScene();
+};
+
 AppDataExploreAssistant.prototype.handleCommand = function(event)
 {
 	if (event.type == Mojo.Event.command) {
@@ -254,6 +264,8 @@ AppDataExploreAssistant.prototype.cleanup = function(event)
 	// cancel the last request
 	if (this.request) this.request.cancel();
 
+	this.controller.stopListening(this.iconElement,  Mojo.Event.tap, this.iconTapHandler);
+	this.controller.stopListening(this.spinnerElement,  Mojo.Event.tap, this.iconTapHandler);
 	this.controller.stopListening(this.appIdElement, Mojo.Event.propertyChange, this.appIdChangedHandler);
 	this.controller.stopListening(this.dbNameElement, Mojo.Event.propertyChange, this.dbNameChangedHandler);
 	this.controller.stopListening(this.showButton,	 Mojo.Event.tap, this.showTapHandler);

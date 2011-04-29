@@ -53,6 +53,7 @@ PermissionExploreAssistant.prototype.setup = function()
 	this.showButton =				this.controller.get('showButton');
 	
 	// setup handlers
+	this.iconTapHandler = this.iconTap.bindAsEventListener(this);
 	this.permissionObjectsHandler =			this.permissionObjects.bindAsEventListener(this);
 	this.permissionObjectChangedHandler =	this.permissionObjectChanged.bindAsEventListener(this);
 	this.permissionCallersHandler =			this.permissionCallers.bindAsEventListener(this);
@@ -63,6 +64,8 @@ PermissionExploreAssistant.prototype.setup = function()
 	// setup wigets
 	this.spinnerModel = {spinning: true};
 	this.controller.setupWidget('spinner', {spinnerSize: 'small'}, this.spinnerModel);
+	this.controller.listen(this.iconElement,  Mojo.Event.tap, this.iconTapHandler);
+	this.controller.listen(this.spinnerElement,  Mojo.Event.tap, this.iconTapHandler);
 	this.controller.setupWidget('permissionObject', {}, this.permissionObjectsModel);
 	this.controller.listen(this.permissionObjectElement, Mojo.Event.propertyChange, this.permissionObjectChangedHandler);
 	this.controller.setupWidget('permissionCaller', {}, this.permissionCallersModel);
@@ -267,6 +270,11 @@ PermissionExploreAssistant.prototype.errorMessage = function(msg)
 		});
 };
 
+PermissionExploreAssistant.prototype.iconTap = function(event)
+{
+	this.controller.stageController.popScene();
+};
+
 PermissionExploreAssistant.prototype.handleCommand = function(event)
 {
 	if (event.type == Mojo.Event.command) {
@@ -284,6 +292,8 @@ PermissionExploreAssistant.prototype.handleCommand = function(event)
 
 PermissionExploreAssistant.prototype.cleanup = function(event)
 {
+	this.controller.stopListening(this.iconElement,  Mojo.Event.tap, this.iconTapHandler);
+	this.controller.stopListening(this.spinnerElement,  Mojo.Event.tap, this.iconTapHandler);
 	this.controller.stopListening(this.permissionObjectElement, Mojo.Event.propertyChange, this.permissionObjectChangedHandler);
 	this.controller.stopListening(this.permissionCallerElement, Mojo.Event.propertyChange, this.permissionCallerChangedHandler);
 	this.controller.stopListening(this.showButton,	Mojo.Event.tap, this.showTapHandler);

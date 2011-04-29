@@ -51,6 +51,7 @@ PalmProfileAssistant.prototype.setup = function()
 	this.resetPalmProfileButton = this.controller.get('resetPalmProfileButton');
 	
 	// setup handlers
+	this.iconTapHandler = this.iconTap.bindAsEventListener(this);
 	this.palmProfileTapHandler = this.palmProfileTap.bindAsEventListener(this);
 	this.manageOverridesTapHandler = this.manageOverridesTap.bindAsEventListener(this);
 	this.resetPalmProfileTapHandler = this.resetPalmProfileTap.bindAsEventListener(this);
@@ -62,6 +63,8 @@ PalmProfileAssistant.prototype.setup = function()
 	// setup wigets
 	this.spinnerModel = {spinning: true};
 	this.controller.setupWidget('spinner', {spinnerSize: 'small'}, this.spinnerModel);
+	this.controller.listen(this.iconElement,  Mojo.Event.tap, this.iconTapHandler);
+	this.controller.listen(this.spinnerElement,  Mojo.Event.tap, this.iconTapHandler);
 	this.controller.setupWidget('palmProfileButton', { }, this.palmProfileButtonModel);
 	this.controller.listen(this.palmProfileButton, Mojo.Event.tap, this.palmProfileTapHandler);
 	this.controller.setupWidget('manageOverridesButton', { }, this.manageOverridesButtonModel);
@@ -232,6 +235,11 @@ PalmProfileAssistant.prototype.errorMessage = function(msg)
 		});
 };
 
+PalmProfileAssistant.prototype.iconTap = function(event)
+{
+	this.controller.stageController.popScene();
+};
+
 PalmProfileAssistant.prototype.handleCommand = function(event)
 {
 	if (event.type == Mojo.Event.command) {
@@ -249,6 +257,10 @@ PalmProfileAssistant.prototype.handleCommand = function(event)
 
 PalmProfileAssistant.prototype.cleanup = function(event)
 {
+	this.controller.stopListening(this.iconElement,  Mojo.Event.tap,
+								  this.iconTapHandler);
+	this.controller.stopListening(this.spinnerElement,  Mojo.Event.tap,
+								  this.iconTapHandler);
 	this.controller.stopListening(this.palmProfileButton,  Mojo.Event.tap,
 								  this.palmProfileTapHandler);
 	this.controller.stopListening(this.manageOverridesButton,  Mojo.Event.tap,

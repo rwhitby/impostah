@@ -51,6 +51,7 @@ AccountExploreAssistant.prototype.setup = function()
 	this.showButton =			this.controller.get('showButton');
 	
 	// setup handlers
+	this.iconTapHandler = this.iconTap.bindAsEventListener(this);
 	this.accountSetsHandler = this.accountSets.bindAsEventListener(this);
 	this.accountSetChangedHandler = this.accountSetChanged.bindAsEventListener(this);
 	this.accountKindsHandler = this.accountKinds.bindAsEventListener(this);
@@ -61,6 +62,8 @@ AccountExploreAssistant.prototype.setup = function()
 	// setup wigets
 	this.spinnerModel = {spinning: true};
 	this.controller.setupWidget('spinner', {spinnerSize: 'small'}, this.spinnerModel);
+	this.controller.listen(this.iconElement,  Mojo.Event.tap, this.iconTapHandler);
+	this.controller.listen(this.spinnerElement,  Mojo.Event.tap, this.iconTapHandler);
 	this.controller.setupWidget('accountSet', {}, this.accountSetsModel);
 	this.controller.listen(this.accountSetElement, Mojo.Event.propertyChange, this.accountSetChangedHandler);
 	this.controller.setupWidget('accountKind', {}, this.accountKindsModel);
@@ -240,6 +243,11 @@ AccountExploreAssistant.prototype.errorMessage = function(msg)
 		});
 };
 
+AccountExploreAssistant.prototype.iconTap = function(event)
+{
+	this.controller.stageController.popScene();
+};
+
 AccountExploreAssistant.prototype.handleCommand = function(event)
 {
 	if (event.type == Mojo.Event.command) {
@@ -257,6 +265,8 @@ AccountExploreAssistant.prototype.handleCommand = function(event)
 
 AccountExploreAssistant.prototype.cleanup = function(event)
 {
+	this.controller.stopListening(this.iconElement, Mojo.Event.tap, this.iconTapHandler);
+	this.controller.stopListening(this.spinnerElement, Mojo.Event.tap, this.iconTapHandler);
 	this.controller.stopListening(this.accountSetElement, Mojo.Event.propertyChange, this.accountSetChangedHandler);
 	this.controller.stopListening(this.accountKindElement, Mojo.Event.propertyChange, this.accountKindChangedHandler);
 	this.controller.stopListening(this.showButton,	Mojo.Event.tap, this.showTapHandler);

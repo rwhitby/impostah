@@ -29,10 +29,16 @@ PreferencesAssistant.prototype.setup = function()
 		// set this scene's default transition
 		this.controller.setDefaultTransition(Mojo.Transition.zoomFade);
 		
+		// get elements
+		this.iconElement =			this.controller.get('icon');
+
 		// setup handlers for preferences
+		this.iconTapHandler = this.iconTap.bindAsEventListener(this);
 		this.toggleChangeHandler = this.toggleChanged.bindAsEventListener(this);
 		this.listChangedHandler  = this.listChanged.bindAsEventListener(this);
 		
+		this.controller.listen(this.iconElement,  Mojo.Event.tap, this.iconTapHandler);
+
 		// Global Group
 		this.controller.setupWidget
 		(
@@ -91,6 +97,11 @@ PreferencesAssistant.prototype.toggleChanged = function(event)
 	this.cookie.put(this.prefs);
 };
 
+PreferencesAssistant.prototype.iconTap = function(event)
+{
+	this.controller.stageController.popScene();
+};
+
 PreferencesAssistant.prototype.handleCommand = function(event)
 {
 	if (event.type == Mojo.Event.command)
@@ -118,7 +129,9 @@ PreferencesAssistant.prototype.deactivate = function(event)
 	var tmp = prefs.get(true);
 };
 
-PreferencesAssistant.prototype.cleanup = function(event) {};
+PreferencesAssistant.prototype.cleanup = function(event) {
+	this.controller.stopListening(this.iconElement,  Mojo.Event.tap, this.iconTapHandler);
+};
 
 // Local Variables:
 // tab-width: 4

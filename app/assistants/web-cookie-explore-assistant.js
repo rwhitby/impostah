@@ -54,6 +54,7 @@ WebCookieExploreAssistant.prototype.setup = function()
 	this.showButton =			this.controller.get('showButton');
 	
 	// setup handlers
+	this.iconTapHandler = this.iconTap.bindAsEventListener(this);
 	this.cookieUrlsHandler =		  this.cookieUrls.bindAsEventListener(this);
 	this.cookieUrlChangedHandler =	  this.cookieUrlChanged.bindAsEventListener(this);
 	this.cookieNameChangedHandler =	  this.cookieNameChanged.bindAsEventListener(this);
@@ -62,6 +63,8 @@ WebCookieExploreAssistant.prototype.setup = function()
 	// setup widgets
 	this.spinnerModel = {spinning: true};
 	this.controller.setupWidget('spinner', {spinnerSize: 'small'}, this.spinnerModel);
+	this.controller.listen(this.iconElement,  Mojo.Event.tap, this.iconTapHandler);
+	this.controller.listen(this.spinnerElement,  Mojo.Event.tap, this.iconTapHandler);
 	this.controller.setupWidget('cookieUrl', {}, this.cookieUrlsModel);
 	this.controller.listen(this.cookieUrlElement, Mojo.Event.propertyChange, this.cookieUrlChangedHandler);
 	this.controller.setupWidget('cookieName', { multiline: true }, this.cookieNamesModel);
@@ -119,19 +122,21 @@ WebCookieExploreAssistant.prototype.cookieUrls = function(payload)
 
 	if (payload.stage == "end") {
 
-		if (this.cookieUrlsModel.value == "") {
-			this.cookieUrlsModel.value = this.cookieUrlsModel.choices[0].value;
-		}
-
 		// Stop the spinner
 		this.iconElement.style.display = 'inline';
 		this.spinnerModel.spinning = false;
 		this.controller.modelChanged(this.spinnerModel);
 
-		// Enable the drop-down list
-		this.cookieUrlsModel.disabled = false;
-		this.controller.modelChanged(this.cookieUrlsModel);
-		this.cookieUrlChanged({value: this.cookieUrlsModel.value});
+		if (this.cookieUrlsModel.choices.length) {
+			if (this.cookieUrlsModel.value == "") {
+				this.cookieUrlsModel.value = this.cookieUrlsModel.choices[0].value;
+			}
+
+			// Enable the drop-down list
+			this.cookieUrlsModel.disabled = false;
+			this.controller.modelChanged(this.cookieUrlsModel);
+			this.cookieUrlChanged({value: this.cookieUrlsModel.value});
+		}
 	}
 };
 
@@ -225,6 +230,11 @@ WebCookieExploreAssistant.prototype.errorMessage = function(msg)
 		});
 };
 
+WebCookieExploreAssistant.prototype.iconTap = function(event)
+{
+	this.controller.stageController.popScene();
+};
+
 WebCookieExploreAssistant.prototype.handleCommand = function(event)
 {
 	if (event.type == Mojo.Event.command) {
@@ -245,6 +255,8 @@ WebCookieExploreAssistant.prototype.cleanup = function(event)
 	// cancel the last request
 	if (this.request) this.request.cancel();
 
+	this.controller.stopListening(this.iconElement,  Mojo.Event.tap, this.iconTapHandler);
+	this.controller.stopListening(this.spinnerElement,  Mojo.Event.tap, this.iconTapHandler);
 	this.controller.stopListening(this.cookieUrlElement, Mojo.Event.propertyChange, this.cookieUrlChangedHandler);
 	this.controller.stopListening(this.cookieNameElement, Mojo.Event.propertyChange, this.cookieNameChangedHandler);
 	this.controller.stopListening(this.showButton,	 Mojo.Event.tap, this.showTapHandler);

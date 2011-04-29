@@ -38,16 +38,19 @@ KeystoreExploreAssistant.prototype.setup = function()
 	this.controller.setupWidget(Mojo.Menu.appMenu, { omitDefaultItems: true }, this.menuModel);
 	
 	// get elements
+	this.iconElement =			this.controller.get('icon');
 	this.keystoreKindElement =	this.controller.get('keystoreKind');
 	this.showButton =			this.controller.get('showButton');
 	
 	// setup handlers
+	this.iconTapHandler = this.iconTap.bindAsEventListener(this);
 	this.keystoreKindsHandler =			this.keystoreKinds.bindAsEventListener(this);
 	this.keystoreKindHandler =		this.keystoreKind.bindAsEventListener(this);
 	this.keystoreKindChangedHandler = this.keystoreKindChanged.bindAsEventListener(this);
 	this.showTapHandler =		this.showTap.bindAsEventListener(this);
 	
 	// setup widgets
+	this.controller.listen(this.iconElement,  Mojo.Event.tap, this.iconTapHandler);
 	this.controller.setupWidget('keystoreKind', { multiline: true }, this.keystoreKindsModel);
 	this.controller.listen(this.keystoreKindElement, Mojo.Event.propertyChange, this.keystoreKindChangedHandler);
 	this.controller.setupWidget('showButton', {}, this.showButtonModel);
@@ -149,6 +152,11 @@ KeystoreExploreAssistant.prototype.errorMessage = function(msg)
 		});
 };
 
+KeystoreExploreAssistant.prototype.iconTap = function(event)
+{
+	this.controller.stageController.popScene();
+};
+
 KeystoreExploreAssistant.prototype.handleCommand = function(event)
 {
 	if (event.type == Mojo.Event.command) {
@@ -166,6 +174,7 @@ KeystoreExploreAssistant.prototype.handleCommand = function(event)
 
 KeystoreExploreAssistant.prototype.cleanup = function(event)
 {
+	this.controller.stopListening(this.iconElement,  Mojo.Event.tap, this.iconTapHandler);
 	this.controller.stopListening(this.keystoreKindElement, Mojo.Event.propertyChange, this.keystoreKindChangedHandler);
 	this.controller.stopListening(this.showButton,	Mojo.Event.tap, this.showTapHandler);
 };

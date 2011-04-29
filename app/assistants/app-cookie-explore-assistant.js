@@ -54,6 +54,7 @@ AppCookieExploreAssistant.prototype.setup = function()
 	this.showButton =			this.controller.get('showButton');
 	
 	// setup handlers
+	this.iconTapHandler = this.iconTap.bindAsEventListener(this);
 	this.cookieAppIdsHandler =		  this.cookieAppIds.bindAsEventListener(this);
 	this.cookieAppIdChangedHandler =	  this.cookieAppIdChanged.bindAsEventListener(this);
 	this.cookieNameChangedHandler =	  this.cookieNameChanged.bindAsEventListener(this);
@@ -62,6 +63,8 @@ AppCookieExploreAssistant.prototype.setup = function()
 	// setup widgets
 	this.spinnerModel = {spinning: true};
 	this.controller.setupWidget('spinner', {spinnerSize: 'small'}, this.spinnerModel);
+	this.controller.listen(this.iconElement,  Mojo.Event.tap, this.iconTapHandler);
+	this.controller.listen(this.spinnerElement,  Mojo.Event.tap, this.iconTapHandler);
 	this.controller.setupWidget('cookieAppId', {}, this.cookieAppIdsModel);
 	this.controller.listen(this.cookieAppIdElement, Mojo.Event.propertyChange, this.cookieAppIdChangedHandler);
 	this.controller.setupWidget('cookieName', { multiline: true }, this.cookieNamesModel);
@@ -247,6 +250,11 @@ AppCookieExploreAssistant.prototype.errorMessage = function(msg)
 		});
 };
 
+AppCookieExploreAssistant.prototype.iconTap = function(event)
+{
+	this.controller.stageController.popScene();
+};
+
 AppCookieExploreAssistant.prototype.handleCommand = function(event)
 {
 	if (event.type == Mojo.Event.command) {
@@ -267,6 +275,8 @@ AppCookieExploreAssistant.prototype.cleanup = function(event)
 	// cancel the last request
 	if (this.request) this.request.cancel();
 
+	this.controller.stopListening(this.iconElement,  Mojo.Event.tap, this.iconTapHandler);
+	this.controller.stopListening(this.spinnerElement,  Mojo.Event.tap, this.iconTapHandler);
 	this.controller.stopListening(this.cookieAppIdElement, Mojo.Event.propertyChange, this.cookieAppIdChangedHandler);
 	this.controller.stopListening(this.cookieNameElement, Mojo.Event.propertyChange, this.cookieNameChangedHandler);
 	this.controller.stopListening(this.showButton,	 Mojo.Event.tap, this.showTapHandler);

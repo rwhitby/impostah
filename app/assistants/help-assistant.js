@@ -13,6 +13,10 @@ HelpAssistant.prototype.setup = function()
 	this.controller.get('appname').innerHTML = Mojo.appInfo.title;
 	this.controller.get('appdetails').innerHTML = Mojo.appInfo.version + $L(' by WebOS Internals');
 	
+	this.iconElement =			this.controller.get('icon');
+	this.iconTapHandler = this.iconTap.bindAsEventListener(this);
+	this.controller.listen(this.iconElement,  Mojo.Event.tap, this.iconTapHandler);
+
 	this.supportModel = 
 	{
 		items: []
@@ -90,6 +94,11 @@ HelpAssistant.prototype.listTapHandler = function(event)
 	}
 };
 
+HelpAssistant.prototype.iconTap = function(event)
+{
+	this.controller.stageController.popScene();
+};
+
 HelpAssistant.prototype.activate = function(event)
 {
 	if (this.controller.stageController.setWindowOrientation)
@@ -100,6 +109,7 @@ HelpAssistant.prototype.activate = function(event)
 HelpAssistant.prototype.deactivate = function(event) {};
 HelpAssistant.prototype.cleanup = function(event)
 {
+	this.controller.stopListening(this.iconElement,  Mojo.Event.tap, this.iconTapHandler);
 	this.controller.stopListening('supportList', Mojo.Event.listTap, this.listTapHandler.bindAsEventListener(this));
 };
 

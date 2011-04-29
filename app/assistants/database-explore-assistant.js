@@ -128,6 +128,7 @@ DatabaseExploreAssistant.prototype.setup = function()
 	this.queryButton =			this.controller.get('queryButton');
 	
 	// setup handlers
+	this.iconTapHandler =			  this.iconTap.bindAsEventListener(this);
 	this.databaseSetChangedHandler =  this.databaseSetChanged.bindAsEventListener(this);
 	this.databaseKindsHandler =		  this.databaseKinds.bindAsEventListener(this);
 	this.databaseKindHandler =		  this.databaseKind.bindAsEventListener(this);
@@ -137,6 +138,8 @@ DatabaseExploreAssistant.prototype.setup = function()
 	// setup widgets
 	this.spinnerModel = {spinning: true};
 	this.controller.setupWidget('spinner', {spinnerSize: 'small'}, this.spinnerModel);
+	this.controller.listen(this.iconElement,  Mojo.Event.tap, this.iconTapHandler);
+	this.controller.listen(this.spinnerElement,  Mojo.Event.tap, this.iconTapHandler);
 	this.controller.setupWidget('databaseSet', {}, this.databaseSetsModel);
 	this.controller.listen(this.databaseSetElement, Mojo.Event.propertyChange, this.databaseSetChangedHandler);
 	this.controller.setupWidget('databaseKind', { multiline: true }, this.databaseKindsModel);
@@ -303,6 +306,11 @@ DatabaseExploreAssistant.prototype.errorMessage = function(msg)
 		});
 };
 
+DatabaseExploreAssistant.prototype.iconTap = function(event)
+{
+	this.controller.stageController.popScene();
+};
+
 DatabaseExploreAssistant.prototype.handleCommand = function(event)
 {
 	if (event.type == Mojo.Event.command) {
@@ -323,6 +331,8 @@ DatabaseExploreAssistant.prototype.cleanup = function(event)
 	// cancel the last request
 	if (this.request) this.request.cancel();
 
+	this.controller.stopListening(this.iconElement,  Mojo.Event.tap, this.iconTapHandler);
+	this.controller.stopListening(this.spinnerElement,  Mojo.Event.tap, this.iconTapHandler);
 	this.controller.stopListening(this.databaseSetElement, Mojo.Event.propertyChange, this.databaseSetChangedHandler);
 	this.controller.stopListening(this.databaseKindElement, Mojo.Event.propertyChange, this.databaseKindChangedHandler);
 	this.controller.stopListening(this.queryButton,	 Mojo.Event.tap, this.queryTapHandler);

@@ -221,8 +221,20 @@ AppCatalogAssistant.prototype.getPalmProfile = function(returnValue, palmProfile
 	this.palmProfile = palmProfile;
 
 	if (this.palmProfile) {
+		this.appIdInputFieldModel.disabled = false;
+		this.controller.modelChanged(this.appIdInputFieldModel);
 		this.palmProfileButtonModel.disabled = false;
 		this.controller.modelChanged(this.palmProfileButtonModel);
+		this.paidAppsButtonModel.disabled = false;
+		this.controller.modelChanged(this.paidAppsButtonModel);
+		this.accessCountryButtonModel.disabled = false;
+		this.controller.modelChanged(this.accessCountryButtonModel);
+		this.paymentInfoButtonModel.disabled = false;
+		this.controller.modelChanged(this.paymentInfoButtonModel);
+		this.billingCountriesButtonModel.disabled = false;
+		this.controller.modelChanged(this.billingCountriesButtonModel);
+		this.promoCodeInputFieldModel.disabled = false;
+		this.controller.modelChanged(this.promoCodeInputFieldModel);
 	}
 };
 

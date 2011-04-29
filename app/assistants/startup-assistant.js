@@ -108,6 +108,7 @@ StartupAssistant.prototype.setup = function()
     this.controller.document.body.className = prefs.get().theme;
 	
     // get elements
+	this.iconElement =    this.controller.get('icon');
     this.titleContainer = this.controller.get('title');
     this.dataContainer =  this.controller.get('data');
 	
@@ -170,6 +171,8 @@ StartupAssistant.prototype.setup = function()
     // set data
     this.dataContainer.innerHTML = html;
 	
+	this.iconTapHandler = this.iconTap.bindAsEventListener(this);
+	this.controller.listen(this.iconElement,  Mojo.Event.tap, this.iconTapHandler);
 	
     // setup menu
     this.controller.setupWidget(Mojo.Menu.appMenu, { omitDefaultItems: true }, this.menuModel);
@@ -197,6 +200,13 @@ StartupAssistant.prototype.showContinue = function()
     this.controller.setMenuVisible(Mojo.Menu.commandMenu, true);
 };
 
+StartupAssistant.prototype.iconTap = function(event)
+{
+	if (this.justChangelog) {
+		this.controller.stageController.popScene();
+	}
+};
+
 StartupAssistant.prototype.handleCommand = function(event)
 {
     if (event.type == Mojo.Event.command) {
@@ -214,6 +224,11 @@ StartupAssistant.prototype.handleCommand = function(event)
 	break;
 	}
     }
+};
+
+StartupAssistant.prototype.cleanrup = function(event)
+{
+	this.controller.stopListening(this.iconElement,  Mojo.Event.tap, this.iconTapHandler);
 };
 
 // Local Variables:

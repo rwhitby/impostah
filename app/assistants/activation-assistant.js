@@ -26,7 +26,7 @@ function ActivationAssistant()
 	{label:"Germany", value:'DE'},
 	// {label:"Ireland", value:'IE'},
 	// {label:"Italy", value:'IT'},
-	// {label:"Spain", value:'ES'},
+	{label:"Spain", value:'ES'},
 	// {label:"Mexico", value:'MX'},
 				  ],
 		value: 'US'
@@ -39,7 +39,7 @@ function ActivationAssistant()
 	{label:"French", value:'fr'},
 	// {label:"Italian", value:'it'},
 	{label:"German", value:'de'},
-	// {label:"Spanish", value:'es'},
+	{label:"Spanish", value:'es'},
 				  ],
 		value: 'en'
 	};
@@ -228,6 +228,9 @@ ActivationAssistant.prototype.countryChanged = function(event)
 		break;
 	case 'DE':
 		this.overrideMcc = '262'; this.overrideMnc = '07';
+		break;
+	case 'ES':
+		this.overrideMcc = '214'; this.overrideMnc = '07';
 		break;
 	default:
 		this.overrideMcc = false; this.overrideMnc = false;

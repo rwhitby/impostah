@@ -69,7 +69,8 @@ PalmProfileAssistant.prototype.setup = function()
 	this.controller.listen(this.palmProfileButton, Mojo.Event.tap, this.palmProfileTapHandler);
 	this.controller.setupWidget('manageOverridesButton', { }, this.manageOverridesButtonModel);
 	this.controller.listen(this.manageOverridesButton,  Mojo.Event.tap, this.manageOverridesTapHandler);
-	this.controller.setupWidget('resetPalmProfileButton', { }, this.resetPalmProfileButtonModel);
+	this.controller.setupWidget('resetPalmProfileButton', { type: Mojo.Widget.activityButton },
+								this.resetPalmProfileButtonModel);
 	this.controller.listen(this.resetPalmProfileButton, Mojo.Event.tap, this.resetPalmProfileTapHandler);
 }
 
@@ -105,6 +106,16 @@ PalmProfileAssistant.prototype.getPalmProfile = function(returnValue, palmProfil
 		this.resetPalmProfileButtonModel.disabled = false;
 		this.controller.modelChanged(this.resetPalmProfileButtonModel);
 	}
+	else {
+		this.controller.showAlertDialog({
+				allowHTMLMessage:	true,
+				preventCancel:		true,
+				title:				'Palm Profile Not Found',
+				message:			'This device does not have an active Palm Profile associated with it.<br>Use the Activation scene to activate a Palm Profile on this device.',
+				choices:			[{label:$L("Ok"), value:'ok'}],
+				onChoose:			function(e){}
+			});
+	}
 };
 
 PalmProfileAssistant.prototype.palmProfileTap = function(event)
@@ -138,9 +149,19 @@ PalmProfileAssistant.prototype.resetPalmProfileTap = function(event)
 
 PalmProfileAssistant.prototype.resetPalmProfileAck = function(value)
 {
-	if (value != "delete") return;
+	if (value != "delete") {
+		this.resetPalmProfileButton.mojo.deactivate();
+		return;
+	}
 
 	this.palmProfile = false;
+
+	this.palmProfileButtonModel.disabled = true;
+	this.controller.modelChanged(this.palmProfileButtonModel);
+	this.manageOverridesButtonModel.disabled = true;
+	this.controller.modelChanged(this.manageOverridesButtonModel);
+	this.resetPalmProfileButtonModel.disabled = true;
+	this.controller.modelChanged(this.resetPalmProfileButtonModel);
 
 	if (this.requestPalmService) this.requestPalmService.cancel();
 	this.requestPalmService = ImpostahService.impersonate(this.palmProfileDeletedHandler,
@@ -148,13 +169,6 @@ PalmProfileAssistant.prototype.resetPalmProfileAck = function(value)
 														  "com.palm.db",
 														  "del", {"ids":["com.palm.palmprofile.token"], "purge":true});
 
-	this.updateSpinner(true);
-
-	this.palmProfileButtonModel.disabled = true;
-	this.controller.modelChanged(this.palmProfileButtonModel);
-
-	this.resetPalmProfileButtonModel.disabled = true;
-	this.controller.modelChanged(this.resetPalmProfileButtonModel);
 };
 
 PalmProfileAssistant.prototype.palmProfileDeleted = function(payload)
@@ -162,10 +176,9 @@ PalmProfileAssistant.prototype.palmProfileDeleted = function(payload)
 	if (this.requestPalmService) this.requestPalmService.cancel();
 	this.requestPalmService = false;
 
-	this.updateSpinner(false);
-
 	if (payload.returnValue === false) {
-		this.errorMessage('<b>Service Error (palmProfileDeleted):</b><br>'+payload.errorText);
+		this.errorMessage('<b>Service Error (deletePalmProfile):</b><br>'+payload.errorText);
+		this.resetPalmProfileButton.mojo.deactivate();
 		return;
 	}
 
@@ -185,13 +198,12 @@ PalmProfileAssistant.prototype.palmProfileDeletionAck = function(value)
 {
 	if (this.requestPalmService) this.requestPalmService.cancel();
 	if (value != "ok") {
-		this.palmProfile = false;
-		this.updateSpinner(true);
-		PalmProfile.getPalmProfile(this.getPalmProfile.bind(this), true);
+		this.resetPalmProfileButton.mojo.deactivate();
+		this.dirtyPalmProfile();
+		this.activate();
 	}
 	else {
 		this.requestPalmService = ImpostahService.removeFirstUseFlag(this.palmProfileDeletionDoneHandler);
-		this.updateSpinner(true);
 	}
 };
 
@@ -200,10 +212,9 @@ PalmProfileAssistant.prototype.palmProfileDeletionDone = function(payload)
 	if (this.requestPalmService) this.requestPalmService.cancel();
 	this.requestPalmService = false;
 
-	this.updateSpinner(false);
-
 	if (payload.returnValue === false) {
-		this.errorMessage('<b>Service Error (palmProfileDeletionDone):</b><br>'+payload.errorText);
+		this.errorMessage('<b>Service Error (removeFirstUseFlag):</b><br>'+payload.errorText);
+		this.resetPalmProfileButton.mojo.deactivate();
 		return;
 	}
 

@@ -470,7 +470,7 @@ ActivationAssistant.prototype.authenticationUpdate = function(payload)
 	this.loginToProfileButton.mojo.deactivate();
 
 	if (payload.returnValue === false) {
-		this.errorMessage('<b>Service Error (authenticationUpdate):</b><br>'+payload.errorText);
+		this.errorMessage('<b>Service Error (setPalmProfile):</b><br>'+payload.errorText);
 		return;
 	}
 
@@ -672,7 +672,7 @@ ActivationAssistant.prototype.profileCreation = function(payload)
 	this.createNewProfileButton.mojo.deactivate();
 
 	if (payload.returnValue === false) {
-		this.errorMessage('<b>Service Error (profileCreation):</b><br>'+payload.errorText);
+		this.errorMessage('<b>Service Error (setPalmProfile):</b><br>'+payload.errorText);
 		return;
 	}
 

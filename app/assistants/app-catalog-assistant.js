@@ -37,11 +37,6 @@ function AppCatalogAssistant()
 		disabled: true
 	};
 
-	this.palmProfileButtonModel = {
-		label: $L("Show Palm Profile"),
-		disabled: true
-	};
-
 	this.paidAppsButtonModel = {
 		label: $L("Check Paid Apps Access"),
 		disabled: true
@@ -108,7 +103,6 @@ AppCatalogAssistant.prototype.setup = function()
 	this.showAppInfoButton = this.controller.get('showAppInfoButton');
 	this.installAppButton = this.controller.get('installAppButton');
 	this.installStatus = this.controller.get('installStatus');
-	this.palmProfileButton = this.controller.get('palmProfileButton');
 	this.paidAppsButton = this.controller.get('paidAppsButton');
 	this.accessCountryButton = this.controller.get('accessCountryButton');
 	this.paymentInfoButton = this.controller.get('paymentInfoButton');
@@ -161,8 +155,6 @@ AppCatalogAssistant.prototype.setup = function()
 	this.controller.listen(this.showAppInfoButton, Mojo.Event.tap, this.showAppInfoTapHandler);
 	this.controller.setupWidget('installAppButton', { }, this.installAppButtonModel);
 	this.controller.listen(this.installAppButton, Mojo.Event.tap, this.installAppTapHandler);
-	this.controller.setupWidget('palmProfileButton', { }, this.palmProfileButtonModel);
-	this.controller.listen(this.palmProfileButton,  Mojo.Event.tap, this.palmProfileTapHandler);
 	this.controller.setupWidget('paidAppsButton', { }, this.paidAppsButtonModel);
 	this.controller.listen(this.paidAppsButton,  Mojo.Event.tap, this.paidAppsTapHandler);
 	this.controller.setupWidget('accessCountryButton', { }, this.accessCountryButtonModel);
@@ -223,8 +215,6 @@ AppCatalogAssistant.prototype.getPalmProfile = function(returnValue, palmProfile
 	if (this.palmProfile) {
 		this.appIdInputFieldModel.disabled = false;
 		this.controller.modelChanged(this.appIdInputFieldModel);
-		this.palmProfileButtonModel.disabled = false;
-		this.controller.modelChanged(this.palmProfileButtonModel);
 		this.paidAppsButtonModel.disabled = false;
 		this.controller.modelChanged(this.paidAppsButtonModel);
 		this.accessCountryButtonModel.disabled = false;
@@ -235,6 +225,16 @@ AppCatalogAssistant.prototype.getPalmProfile = function(returnValue, palmProfile
 		this.controller.modelChanged(this.billingCountriesButtonModel);
 		this.promoCodeInputFieldModel.disabled = false;
 		this.controller.modelChanged(this.promoCodeInputFieldModel);
+	}
+	else {
+		this.controller.showAlertDialog({
+				allowHTMLMessage:	true,
+				preventCancel:		true,
+				title:				'Palm Profile Not Found',
+				message:			'This device does not have an active Palm Profile associated with it.<br>An active Palm Profile is required to access App Catalog information.',
+				choices:			[{label:$L("Ok"), value:'ok'}],
+				onChoose:			function(e){}
+			});
 	}
 };
 
@@ -1055,8 +1055,6 @@ AppCatalogAssistant.prototype.cleanup = function(event)
 								  this.getAppInfoTapHandler);
 	this.controller.stopListening(this.installAppButton,  Mojo.Event.tap,
 								  this.installAppTapHandler);
-	this.controller.stopListening(this.palmProfileButton,  Mojo.Event.tap,
-								  this.palmProfileTapHandler);
 	this.controller.stopListening(this.paidAppsButton,  Mojo.Event.tap,
 								  this.paidAppsTapHandler);
 	this.controller.stopListening(this.accessCountryButton,  Mojo.Event.tap,

@@ -82,6 +82,7 @@ DeviceProfileAssistant.prototype.getDeviceProfile = function(returnValue, device
 	}
 
 	this.deviceProfile = deviceProfile;
+	this.reloadDeviceProfile = false;
 
 	if (this.deviceProfile) {
 		this.deviceProfileButtonModel.disabled = false;

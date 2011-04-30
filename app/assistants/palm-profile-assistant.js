@@ -95,6 +95,7 @@ PalmProfileAssistant.prototype.getPalmProfile = function(returnValue, palmProfil
 	}
 
 	this.palmProfile = palmProfile;
+	this.reloadPalmProfile = false;
 
 	if (this.palmProfile) {
 		this.palmProfileButtonModel.disabled = false;

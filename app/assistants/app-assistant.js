@@ -2,6 +2,7 @@ var prefs = new preferenceCookie();
 var vers =  new versionCookie();
 var DeviceProfile =  new deviceProfile();
 var PalmProfile =  new palmProfile();
+var AccountServer =  new accountServer();
 
 // resource handler object
 var rh = new resourceHandler(

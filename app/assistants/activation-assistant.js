@@ -86,6 +86,7 @@ ActivationAssistant.prototype.setup = function()
 	this.controller.setupWidget(Mojo.Menu.appMenu, { omitDefaultItems: true }, this.menuModel);
 	
 	// get elements
+	this.overlay = 		this.controller.get('overlay'); this.overlay.hide();
 	this.iconElement =			this.controller.get('icon');
 	this.iconElement.style.display = 'none';
 	this.spinnerElement = 		this.controller.get('spinner');
@@ -289,6 +290,8 @@ ActivationAssistant.prototype.passwordChanged = function(event)
 
 ActivationAssistant.prototype.loginToProfileTap = function(event)
 {
+	this.overlay.show();
+
 	this.controller.showAlertDialog({
 			allowHTMLMessage:	true,
 			title:				'Login To Profile',
@@ -301,15 +304,11 @@ ActivationAssistant.prototype.loginToProfileTap = function(event)
 ActivationAssistant.prototype.loginToProfileAck = function(value)
 {
 	if (value != "login") {
+		this.overlay.hide();
 		this.loginToProfileButton.mojo.deactivate();
 		return;
 	}
 	
-	this.loginToProfileButtonModel.disabled = true;
-	this.controller.modelChanged(this.loginToProfileButtonModel);
-	this.createNewProfileButtonModel.disabled = true;
-	this.controller.modelChanged(this.createNewProfileButtonModel);
-
 	AccountServer.getAccountServerUrl(this.authenticateFromDeviceHandler,
 									  this.emailInputFieldModel.value,
 									  this.reloadAccountServerUrl);
@@ -319,10 +318,7 @@ ActivationAssistant.prototype.authenticateFromDevice = function(returnValue, acc
 {
 	if ((returnValue === false) || (accountServerUrl === false)) {
 		this.errorMessage('<b>Service Error (getAccountServerUrl):</b><br>'+errorText);
-		this.loginToProfileButtonModel.disabled = false;
-		this.controller.modelChanged(this.loginToProfileButtonModel);
-		this.createNewProfileButtonModel.disabled = false;
-		this.controller.modelChanged(this.createNewProfileButtonModel);
+		this.overlay.hide();
 		this.loginToProfileButton.mojo.deactivate();
 		return;
 	}
@@ -417,10 +413,7 @@ ActivationAssistant.prototype.loginToProfile = function(payload)
 
 	if (payload.returnValue === false) {
 		this.errorMessage('<b>Service Error (authenticateFromDevice):</b><br>'+payload.errorText);
-		this.loginToProfileButtonModel.disabled = false;
-		this.controller.modelChanged(this.loginToProfileButtonModel);
-		this.createNewProfileButtonModel.disabled = false;
-		this.controller.modelChanged(this.createNewProfileButtonModel);
+		this.overlay.hide();
 		this.loginToProfileButton.mojo.deactivate();
 		return;
 	}
@@ -463,20 +456,19 @@ ActivationAssistant.prototype.authenticationUpdate = function(payload)
 	if (this.requestPalmService) this.requestPalmService.cancel();
 	this.requestPalmService = false;
 
-	this.loginToProfileButtonModel.disabled = false;
-	this.controller.modelChanged(this.loginToProfileButtonModel);
-	this.createNewProfileButtonModel.disabled = false;
-	this.controller.modelChanged(this.createNewProfileButtonModel);
-	this.loginToProfileButton.mojo.deactivate();
-
 	if (payload.returnValue === false) {
 		this.errorMessage('<b>Service Error (setPalmProfile):</b><br>'+payload.errorText);
+		this.overlay.hide();
+		this.loginToProfileButton.mojo.deactivate();
 		return;
 	}
 
 	if (this.authenticationInfo) {
 		this.controller.stageController.pushScene("item", "Palm Profile", this.authenticationInfo);
 	}
+
+	this.overlay.hide();
+	this.loginToProfileButton.mojo.deactivate();
 
 	this.palmProfile = false;
 	this.updateSpinner(true);
@@ -485,6 +477,8 @@ ActivationAssistant.prototype.authenticationUpdate = function(payload)
 
 ActivationAssistant.prototype.createNewProfileTap = function(event)
 {
+	this.overlay.show();
+
 	this.controller.showAlertDialog({
 			allowHTMLMessage:	true,
 			title:				'Create New Profile',
@@ -497,14 +491,10 @@ ActivationAssistant.prototype.createNewProfileTap = function(event)
 ActivationAssistant.prototype.createNewProfileAck = function(value)
 {
 	if (value != "create") {
+		this.overlay.hide();
 		this.createNewProfileButton.mojo.deactivate();
 		return;
 	}
-
-	this.loginToProfileButtonModel.disabled = true;
-	this.controller.modelChanged(this.loginToProfileButtonModel);
-	this.createNewProfileButtonModel.disabled = true;
-	this.controller.modelChanged(this.createNewProfileButtonModel);
 
 	AccountServer.getAccountServerUrl(this.createDeviceAccount.bind(this),
 									  this.emailInputFieldModel.value,
@@ -515,10 +505,7 @@ ActivationAssistant.prototype.createDeviceAccount = function(returnValue, accoun
 {
 	if ((returnValue === false) || (accountServerUrl === false)) {
 		this.errorMessage('<b>Service Error (getAccountServerUrl):</b><br>'+errorText);
-		this.loginToProfileButtonModel.disabled = false;
-		this.controller.modelChanged(this.loginToProfileButtonModel);
-		this.createNewProfileButtonModel.disabled = false;
-		this.controller.modelChanged(this.createNewProfileButtonModel);
+		this.overlay.hide();
 		this.createNewProfileButton.mojo.deactivate();
 		return;
 	}
@@ -618,10 +605,7 @@ ActivationAssistant.prototype.createNewProfile = function(payload)
 
 	if (payload.returnValue === false) {
 		this.errorMessage('<b>Service Error (createDeviceAccount):</b><br>'+payload.errorText);
-		this.loginToProfileButtonModel.disabled = false;
-		this.controller.modelChanged(this.loginToProfileButtonModel);
-		this.createNewProfileButtonModel.disabled = false;
-		this.controller.modelChanged(this.createNewProfileButtonModel);
+		this.overlay.hide();
 		this.createNewProfileButton.mojo.deactivate();
 		return;
 	}
@@ -665,20 +649,19 @@ ActivationAssistant.prototype.profileCreation = function(payload)
 	if (this.requestPalmService) this.requestPalmService.cancel();
 	this.requestPalmService = false;
 
-	this.loginToProfileButtonModel.disabled = false;
-	this.controller.modelChanged(this.loginToProfileButtonModel);
-	this.createNewProfileButtonModel.disabled = false;
-	this.controller.modelChanged(this.createNewProfileButtonModel);
-	this.createNewProfileButton.mojo.deactivate();
-
 	if (payload.returnValue === false) {
 		this.errorMessage('<b>Service Error (setPalmProfile):</b><br>'+payload.errorText);
+		this.overlay.hide();
+		this.createNewProfileButton.mojo.deactivate();
 		return;
 	}
 
 	if (this.authenticationInfo) {
 		this.controller.stageController.pushScene("item", "Palm Profile", this.authenticationInfo);
 	}
+
+	this.overlay.hide();
+	this.createNewProfileButton.mojo.deactivate();
 
 	this.palmProfile = false;
 	this.updateSpinner(true);
@@ -691,11 +674,13 @@ ActivationAssistant.prototype.updateSpinner = function(active)
 		this.iconElement.style.display = 'none';
 		this.spinnerModel.spinning = true;
 		this.controller.modelChanged(this.spinnerModel);
+		this.overlay.show();
 	}
 	else {
 		this.iconElement.style.display = 'inline';
 		this.spinnerModel.spinning = false;
 		this.controller.modelChanged(this.spinnerModel);
+		this.overlay.hide();
 	}
 };
 

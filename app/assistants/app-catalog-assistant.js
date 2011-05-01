@@ -191,14 +191,12 @@ AppCatalogAssistant.prototype.activate = function()
 {
 	this.deviceProfile = false;
 	this.updateSpinner(true);
-	this.overlay.show();
 	DeviceProfile.getDeviceProfile(this.getDeviceProfile.bind(this), false);
 };
 
 AppCatalogAssistant.prototype.getDeviceProfile = function(returnValue, deviceProfile, errorText)
 {
 	this.updateSpinner(false);
-	this.overlay.hide();
 
 	if (returnValue === false) {
 		this.errorMessage('<b>Service Error (getDeviceProfile):</b><br>'+errorText);
@@ -209,14 +207,12 @@ AppCatalogAssistant.prototype.getDeviceProfile = function(returnValue, devicePro
 
 	this.palmProfile = false;
 	this.updateSpinner(true);
-	this.overlay.show();
 	PalmProfile.getPalmProfile(this.getPalmProfile.bind(this), false);
 };
 
 AppCatalogAssistant.prototype.getPalmProfile = function(returnValue, palmProfile, errorText)
 {
 	this.updateSpinner(false);
-	this.overlay.hide();
 
 	if (returnValue === false) {
 		this.errorMessage('<b>Service Error (getPalmProfile):</b><br>'+errorText);
@@ -1073,11 +1069,13 @@ AppCatalogAssistant.prototype.updateSpinner = function(active)
 		this.iconElement.style.display = 'none';
 		this.spinnerModel.spinning = true;
 		this.controller.modelChanged(this.spinnerModel);
+		this.overlay.show();
 	}
 	else {
 		this.iconElement.style.display = 'inline';
 		this.spinnerModel.spinning = false;
 		this.controller.modelChanged(this.spinnerModel);
+		this.overlay.hide();
 	}
 };
 

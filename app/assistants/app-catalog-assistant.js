@@ -32,6 +32,11 @@ function AppCatalogAssistant()
 		disabled: true
 	};
 
+	this.showAppDetailsButtonModel = {
+		label: $L("Show Application Details"),
+		disabled: true
+	};
+
 	this.installAppButtonModel = {
 		label: $L("Install Application"),
 		disabled: true
@@ -74,15 +79,13 @@ function AppCatalogAssistant()
 	this.palmProfile = false;
 	this.deviceProfile = false;
 	this.appInfo = false;
+	this.appDetail = false;
 	this.promoCodeInfo = false;
 
 	this.requestPalmService = false;
 	this.requestWebService = false;
 
 	// %%% FIXME %%%
-	// palm://com.palm.accountservices/getServerUrl '{}'
-	// {"serverUrl":"https://ps.palmws.com/palmcsext/services/deviceJ/","returnValue":true}
-	this.accountServerUrl = "https://ps.palmws.com/palmcsext/services/deviceJ/";
 	// https://ps.palmws.com/palmcsext/services/deviceJ/getPreferences
 	// {"InPreferences":{"preferenceKey":"APPLICATIONS, PAYMENT","category":""}}
 	// {"OutParameterInfo":{"parameterInfos":{"category":"SETTINGS","key":"PAYMENT_URL","value":"https://pmt.palmws.com/palmcspmtext/services/paymentJ/"},"size":1}}
@@ -95,12 +98,14 @@ AppCatalogAssistant.prototype.setup = function()
 	this.controller.setupWidget(Mojo.Menu.appMenu, { omitDefaultItems: true }, this.menuModel);
 	
 	// get elements
+	this.overlay = 		this.controller.get('overlay'); this.overlay.hide();
 	this.iconElement =			this.controller.get('icon');
 	this.iconElement.style.display = 'none';
 	this.spinnerElement = 		this.controller.get('spinner');
 	this.appIdInputField = this.controller.get('appIdInputField');
 	this.getAppInfoButton = this.controller.get('getAppInfoButton');
 	this.showAppInfoButton = this.controller.get('showAppInfoButton');
+	this.showAppDetailsButton = this.controller.get('showAppDetailsButton');
 	this.installAppButton = this.controller.get('installAppButton');
 	this.installStatus = this.controller.get('installStatus');
 	this.paidAppsButton = this.controller.get('paidAppsButton');
@@ -117,6 +122,8 @@ AppCatalogAssistant.prototype.setup = function()
 	this.getAppInfoTapHandler = this.getAppInfoTap.bindAsEventListener(this);
 	this.getAppInfoHandler =	this.getAppInfo.bindAsEventListener(this);
 	this.showAppInfoTapHandler = this.showAppInfoTap.bindAsEventListener(this);
+	this.showAppDetailsTapHandler = this.showAppDetailsTap.bindAsEventListener(this);
+	this.getAppDetailsHandler =	this.getAppDetails.bindAsEventListener(this);
 	this.installAppTapHandler = this.installAppTap.bindAsEventListener(this);
 	this.installAppHandler =	this.installApp.bindAsEventListener(this);
 	this.rescanAppHandler =	this.rescanApp.bindAsEventListener(this);
@@ -149,19 +156,21 @@ AppCatalogAssistant.prototype.setup = function()
 				focusMode: Mojo.Widget.focusSelectMode },
 		this.appIdInputFieldModel);
 	this.controller.listen(this.appIdInputField, Mojo.Event.propertyChange, this.appIdChangedHandler);
-	this.controller.setupWidget('getAppInfoButton', { }, this.getAppInfoButtonModel);
+	this.controller.setupWidget('getAppInfoButton', { type: Mojo.Widget.activityButton }, this.getAppInfoButtonModel);
 	this.controller.listen(this.getAppInfoButton, Mojo.Event.tap, this.getAppInfoTapHandler);
 	this.controller.setupWidget('showAppInfoButton', { }, this.showAppInfoButtonModel);
 	this.controller.listen(this.showAppInfoButton, Mojo.Event.tap, this.showAppInfoTapHandler);
-	this.controller.setupWidget('installAppButton', { }, this.installAppButtonModel);
+	this.controller.setupWidget('showAppDetailsButton', { type: Mojo.Widget.activityButton }, this.showAppDetailsButtonModel);
+	this.controller.listen(this.showAppDetailsButton, Mojo.Event.tap, this.showAppDetailsTapHandler);
+	this.controller.setupWidget('installAppButton', { type: Mojo.Widget.activityButton }, this.installAppButtonModel);
 	this.controller.listen(this.installAppButton, Mojo.Event.tap, this.installAppTapHandler);
-	this.controller.setupWidget('paidAppsButton', { }, this.paidAppsButtonModel);
+	this.controller.setupWidget('paidAppsButton', { type: Mojo.Widget.activityButton }, this.paidAppsButtonModel);
 	this.controller.listen(this.paidAppsButton,  Mojo.Event.tap, this.paidAppsTapHandler);
-	this.controller.setupWidget('accessCountryButton', { }, this.accessCountryButtonModel);
+	this.controller.setupWidget('accessCountryButton', { type: Mojo.Widget.activityButton }, this.accessCountryButtonModel);
 	this.controller.listen(this.accessCountryButton,  Mojo.Event.tap, this.accessCountryTapHandler);
-	this.controller.setupWidget('paymentInfoButton', { }, this.paymentInfoButtonModel);
+	this.controller.setupWidget('paymentInfoButton', { type: Mojo.Widget.activityButton }, this.paymentInfoButtonModel);
 	this.controller.listen(this.paymentInfoButton,  Mojo.Event.tap, this.paymentInfoTapHandler);
-	this.controller.setupWidget('billingCountriesButton', { }, this.billingCountriesButtonModel);
+	this.controller.setupWidget('billingCountriesButton', { type: Mojo.Widget.activityButton }, this.billingCountriesButtonModel);
 	this.controller.listen(this.billingCountriesButton,  Mojo.Event.tap, this.billingCountriesTapHandler);
 	this.controller.setupWidget('promoCodeInputField', {
 			autoFocus: true,
@@ -172,9 +181,9 @@ AppCatalogAssistant.prototype.setup = function()
 				focusMode: Mojo.Widget.focusSelectMode },
 		this.promoCodeInputFieldModel);
 	this.controller.listen(this.promoCodeInputField, Mojo.Event.propertyChange, this.promoCodeChangedHandler);
-	this.controller.setupWidget('getCodeInfoButton', { }, this.getCodeInfoButtonModel);
+	this.controller.setupWidget('getCodeInfoButton', { type: Mojo.Widget.activityButton }, this.getCodeInfoButtonModel);
 	this.controller.listen(this.getCodeInfoButton,  Mojo.Event.tap, this.getCodeInfoTapHandler);
-	this.controller.setupWidget('checkCodeStatusButton', { }, this.checkCodeStatusButtonModel);
+	this.controller.setupWidget('checkCodeStatusButton', { type: Mojo.Widget.activityButton }, this.checkCodeStatusButtonModel);
 	this.controller.listen(this.checkCodeStatusButton,  Mojo.Event.tap, this.checkCodeStatusTapHandler);
 };
 
@@ -182,12 +191,14 @@ AppCatalogAssistant.prototype.activate = function()
 {
 	this.deviceProfile = false;
 	this.updateSpinner(true);
+	this.overlay.show();
 	DeviceProfile.getDeviceProfile(this.getDeviceProfile.bind(this), false);
 };
 
 AppCatalogAssistant.prototype.getDeviceProfile = function(returnValue, deviceProfile, errorText)
 {
 	this.updateSpinner(false);
+	this.overlay.hide();
 
 	if (returnValue === false) {
 		this.errorMessage('<b>Service Error (getDeviceProfile):</b><br>'+errorText);
@@ -198,12 +209,14 @@ AppCatalogAssistant.prototype.getDeviceProfile = function(returnValue, devicePro
 
 	this.palmProfile = false;
 	this.updateSpinner(true);
+	this.overlay.show();
 	PalmProfile.getPalmProfile(this.getPalmProfile.bind(this), false);
 };
 
 AppCatalogAssistant.prototype.getPalmProfile = function(returnValue, palmProfile, errorText)
 {
 	this.updateSpinner(false);
+	this.overlay.hide();
 
 	if (returnValue === false) {
 		this.errorMessage('<b>Service Error (getPalmProfile):</b><br>'+errorText);
@@ -251,12 +264,16 @@ AppCatalogAssistant.prototype.appIdChanged = function(event)
 
 	this.showAppInfoButtonModel.disabled = true;
 	this.controller.modelChanged(this.showAppInfoButtonModel);
+	this.showAppDetailsButtonModel.disabled = true;
+	this.controller.modelChanged(this.showAppDetailsButtonModel);
 	this.installAppButtonModel.disabled = true;
 	this.controller.modelChanged(this.installAppButtonModel);
 };
 
 AppCatalogAssistant.prototype.getAppInfoTap = function(event)
 {
+	this.overlay.show();
+
 	var callback = this.getAppInfoHandler;
 
 	var url = this.palmProfile.accountServerUrl+"getListOfUpdatableApps";
@@ -312,34 +329,26 @@ AppCatalogAssistant.prototype.getAppInfoTap = function(event)
 				callback({"returnValue":false, "errorText":response.status});
 			}
 	});
-
-	this.updateSpinner(true);
-
-	this.getAppInfoButtonModel.disabled = true;
-	this.controller.modelChanged(this.getAppInfoButtonModel);
 };
 
 AppCatalogAssistant.prototype.getAppInfo = function(payload)
 {
 	this.requestWebService = false;
 
-	this.updateSpinner(false);
-
-	this.getAppInfoButtonModel.disabled = false;
-	this.controller.modelChanged(this.getAppInfoButtonModel);
-
 	if (payload.returnValue === false) {
 		this.errorMessage('<b>Service Error (getAppInfo):</b><br>'+payload.errorText);
+		this.overlay.hide();
+		this.getAppInfoButton.mojo.deactivate();
 		return;
 	}
 
 	this.appInfo = payload.response.OutUpdateInfoList.appSummaryForUpdates;
 
 	if (this.appInfo) {
-		this.getAppInfoButtonModel.disabled = false;
-		this.controller.modelChanged(this.getAppInfoButtonModel);
 		this.showAppInfoButtonModel.disabled = false;
 		this.controller.modelChanged(this.showAppInfoButtonModel);
+		this.showAppDetailsButtonModel.disabled = false;
+		this.controller.modelChanged(this.showAppDetailsButtonModel);
 		this.installAppButtonModel.disabled = false;
 		this.controller.modelChanged(this.installAppButtonModel);
 	}
@@ -349,6 +358,8 @@ AppCatalogAssistant.prototype.getAppInfo = function(payload)
 		this.controller.modelChanged(this.getAppInfoButtonModel);
 	}
 
+	this.overlay.hide();
+	this.getAppInfoButton.mojo.deactivate();
 };
 
 AppCatalogAssistant.prototype.showAppInfoTap = function(event)
@@ -358,8 +369,99 @@ AppCatalogAssistant.prototype.showAppInfoTap = function(event)
 	}
 };
 
+AppCatalogAssistant.prototype.showAppDetailsTap = function(event)
+{
+	this.overlay.show();
+
+	var callback = this.getAppDetailsHandler;
+
+	var url = this.palmProfile.accountServerUrl+"appDetail_ext2";
+	var body = {
+		"InGetAppDetailV2": {
+			"accountTokenInfo": {
+				"token": this.palmProfile.token,
+				"deviceId": this.deviceProfile.deviceId,
+				"email": this.palmProfile.alias,
+				// "carrier": this.deviceProfile.carrier
+			},
+			"packageId": this.appInfo.publicApplicationId,
+			// "locale": "en_us",
+			"appId": this.appInfo.id,
+		}
+	};
+
+	Mojo.Log.warn("request %j", body);
+
+	this.appDetail = false;
+
+	this.requestWebService = new Ajax.Request(url, {
+			method: 'POST',
+			contentType: 'application/json',
+			postBody: Object.toJSON(body),
+			evalJSON: 'force',
+			onSuccess: function(response) {
+				response = response.responseJSON;
+				Mojo.Log.warn("onSuccess %j", response);
+				if (!response) {
+					callback({"returnValue":true}); // Empty replies are okay
+				}
+				else {
+					var exception = response.JSONException;
+					if (exception) {
+						Mojo.Log.error("CatalogServer._callServer %j", exception);
+						callback({"returnValue":false, "errorText":Object.toJSON(exception)});
+					}
+					else {
+						callback({"returnValue":true, "response":response});
+					}
+				}
+			},
+			onFailure: function(response) {
+				Mojo.Log.warn("onFailure %j", response);
+				if (response.responseJSON && response.responseJSON.JSONException) {
+					callback({"returnValue":false, "errorText":Object.toJSON(response.responseJSON.JSONException)});
+				}
+				else {
+					callback({"returnValue":false, "errorText":response.status});
+				}
+			},
+			on0: function(response) {
+				Mojo.Log.warn("on0 %j", response);
+				callback({"returnValue":false, "errorText":response.status});
+			}
+	});
+};
+
+AppCatalogAssistant.prototype.getAppDetails = function(payload)
+{
+	this.requestWebService = false;
+
+	if (payload.returnValue === false) {
+		this.errorMessage('<b>Service Error (getAppDetails):</b><br>'+payload.errorText);
+		this.overlay.hide();
+		this.showAppDetailsButton.mojo.deactivate();
+		return;
+	}
+
+	this.appDetail = payload.response.OutGetAppDetailV2.appDetail;
+
+	if (this.appDetail) {
+		this.controller.stageController.pushScene("item", "Application Details", this.appDetail);
+	}
+	else {
+		this.errorMessage('<b>Application '+this.appInfo.publicApplicationId+' not found</b>');
+		this.showAppDetailsButtonModel.disabled = true;
+		this.controller.modelChanged(this.showAppDetailsButtonModel);
+	}
+
+	this.overlay.hide();
+	this.showAppDetailsButton.mojo.deactivate();
+};
+
 AppCatalogAssistant.prototype.installAppTap = function(event)
 {
+	this.overlay.show();
+
 	var callback = this.installAppHandler;
 
 	if (this.requestPalmService) this.requestPalmService.cancel();
@@ -381,11 +483,6 @@ AppCatalogAssistant.prototype.installAppTap = function(event)
 															 "email": this.palmProfile.alias,
 															 "subscribe": true
 														 });
-
-	this.updateSpinner(true);
-
-	this.installAppButtonModel.disabled = true;
-	this.controller.modelChanged(this.installAppButtonModel);
 };
 
 AppCatalogAssistant.prototype.installApp = function(payload)
@@ -396,10 +493,8 @@ AppCatalogAssistant.prototype.installApp = function(payload)
 		if (this.requestPalmService) this.requestPalmService.cancel();
 		this.requestPalmService = false;
 
-		this.updateSpinner(false);
-
-		this.installAppButtonModel.disabled = false;
-		this.controller.modelChanged(this.installAppButtonModel);
+		this.overlay.hide();
+		this.installAppButton.mojo.deactivate();
 
 		return;
 	}
@@ -428,10 +523,9 @@ AppCatalogAssistant.prototype.installApp = function(payload)
 			status = "Package Download Failed";
 			if (this.requestPalmService) this.requestPalmService.cancel();
 			this.requestPalmService = false;
-			this.updateSpinner(false);
 			this.errorMessage('<b>Package Download Failed</b><br><br>Note that paid apps must be purchased before downloading.');
-			this.installAppButtonModel.disabled = false;
-			this.controller.modelChanged(this.installAppButtonModel);
+			this.overlay.hide();
+			this.installAppButton.mojo.deactivate();
 			break;
 		case 10: // "installing"
 			status = "Installing Package - "+payload.details.progress+"%";
@@ -440,9 +534,8 @@ AppCatalogAssistant.prototype.installApp = function(payload)
 			status = "Package Install Cancelled";
 			if (this.requestPalmService) this.requestPalmService.cancel();
 			this.requestPalmService = false;
-			this.updateSpinner(false);
-			this.installAppButtonModel.disabled = false;
-			this.controller.modelChanged(this.installAppButtonModel);
+			this.overlay.hide();
+			this.installAppButton.mojo.deactivate();
 			break;
 		case 11: // "installed"
 			status = "Package Installed";
@@ -462,9 +555,8 @@ AppCatalogAssistant.prototype.installApp = function(payload)
 			this.errorMessage('<b>Service Error (installApp):</b><br>'+status);
 			if (this.requestPalmService) this.requestPalmService.cancel();
 			this.requestPalmService = false;
-			this.updateSpinner(false);
-			this.installAppButtonModel.disabled = false;
-			this.controller.modelChanged(this.installAppButtonModel);
+			this.overlay.hide();
+			this.installAppButton.mojo.deactivate();
 			break;
 		}
 
@@ -478,16 +570,12 @@ AppCatalogAssistant.prototype.rescanApp = function(payload)
 	if (this.requestPalmService) this.requestPalmService.cancel();
 	this.requestPalmService = false;
 
-	this.updateSpinner(false);
-
-	this.installAppButtonModel.disabled = false;
-	this.controller.modelChanged(this.installAppButtonModel);
-
 	if (payload.returnValue === false) {
 		this.errorMessage('<b>Service Error (rescanApp):</b><br>'+payload.errorText);
-		return;
 	}
 
+	this.overlay.hide();
+	this.installAppButton.mojo.deactivate();
 };
 
 AppCatalogAssistant.prototype.palmProfileTap = function(event)
@@ -499,6 +587,8 @@ AppCatalogAssistant.prototype.palmProfileTap = function(event)
 
 AppCatalogAssistant.prototype.paidAppsTap = function(event)
 {
+	this.overlay.show();
+
 	var callback = this.paidAppsHandler;
 
 	var url = this.palmProfile.accountServerUrl+"getAppCatUserFlags";
@@ -550,24 +640,16 @@ AppCatalogAssistant.prototype.paidAppsTap = function(event)
 				callback({"returnValue":false, "errorText":response.status});
 			}
 	});
-
-	this.updateSpinner(true);
-
-	this.paidAppsButtonModel.disabled = true;
-	this.controller.modelChanged(this.paidAppsButtonModel);
 };
 
 AppCatalogAssistant.prototype.paidApps = function(payload)
 {
 	this.requestWebService = false;
 
-	this.updateSpinner(false);
-
-	this.paidAppsButtonModel.disabled = false;
-	this.controller.modelChanged(this.paidAppsButtonModel);
-
 	if (payload.returnValue === false) {
 		this.errorMessage('<b>Service Error (paidApps):</b><br>'+payload.errorText);
+		this.overlay.hide();
+		this.paidAppsButton.mojo.deactivate();
 		return;
 	}
 
@@ -575,10 +657,15 @@ AppCatalogAssistant.prototype.paidApps = function(payload)
 		var payments = payload.response.OutGetAppCatUserFlags.enablePaymentSetup;
 		this.controller.stageController.pushScene("item", "Paid Apps Access", payments);
 	}
+
+	this.overlay.hide();
+	this.paidAppsButton.mojo.deactivate();
 };
 
 AppCatalogAssistant.prototype.accessCountryTap = function(event)
 {
+	this.overlay.show();
+
 	var callback = this.accessCountryHandler;
 
 	var url = this.palmProfile.accountServerUrl+"appList_ext2";
@@ -633,24 +720,16 @@ AppCatalogAssistant.prototype.accessCountryTap = function(event)
 				callback({"returnValue":false, "errorText":response.status});
 			}
 	});
-
-	this.updateSpinner(true);
-
-	this.accessCountryButtonModel.disabled = true;
-	this.controller.modelChanged(this.accessCountryButtonModel);
 };
 
 AppCatalogAssistant.prototype.accessCountry = function(payload)
 {
 	this.requestWebService = false;
 
-	this.updateSpinner(false);
-
-	this.accessCountryButtonModel.disabled = false;
-	this.controller.modelChanged(this.accessCountryButtonModel);
-
 	if (payload.returnValue === false) {
 		this.errorMessage('<b>Service Error (accessCountry):</b><br>'+payload.errorText);
+		this.overlay.hide();
+		this.accessCountryButton.mojo.deactivate();
 		return;
 	}
 
@@ -658,10 +737,15 @@ AppCatalogAssistant.prototype.accessCountry = function(payload)
 		var country = payload.response.OutGetAppList.country;
 		this.controller.stageController.pushScene("item", "Access Country", country);
 	}
+
+	this.overlay.hide();
+	this.accessCountryButton.mojo.deactivate();
 };
 
 AppCatalogAssistant.prototype.paymentInfoTap = function(event)
 {
+	this.overlay.show();
+
 	var callback = this.paymentInfoHandler;
 
 	var url = this.paymentServerUrl+"getCCPaymentInfos";
@@ -711,24 +795,16 @@ AppCatalogAssistant.prototype.paymentInfoTap = function(event)
 				callback({"returnValue":false, "errorText":response.status});
 			}
 	});
-
-	this.updateSpinner(true);
-
-	this.paymentInfoButtonModel.disabled = true;
-	this.controller.modelChanged(this.paymentInfoButtonModel);
 };
 
 AppCatalogAssistant.prototype.paymentInfo = function(payload)
 {
 	this.requestWebService = false;
 
-	this.updateSpinner(false);
-
-	this.paymentInfoButtonModel.disabled = false;
-	this.controller.modelChanged(this.paymentInfoButtonModel);
-
 	if (payload.returnValue === false) {
 		this.errorMessage('<b>Service Error (paymentInfo):</b><br>'+payload.errorText);
+		this.overlay.hide();
+		this.paymentInfoButton.mojo.deactivate();
 		return;
 	}
 
@@ -736,10 +812,15 @@ AppCatalogAssistant.prototype.paymentInfo = function(payload)
 		var payments = payload.response.OutGetCCPaymentInfos;
 		this.controller.stageController.pushScene("item", "Payment Info", payments);
 	}
+
+	this.overlay.hide();
+	this.paymentInfoButton.mojo.deactivate();
 };
 
 AppCatalogAssistant.prototype.billingCountriesTap = function(event)
 {
+	this.overlay.show();
+
 	var callback = this.billingCountriesHandler;
 
 	var url = this.paymentServerUrl+"getBillToCountries";
@@ -790,24 +871,16 @@ AppCatalogAssistant.prototype.billingCountriesTap = function(event)
 				callback({"returnValue":false, "errorText":response.status});
 			}
 	});
-
-	this.updateSpinner(true);
-
-	this.billingCountriesButtonModel.disabled = true;
-	this.controller.modelChanged(this.billingCountriesButtonModel);
 };
 
 AppCatalogAssistant.prototype.billingCountries = function(payload)
 {
 	this.requestWebService = false;
 
-	this.updateSpinner(false);
-
-	this.billingCountriesButtonModel.disabled = false;
-	this.controller.modelChanged(this.billingCountriesButtonModel);
-
 	if (payload.returnValue === false) {
 		this.errorMessage('<b>Service Error (billingCountries):</b><br>'+payload.errorText);
+		this.overlay.hide();
+		this.billingCountriesButton.mojo.deactivate();
 		return;
 	}
 
@@ -815,6 +888,9 @@ AppCatalogAssistant.prototype.billingCountries = function(payload)
 		var countries = payload.response.OutGetBillToCountries.billToCountries;
 		this.controller.stageController.pushScene("item", "Billing Countries", countries);
 	}
+
+	this.overlay.hide();
+	this.billingCountriesButton.mojo.deactivate();
 };
 
 AppCatalogAssistant.prototype.promoCodeChanged = function(event)
@@ -833,6 +909,8 @@ AppCatalogAssistant.prototype.promoCodeChanged = function(event)
 
 AppCatalogAssistant.prototype.getCodeInfoTap = function(event)
 {
+	this.overlay.show();
+
 	var callback = this.getCodeInfoHandler;
 
 	var url = this.paymentServerUrl+"getPromoCodeInfos";
@@ -885,24 +963,16 @@ AppCatalogAssistant.prototype.getCodeInfoTap = function(event)
 				callback({"returnValue":false, "errorText":response.status});
 			}
 	});
-
-	this.updateSpinner(true);
-
-	this.getCodeInfoButtonModel.disabled = true;
-	this.controller.modelChanged(this.getCodeInfoButtonModel);
 };
 
 AppCatalogAssistant.prototype.getCodeInfo = function(payload)
 {
 	this.requestWebService = false;
 
-	this.updateSpinner(false);
-
-	this.getCodeInfoButtonModel.disabled = false;
-	this.controller.modelChanged(this.getCodeInfoButtonModel);
-
 	if (payload.returnValue === false) {
 		this.errorMessage('<b>Service Error (getCodeInfo):</b><br>'+payload.errorText);
+		this.overlay.hide();
+		this.getCodeInfoButton.mojo.deactivate();
 		return;
 	}
 
@@ -913,10 +983,15 @@ AppCatalogAssistant.prototype.getCodeInfo = function(payload)
 		this.checkCodeStatusButtonModel.disabled = false;
 		this.controller.modelChanged(this.checkCodeStatusButtonModel);
 	}
+
+	this.overlay.hide();
+	this.getCodeInfoButton.mojo.deactivate();
 };
 
 AppCatalogAssistant.prototype.checkCodeStatusTap = function(event)
 {
+	this.overlay.show();
+
 	var callback = this.checkCodeStatusHandler;
 
 	var url = this.paymentServerUrl+"checkPromoCodeStatus";
@@ -970,24 +1045,16 @@ AppCatalogAssistant.prototype.checkCodeStatusTap = function(event)
 				callback({"returnValue":false, "errorText":response.status});
 			}
 	});
-
-	this.updateSpinner(true);
-
-	this.checkCodeStatusButtonModel.disabled = true;
-	this.controller.modelChanged(this.checkCodeStatusButtonModel);
 };
 
 AppCatalogAssistant.prototype.checkCodeStatus = function(payload)
 {
 	this.requestWebService = false;
 
-	this.updateSpinner(false);
-
-	this.checkCodeStatusButtonModel.disabled = false;
-	this.controller.modelChanged(this.checkCodeStatusButtonModel);
-
 	if (payload.returnValue === false) {
 		this.errorMessage('<b>Service Error (checkCodeStatus):</b><br>'+payload.errorText);
+		this.overlay.hide();
+		this.checkCodeStatusButton.mojo.deactivate();
 		return;
 	}
 
@@ -995,6 +1062,9 @@ AppCatalogAssistant.prototype.checkCodeStatus = function(payload)
 		var status = payload.response.OutCheckPromoCodeStatus;
 		this.controller.stageController.pushScene("item", "Promo Code Status", status);
 	}
+
+	this.overlay.hide();
+	this.checkCodeStatusButton.mojo.deactivate();
 };
 
 AppCatalogAssistant.prototype.updateSpinner = function(active)
@@ -1053,6 +1123,10 @@ AppCatalogAssistant.prototype.cleanup = function(event)
 								  this.appIdChangedHandler);
 	this.controller.stopListening(this.getAppInfoButton,  Mojo.Event.tap,
 								  this.getAppInfoTapHandler);
+	this.controller.stopListening(this.showAppInfoButton,  Mojo.Event.tap,
+								  this.showAppInfoTapHandler);
+	this.controller.stopListening(this.showAppDetailsButton,  Mojo.Event.tap,
+								  this.showAppDetailsTapHandler);
 	this.controller.stopListening(this.installAppButton,  Mojo.Event.tap,
 								  this.installAppTapHandler);
 	this.controller.stopListening(this.paidAppsButton,  Mojo.Event.tap,

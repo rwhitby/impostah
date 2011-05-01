@@ -464,7 +464,8 @@ ActivationAssistant.prototype.authenticationUpdate = function(payload)
 	}
 
 	if (this.authenticationInfo) {
-		this.controller.stageController.pushScene("item", "Palm Profile", this.authenticationInfo);
+		this.controller.stageController.pushScene("item", "Palm Profile", this.authenticationInfo,
+												  'com.palm.palmprofile.token');
 	}
 
 	this.overlay.hide();
@@ -657,7 +658,8 @@ ActivationAssistant.prototype.profileCreation = function(payload)
 	}
 
 	if (this.authenticationInfo) {
-		this.controller.stageController.pushScene("item", "Palm Profile", this.authenticationInfo);
+		this.controller.stageController.pushScene("item", "Palm Profile", this.authenticationInfo,
+												  'com.palm.palmprofile.token');
 	}
 
 	this.overlay.hide();

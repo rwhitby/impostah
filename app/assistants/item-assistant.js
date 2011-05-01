@@ -1,7 +1,8 @@
-function ItemAssistant(label, item) {
+function ItemAssistant(label, item, id) {
 
 	this.label = label;
 	this.item = item;
+	this.id = id;
 
 	// setup list model
 	this.mainModel = {items:[]};
@@ -11,6 +12,7 @@ function ItemAssistant(label, item) {
 		visible: true,
 		items: [
 			{ label: $L("Email"), command: 'do-email' },
+			{ label: $L("Save To File"), command: 'do-save' },
 			{ label: $L("Preferences"), command: 'do-prefs' },
 			{ label: $L("Help"), command: 'do-help' }
 		]
@@ -128,20 +130,23 @@ ItemAssistant.prototype.iconTap = function(event)
 
 ItemAssistant.prototype.handleCommand = function(event)
 {
-	if (event.type == Mojo.Event.command)
-	{
-		switch (event.command)
-		{
-			case 'do-prefs':
-				this.controller.stageController.pushScene('preferences');
-				break;
+	if (event.type == Mojo.Event.command) {
+		switch (event.command) {
+		case 'do-email':
+		email(this.label, "<pre>" + JSON.stringify(this.item, null, 4) + "</pre>");
+		break;
+
+		case 'do-save':
+		this.controller.stageController.pushScene('json-save',{'object':this.item, 'filename':this.id+'.json'});
+		break;
+		
+		case 'do-prefs':
+		this.controller.stageController.pushScene('preferences');
+		break;
 				
-			case 'do-help':
-				this.controller.stageController.pushScene('help');
-				break;
-			case 'do-email':
-				email(this.label, "<pre>" + JSON.stringify(this.item, null, 4) + "</pre>");
-				break;
+		case 'do-help':
+		this.controller.stageController.pushScene('help');
+		break;
 		}
 	}
 };

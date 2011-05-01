@@ -361,7 +361,8 @@ AppCatalogAssistant.prototype.getAppInfo = function(payload)
 AppCatalogAssistant.prototype.showAppInfoTap = function(event)
 {
 	if (this.appInfo) {
-		this.controller.stageController.pushScene("item", "Application Info", this.appInfo);
+		this.controller.stageController.pushScene("item", "Application Info", this.appInfo,
+												  this.appInfo.publicApplicationId);
 	}
 };
 
@@ -442,7 +443,8 @@ AppCatalogAssistant.prototype.getAppDetails = function(payload)
 	this.appDetail = payload.response.OutGetAppDetailV2.appDetail;
 
 	if (this.appDetail) {
-		this.controller.stageController.pushScene("item", "Application Details", this.appDetail);
+		this.controller.stageController.pushScene("item", "Application Details", this.appDetail,
+												  this.appInfo.publicApplicationId);
 	}
 	else {
 		this.errorMessage('<b>Application '+this.appInfo.publicApplicationId+' not found</b>');
@@ -577,7 +579,8 @@ AppCatalogAssistant.prototype.rescanApp = function(payload)
 AppCatalogAssistant.prototype.palmProfileTap = function(event)
 {
 	if (this.palmProfile) {
-		this.controller.stageController.pushScene("item", "Palm Profile", this.palmProfile);
+		this.controller.stageController.pushScene("item", "Palm Profile", this.palmProfile,
+												  'com.palm.palmprofile.token');
 	}
 };
 
@@ -651,7 +654,7 @@ AppCatalogAssistant.prototype.paidApps = function(payload)
 
 	if (payload.response.OutGetAppCatUserFlags) {
 		var payments = payload.response.OutGetAppCatUserFlags.enablePaymentSetup;
-		this.controller.stageController.pushScene("item", "Paid Apps Access", payments);
+		this.controller.stageController.pushScene("item", "Paid Apps Access", payments, 'payments');
 	}
 
 	this.overlay.hide();
@@ -731,7 +734,7 @@ AppCatalogAssistant.prototype.accessCountry = function(payload)
 
 	if (payload.response.OutGetAppList) {
 		var country = payload.response.OutGetAppList.country;
-		this.controller.stageController.pushScene("item", "Access Country", country);
+		this.controller.stageController.pushScene("item", "Access Country", country, 'country');
 	}
 
 	this.overlay.hide();
@@ -806,7 +809,7 @@ AppCatalogAssistant.prototype.paymentInfo = function(payload)
 
 	if (payload.response.OutGetCCPaymentInfos) {
 		var payments = payload.response.OutGetCCPaymentInfos;
-		this.controller.stageController.pushScene("item", "Payment Info", payments);
+		this.controller.stageController.pushScene("item", "Payment Info", payments, 'payments');
 	}
 
 	this.overlay.hide();
@@ -882,7 +885,7 @@ AppCatalogAssistant.prototype.billingCountries = function(payload)
 
 	if (payload.response.OutGetBillToCountries) {
 		var countries = payload.response.OutGetBillToCountries.billToCountries;
-		this.controller.stageController.pushScene("item", "Billing Countries", countries);
+		this.controller.stageController.pushScene("item", "Billing Countries", countries, 'countries');
 	}
 
 	this.overlay.hide();
@@ -975,7 +978,8 @@ AppCatalogAssistant.prototype.getCodeInfo = function(payload)
 	this.promoCodeInfo = payload.response.OutGetPromoCodeInfos;
 
 	if (this.promoCodeInfo) {
-		this.controller.stageController.pushScene("item", "Promo Code Info", this.promoCodeInfo);
+		this.controller.stageController.pushScene("item", "Promo Code Info", this.promoCodeInfo,
+												  this.promoCodeInputFieldModel.value);
 		this.checkCodeStatusButtonModel.disabled = false;
 		this.controller.modelChanged(this.checkCodeStatusButtonModel);
 	}
@@ -1056,7 +1060,8 @@ AppCatalogAssistant.prototype.checkCodeStatus = function(payload)
 
 	if (payload.response.OutCheckPromoCodeStatus) {
 		var status = payload.response.OutCheckPromoCodeStatus;
-		this.controller.stageController.pushScene("item", "Promo Code Status", status);
+		this.controller.stageController.pushScene("item", "Promo Code Status", status,
+												  this.promoCodeInputFieldModel.value);
 	}
 
 	this.overlay.hide();

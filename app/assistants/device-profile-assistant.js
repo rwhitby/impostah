@@ -38,6 +38,7 @@ DeviceProfileAssistant.prototype.setup = function()
 	this.controller.setupWidget(Mojo.Menu.appMenu, { omitDefaultItems: true }, this.menuModel);
 	
 	// get elements
+	this.overlay = 		this.controller.get('overlay'); this.overlay.hide();
 	this.iconElement =			this.controller.get('icon');
 	this.iconElement.style.display = 'none';
 	this.spinnerElement = 		this.controller.get('spinner');
@@ -119,11 +120,13 @@ DeviceProfileAssistant.prototype.updateSpinner = function(active)
 		this.iconElement.style.display = 'none';
 		this.spinnerModel.spinning = true;
 		this.controller.modelChanged(this.spinnerModel);
+		this.overlay.show();
 	}
 	else {
 		this.iconElement.style.display = 'inline';
 		this.spinnerModel.spinning = false;
 		this.controller.modelChanged(this.spinnerModel);
+		this.overlay.hide();
 	}
 };
 

@@ -43,6 +43,7 @@ PalmProfileAssistant.prototype.setup = function()
 	this.controller.setupWidget(Mojo.Menu.appMenu, { omitDefaultItems: true }, this.menuModel);
 	
 	// get elements
+	this.overlay = 		this.controller.get('overlay'); this.overlay.hide();
 	this.iconElement =			this.controller.get('icon');
 	this.iconElement.style.display = 'none';
 	this.spinnerElement = 		this.controller.get('spinner');
@@ -138,6 +139,8 @@ PalmProfileAssistant.prototype.manageOverridesTap = function(event)
 
 PalmProfileAssistant.prototype.resetPalmProfileTap = function(event)
 {
+	this.overlay.show();
+
 	this.controller.showAlertDialog({
 			allowHTMLMessage:	true,
 			title:				'Reset Palm Profile',
@@ -150,6 +153,7 @@ PalmProfileAssistant.prototype.resetPalmProfileTap = function(event)
 PalmProfileAssistant.prototype.resetPalmProfileAck = function(value)
 {
 	if (value != "delete") {
+		this.overlay.hide();
 		this.resetPalmProfileButton.mojo.deactivate();
 		return;
 	}
@@ -178,6 +182,7 @@ PalmProfileAssistant.prototype.palmProfileDeleted = function(payload)
 
 	if (payload.returnValue === false) {
 		this.errorMessage('<b>Service Error (deletePalmProfile):</b><br>'+payload.errorText);
+		this.overlay.hide();
 		this.resetPalmProfileButton.mojo.deactivate();
 		return;
 	}
@@ -198,6 +203,7 @@ PalmProfileAssistant.prototype.palmProfileDeletionAck = function(value)
 {
 	if (this.requestPalmService) this.requestPalmService.cancel();
 	if (value != "ok") {
+		this.overlay.hide();
 		this.resetPalmProfileButton.mojo.deactivate();
 		this.dirtyPalmProfile();
 		this.activate();
@@ -214,6 +220,7 @@ PalmProfileAssistant.prototype.palmProfileDeletionDone = function(payload)
 
 	if (payload.returnValue === false) {
 		this.errorMessage('<b>Service Error (removeFirstUseFlag):</b><br>'+payload.errorText);
+		this.overlay.hide();
 		this.resetPalmProfileButton.mojo.deactivate();
 		return;
 	}
@@ -227,11 +234,13 @@ PalmProfileAssistant.prototype.updateSpinner = function(active)
 		this.iconElement.style.display = 'none';
 		this.spinnerModel.spinning = true;
 		this.controller.modelChanged(this.spinnerModel);
+		this.overlay.show();
 	}
 	else {
 		this.iconElement.style.display = 'inline';
 		this.spinnerModel.spinning = false;
 		this.controller.modelChanged(this.spinnerModel);
+		this.overlay.hide();
 	}
 };
 

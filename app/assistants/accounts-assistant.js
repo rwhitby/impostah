@@ -40,6 +40,8 @@ function AccountsAssistant()
 		disabled: true
 	}
 
+	this.reloadAccounts = false;
+
 	this.requestPalmService = false;
 };
 
@@ -83,63 +85,72 @@ AccountsAssistant.prototype.setup = function()
 	this.controller.listen(this.showAccountButton,	 Mojo.Event.tap, this.showAccountTapHandler);
 	this.controller.setupWidget('removeAccountButton', { type: Mojo.Widget.activityButton }, this.removeAccountButtonModel);
 	this.controller.listen(this.removeAccountButton,	 Mojo.Event.tap, this.removeAccountTapHandler);
+
+	this.reloadAccounts = true;
 };
 
 AccountsAssistant.prototype.activate = function()
 {
-	// Disable the account templates list
-	this.accountTemplatesModel.choices = [];
-	this.accountTemplatesModel.value = "";
-	this.accountTemplatesModel.disabled = true;
-	this.controller.modelChanged(this.accountTemplatesModel);
+	if (this.reloadAccounts) {
+		// Disable the account templates list
+		this.accountTemplatesModel.choices = [];
+		this.accountTemplatesModel.value = "";
+		this.accountTemplatesModel.disabled = true;
+		this.controller.modelChanged(this.accountTemplatesModel);
 
-	this.updateSpinner(true);
+		this.updateSpinner(true);
 
-	if (this.requestPalmService) this.requestPalmService.cancel();
-	this.requestPalmService = ImpostahService.impersonate(this.listAccountTemplatesHandler, "com.palm.configurator",
-														  "com.palm.service.accounts",
-														  "listAccountTemplates", {});
+		if (this.requestPalmService) this.requestPalmService.cancel();
+		this.requestPalmService = ImpostahService.impersonate(this.listAccountTemplatesHandler,
+															  "com.palm.configurator",
+															  "com.palm.service.accounts",
+															  "listAccountTemplates", {});
+	}
 };
 
 AccountsAssistant.prototype.listAccountTemplates = function(payload)
 {
-	this.updateSpinner(false);
-
 	if (this.requestPalmService) this.requestPalmService.cancel();
 	this.requestPalmService = false;
 
 	if (payload.returnValue === false) {
 		this.errorMessage('<b>Service Error (listAaccountTemplates):</b><br>'+payload.errorText);
+		this.updateSpinner(false);
 		return;
 	}
+
+	this.reloadAccounts = false;
 
 	var oldSet = prefs.get().lastAccountTemplate;
 	var newSet = false;
 
 	var templates = payload.results;
 
-	if (templates && templates.length > 0) {
-		for (var a = 0; a < templates.length; a++) {
-			var id = templates[a].templateId;
-			var name = templates[a].loc_name;
-			if (name) {
-				this.accountTemplatesModel.choices.push({label:name, value:id});
-				if (id == oldSet) {
-					newSet = oldSet;
-				}
+	if (!templates || !templates.length) {
+		this.updateSpinner(false);
+		return;
+	}
+
+	for (var a = 0; a < templates.length; a++) {
+		var id = templates[a].templateId;
+		var name = templates[a].loc_name;
+		if (name) {
+			this.accountTemplatesModel.choices.push({label:name, value:id});
+			if (id == oldSet) {
+				newSet = oldSet;
 			}
 		}
-		
-		if (newSet === false) {
-			newSet = 'com.palm.palmprofile';
-		}
-
-		// Enable the drop-down list
-		this.accountTemplatesModel.disabled = false;
-		this.accountTemplatesModel.value = newSet;
-		this.controller.modelChanged(this.accountTemplatesModel);
-		this.accountTemplatesChanged({value: newSet});
 	}
+		
+	if (newSet === false) {
+		newSet = 'com.palm.palmprofile';
+	}
+
+	// Enable the drop-down list
+	this.accountTemplatesModel.disabled = false;
+	this.accountTemplatesModel.value = newSet;
+	this.controller.modelChanged(this.accountTemplatesModel);
+	this.accountTemplatesChanged({value: newSet});
 };
 
 AccountsAssistant.prototype.accountTemplatesChanged = function(event)
@@ -175,13 +186,12 @@ AccountsAssistant.prototype.accountTemplatesChanged = function(event)
 
 AccountsAssistant.prototype.listAccounts = function(payload)
 {
-	this.updateSpinner(false);
-
 	if (this.requestPalmService) this.requestPalmService.cancel();
 	this.requestPalmService = false;
 
 	if (payload.returnValue === false) {
 		this.errorMessage('<b>Service Error (listAccounts):</b><br>'+payload.errorText);
+		this.updateSpinner(false);
 		return;
 	}
 
@@ -190,27 +200,30 @@ AccountsAssistant.prototype.listAccounts = function(payload)
 
 	var accounts = payload.results;
 
-	if (accounts && accounts.length > 0) {
-		for (var a = 0; a < accounts.length; a++) {
-			var id = accounts[a]._id;
-			var name = accounts[a].username;
-			if (name == "") name = "N/A";
-			this.accountNamesModel.choices.push({label:name, value:id});
-			if (id == oldKind) {
-				newKind = oldKind;
-			}
-		}
-		
-		if (newKind === false) {
-			newKind = this.accountNamesModel.choices[0].value;
-		}
-
-		// Enable the drop-down list
-		this.accountNamesModel.disabled = false;
-		this.accountNamesModel.value = newKind;
-		this.controller.modelChanged(this.accountNamesModel);
-		this.accountNamesChanged({value: newKind});
+	if (!accounts || !accounts.length) {
+		this.updateSpinner(false);
+		return;
 	}
+
+	for (var a = 0; a < accounts.length; a++) {
+		var id = accounts[a]._id;
+		var name = accounts[a].username;
+		if (name == "") name = "N/A";
+		this.accountNamesModel.choices.push({label:name, value:id});
+		if (id == oldKind) {
+			newKind = oldKind;
+		}
+	}
+		
+	if (newKind === false) {
+		newKind = this.accountNamesModel.choices[0].value;
+	}
+
+	// Enable the drop-down list
+	this.accountNamesModel.disabled = false;
+	this.accountNamesModel.value = newKind;
+	this.controller.modelChanged(this.accountNamesModel);
+	this.accountNamesChanged({value: newKind});
 };
 
 AccountsAssistant.prototype.accountNamesChanged = function(event)
@@ -232,6 +245,7 @@ AccountsAssistant.prototype.accountNamesChanged = function(event)
 		this.controller.modelChanged(this.removeAccountButtonModel);
 	}
 
+	this.updateSpinner(false);
 };
 
 AccountsAssistant.prototype.showAccountTap = function(event)
@@ -246,14 +260,13 @@ AccountsAssistant.prototype.showAccountTap = function(event)
 
 AccountsAssistant.prototype.getAccountInfo = function(payload)
 {
-	this.overlay.hide();
-	this.showAccountButton.mojo.deactivate();
-
 	if (this.requestPalmService) this.requestPalmService.cancel();
 	this.requestPalmService = false;
 
 	if (payload.returnValue === false) {
 		this.errorMessage('<b>Service Error (getAccountInfo):</b><br>'+payload.errorText);
+		this.overlay.hide();
+		this.showAccountButton.mojo.deactivate();
 		return;
 	}
 
@@ -261,6 +274,9 @@ AccountsAssistant.prototype.getAccountInfo = function(payload)
 		this.controller.stageController.pushScene("item", "Account Record", payload.result, this.accountId,
 												  payload.result['_id']);
 	}
+
+	this.overlay.hide();
+	this.showAccountButton.mojo.deactivate();
 };
 
 AccountsAssistant.prototype.removeAccountTap = function(event)
@@ -292,9 +308,6 @@ AccountsAssistant.prototype.removeAccountAck = function(value)
 
 AccountsAssistant.prototype.accountDeleted = function(payload)
 {
-	this.overlay.hide();
-	this.removeAccountButton.mojo.deactivate();
-
 	if (this.requestPalmService) this.requestPalmService.cancel();
 	this.requestPalmService = false;
 
@@ -302,6 +315,10 @@ AccountsAssistant.prototype.accountDeleted = function(payload)
 		this.errorMessage('<b>Service Error (deleteAccount):</b><br>'+payload.errorText);
 	}
 
+	// this.overlay.hide(); // leave the overlay in place, rather than flash off then on again
+	this.removeAccountButton.mojo.deactivate();
+
+	this.reloadAccounts = true;
 	this.activate();
 };
 
@@ -311,11 +328,13 @@ AccountsAssistant.prototype.updateSpinner = function(active)
 		this.iconElement.style.display = 'none';
 		this.spinnerModel.spinning = true;
 		this.controller.modelChanged(this.spinnerModel);
+		this.overlay.show();
 	}
 	else {
 		this.iconElement.style.display = 'inline';
 		this.spinnerModel.spinning = false;
 		this.controller.modelChanged(this.spinnerModel);
+		this.overlay.hide();
 	}
 };
 
@@ -355,8 +374,10 @@ AccountsAssistant.prototype.cleanup = function(event)
 {
 	this.controller.stopListening(this.iconElement, Mojo.Event.tap, this.iconTapHandler);
 	this.controller.stopListening(this.spinnerElement, Mojo.Event.tap, this.iconTapHandler);
-	this.controller.stopListening(this.accountTemplatesElement, Mojo.Event.propertyChange, this.accountTemplatesChangedHandler);
-	this.controller.stopListening(this.accountNamesElement, Mojo.Event.propertyChange, this.accountNamesChangedHandler);
+	this.controller.stopListening(this.accountTemplatesElement, Mojo.Event.propertyChange,
+								  this.accountTemplatesChangedHandler);
+	this.controller.stopListening(this.accountNamesElement, Mojo.Event.propertyChange,
+								  this.accountNamesChangedHandler);
 	this.controller.stopListening(this.showAccountButton,	Mojo.Event.tap, this.showAccountTapHandler);
 	this.controller.stopListening(this.removeAccountButton,	Mojo.Event.tap, this.removeAccountTapHandler);
 };

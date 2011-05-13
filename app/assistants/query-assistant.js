@@ -118,7 +118,8 @@ QueryAssistant.prototype.impersonate = function(payload)
 
 QueryAssistant.prototype.listTap = function(event)
 {
-	this.controller.stageController.pushScene("item", "Database Record", event.item.value);
+	this.controller.stageController.pushScene("item", "Database Record", event.item.value,
+											  event.item.label, event.item.id);
 };
 
 QueryAssistant.prototype.errorMessage = function(msg)

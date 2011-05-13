@@ -145,7 +145,7 @@ ConnectionExploreAssistant.prototype.showTap = function(event)
 {
 	if (this.connectionId) {
 		var payload = this.connections[this.connectionId];
-		this.controller.stageController.pushScene("item", "Connection Record", payload);
+		this.controller.stageController.pushScene("item", "Connection Record", payload, 'connection', false);
 	}
 };
 

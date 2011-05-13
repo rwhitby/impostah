@@ -137,7 +137,7 @@ KeystoreExploreAssistant.prototype.keystoreKind = function(payload)
 		return;
 	}
 
-	this.controller.stageController.pushScene("item", "Key Store Record", payload);
+	this.controller.stageController.pushScene("item", "Key Store Record", payload, 'keystore', false);
 };
 
 KeystoreExploreAssistant.prototype.errorMessage = function(msg)

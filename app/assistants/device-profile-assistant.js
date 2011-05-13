@@ -96,7 +96,8 @@ DeviceProfileAssistant.prototype.getDeviceProfile = function(returnValue, device
 DeviceProfileAssistant.prototype.deviceProfileTap = function(event)
 {
 	if (this.deviceProfile) {
-		this.controller.stageController.pushScene("item", "Device Profile", this.deviceProfile);
+		this.controller.stageController.pushScene("item", "Device Profile", this.deviceProfile,
+												  'com.palm.deviceprofile', false);
 	}
 };
 

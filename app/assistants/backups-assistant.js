@@ -16,11 +16,6 @@ function BackupsAssistant()
 		 ]
 	};
 	
-	this.palmProfileButtonModel = {
-		label: $L("Show Palm Profile"),
-		disabled: true
-	};
-
 	this.manifestSelectorModel = {
 		label: $L("Backup Manifests"),
 		disabled: true,
@@ -62,7 +57,6 @@ BackupsAssistant.prototype.setup = function()
 	this.iconElement =			this.controller.get('icon');
 	this.iconElement.style.display = 'none';
 	this.spinnerElement = 		this.controller.get('spinner');
-	this.palmProfileButton = this.controller.get('palmProfileButton');
 	this.manifestSelector = this.controller.get('manifestSelector');
 	this.showManifestButton = this.controller.get('showManifestButton');
 	this.restoreBackupButton = this.controller.get('restoreBackupButton');
@@ -70,7 +64,6 @@ BackupsAssistant.prototype.setup = function()
 	
 	// setup handlers
 	this.iconTapHandler = this.iconTap.bindAsEventListener(this);
-	this.palmProfileTapHandler = this.palmProfileTap.bindAsEventListener(this);
 	this.getAuthTokenHandler = this.getAuthToken.bindAsEventListener(this);
 	this.getManifestListHandler = this.getManifestList.bindAsEventListener(this);
 	this.showManifestTapHandler = this.showManifestTap.bindAsEventListener(this);
@@ -86,8 +79,6 @@ BackupsAssistant.prototype.setup = function()
 	this.controller.setupWidget('spinner', {spinnerSize: 'small'}, this.spinnerModel);
 	this.controller.listen(this.iconElement,  Mojo.Event.tap, this.iconTapHandler);
 	this.controller.listen(this.spinnerElement,  Mojo.Event.tap, this.iconTapHandler);
-	this.controller.setupWidget('palmProfileButton', { }, this.palmProfileButtonModel);
-	this.controller.listen(this.palmProfileButton, Mojo.Event.tap, this.palmProfileTapHandler);
 	this.controller.setupWidget('manifestSelector', { }, this.manifestSelectorModel);
 	this.controller.setupWidget('showManifestButton', { }, this.showManifestButtonModel);
 	this.controller.listen(this.showManifestButton, Mojo.Event.tap, this.showManifestTapHandler);
@@ -130,18 +121,9 @@ BackupsAssistant.prototype.getPalmProfile = function(returnValue, palmProfile, e
 	this.palmProfile = palmProfile;
 
 	if (this.palmProfile) {
-		this.palmProfileButtonModel.disabled = false;
-		this.controller.modelChanged(this.palmProfileButtonModel);
 		this.getAuthTokenStart();
 	}
 
-};
-
-BackupsAssistant.prototype.palmProfileTap = function(event)
-{
-	if (this.palmProfile) {
-		this.controller.stageController.pushScene("item", "Palm Profile", this.palmProfile);
-	}
 };
 
 BackupsAssistant.prototype.getAuthTokenStart = function()
@@ -358,7 +340,7 @@ BackupsAssistant.prototype.showManifest = function(payload)
 	}
 
 	if (payload.response) {
-		this.controller.stageController.pushScene("item", "Backup Manifest", payload.response);
+		this.controller.stageController.pushScene("item", "Backup Manifest", payload.response, 'backup', false);
 	}
 };
 
@@ -536,8 +518,6 @@ BackupsAssistant.prototype.cleanup = function(event)
 								  this.iconTapHandler);
 	this.controller.stopListening(this.spinnerElement,  Mojo.Event.tap,
 								  this.iconTapHandler);
-	this.controller.stopListening(this.palmProfileButton,  Mojo.Event.tap,
-								  this.palmProfileTapHandler);
 	this.controller.stopListening(this.showManifestButton,  Mojo.Event.tap,
 								  this.showManifestTapHandler);
 };

@@ -254,7 +254,8 @@ PermissionExploreAssistant.prototype.permissionCaller = function(payload)
 	this.controller.modelChanged(this.spinnerModel);
 
 	if (payload.results[0]) {
-		this.controller.stageController.pushScene("item", "Permission Record", payload.results[0]);
+		this.controller.stageController.pushScene("item", "Permission Record", payload.results[0],
+												  payload.results[0]['_id'], false);
 	}
 };
 

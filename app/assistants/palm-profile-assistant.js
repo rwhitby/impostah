@@ -122,7 +122,8 @@ PalmProfileAssistant.prototype.getPalmProfile = function(returnValue, palmProfil
 PalmProfileAssistant.prototype.palmProfileTap = function(event)
 {
 	if (this.palmProfile) {
-		this.controller.stageController.pushScene("item", "Palm Profile", this.palmProfile);
+		this.controller.stageController.pushScene("item", "Palm Profile", this.palmProfile,
+												  'com.palm.palmprofile.token', false);
 	}
 };
 

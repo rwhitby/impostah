@@ -212,7 +212,7 @@ JsonLoadAssistant.prototype.fileResponse = function(payload, isLoad)
 				this.controller.stageController.popScene();
 			}
 			else {
-				this.controller.stageController.pushScene("item", "JSON File", object);
+				this.controller.stageController.pushScene("item", "JSON File", object, 'load', false);
 			}
 		}
 	}

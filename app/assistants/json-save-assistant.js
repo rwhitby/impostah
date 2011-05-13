@@ -146,7 +146,7 @@ JsonSaveAssistant.prototype.browsed = function(value)
 
 JsonSaveAssistant.prototype.viewButtonPressed = function(event)
 {
-	this.controller.stageController.pushScene("item", "JSON File", this.object);
+	this.controller.stageController.pushScene("item", "JSON File", this.object, 'save', false);
 	this.viewButtonElement.mojo.deactivate();
 };
 

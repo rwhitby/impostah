@@ -465,7 +465,7 @@ ActivationAssistant.prototype.authenticationUpdate = function(payload)
 
 	if (this.authenticationInfo) {
 		this.controller.stageController.pushScene("item", "Palm Profile", this.authenticationInfo,
-												  'com.palm.palmprofile.token');
+												  'com.palm.palmprofile.token', false);
 	}
 
 	this.overlay.hide();
@@ -612,7 +612,7 @@ ActivationAssistant.prototype.createNewProfile = function(payload)
 	}
 
 	if (payload.response.AuthenticateInfoEx) {
-		// this.controller.stageController.pushScene("item", "Authentication Info", payload.response.AuthenticateInfoEx);
+		// this.controller.stageController.pushScene("item", "Authentication Info", payload.response.AuthenticateInfoEx, false);
 		var info = payload.response.AuthenticateInfoEx;
 		this.authenticationInfo = info;
 
@@ -659,7 +659,7 @@ ActivationAssistant.prototype.profileCreation = function(payload)
 
 	if (this.authenticationInfo) {
 		this.controller.stageController.pushScene("item", "Palm Profile", this.authenticationInfo,
-												  'com.palm.palmprofile.token');
+												  'com.palm.palmprofile.token', false);
 	}
 
 	this.overlay.hide();

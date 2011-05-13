@@ -180,7 +180,8 @@ ApplicationExploreAssistant.prototype.applicationKindChanged = function(event)
 ApplicationExploreAssistant.prototype.showTap = function(event)
 {
 	if (this.applicationId) {
-		this.controller.stageController.pushScene("item", "Application Record", this.applications[this.applicationId]);
+		this.controller.stageController.pushScene("item", "Application Record", this.applications[this.applicationId],
+												  this.applicationId, false);
 	}
 
 };

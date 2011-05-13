@@ -223,7 +223,7 @@ AppDataExploreAssistant.prototype.dbNameChanged = function(event)
 AppDataExploreAssistant.prototype.showTap = function(event)
 {
 	if (this.appId && this.dbName && this.database) {
-		this.controller.stageController.pushScene("item", "App Database", this.database);
+		this.controller.stageController.pushScene("item", "App Database", this.database, this.database.name, false);
 	}
 };
 

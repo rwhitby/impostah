@@ -211,7 +211,7 @@ ActivityExploreAssistant.prototype.activityKind = function(payload)
 	this.controller.modelChanged(this.spinnerModel);
 
 	if (payload.activity) {
-		this.controller.stageController.pushScene("item", "Activity Record", payload.activity, this.activityId);
+		this.controller.stageController.pushScene("item", "Activity Record", payload.activity, this.activityId, false);
 	}
 
 };

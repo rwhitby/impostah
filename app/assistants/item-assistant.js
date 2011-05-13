@@ -1,8 +1,9 @@
-function ItemAssistant(label, item, id) {
+function ItemAssistant(label, item, name, dbId) {
 
 	this.label = label;
 	this.item = item;
-	this.id = id;
+	this.name = name;
+	this.dbId = dbId;
 
 	// setup list model
 	this.mainModel = {items:[]};
@@ -13,11 +14,13 @@ function ItemAssistant(label, item, id) {
 		items: [
 			{ label: $L("Email"), command: 'do-email' },
 			{ label: $L("Save To File"), command: 'do-save' },
+			{ label: $L("Delete Item"), command: 'do-delete' },
 			{ label: $L("Preferences"), command: 'do-prefs' },
 			{ label: $L("Help"), command: 'do-help' }
 		]
 	};
 
+	this.requestPalmService = false;
 }
 
 ItemAssistant.prototype.setup = function() {
@@ -35,6 +38,8 @@ ItemAssistant.prototype.setup = function() {
     // handlers
 	this.iconTapHandler = this.iconTap.bindAsEventListener(this);
     this.listTapHandler = this.listTap.bindAsEventListener(this);
+    this.deleteItemAckHandler = this.deleteItemAck.bind(this);
+    this.itemDeletedHandler = this.itemDeleted.bind(this);
 	
 	if ((typeof this.item) == 'object' && Object.isArray(this.item))
 	{
@@ -107,7 +112,43 @@ ItemAssistant.prototype.listData = function(label, value)
 
 ItemAssistant.prototype.listTap = function(event)
 {
-	if (event.item.item) this.controller.stageController.pushScene("item", this.label+' - '+event.item.label, event.item.item);
+	if (event.item.item) this.controller.stageController.pushScene("item", this.label+' - '+event.item.label, event.item.item, false);
+};
+
+ItemAssistant.prototype.deleteItem = function(dbId)
+{
+	this.controller.showAlertDialog({
+			allowHTMLMessage:	true,
+			title:				'Delete Item',
+			message:			"Are you sure? This will permanently delete this database item.",
+			choices:			[{label:$L("Delete"), value:'delete', type:'negative'},{label:$L("Cancel"), value:'cancel', type:'dismiss'}],
+			onChoose:			this.deleteItemAckHandler
+		});
+};
+
+ItemAssistant.prototype.deleteItemAck = function(value)
+{
+	if (value != "delete") {
+		return;
+	}
+
+	if (this.requestPalmService) this.requestPalmService.cancel();
+	this.requestPalmService = ImpostahService.impersonate(this.itemDeletedHandler,
+														  "com.palm.configurator",
+														  "com.palm.db",
+														  "del", {"ids":[this.dbId], "purge":false});
+
+};
+
+ItemAssistant.prototype.itemDeleted = function(payload)
+{
+	if (this.requestPalmService) this.requestPalmService.cancel();
+	this.requestPalmService = false;
+
+	if (payload.returnValue === false) {
+		this.errorMessage('<b>Service Error (deleteItem):</b><br>'+payload.errorText);
+		return;
+	}
 };
 
 ItemAssistant.prototype.errorMessage = function(msg)
@@ -137,7 +178,13 @@ ItemAssistant.prototype.handleCommand = function(event)
 		break;
 
 		case 'do-save':
-		this.controller.stageController.pushScene('json-save',{'object':this.item, 'filename':this.id+'.json'});
+		this.controller.stageController.pushScene('json-save',{'object':this.item, 'filename':this.name+'.json'});
+		break;
+		
+		case 'do-delete':
+		if (this.dbId) {
+			this.deleteItem(this.dbId);
+		}
 		break;
 		
 		case 'do-prefs':

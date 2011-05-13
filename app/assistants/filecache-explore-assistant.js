@@ -123,7 +123,7 @@ FilecacheExploreAssistant.prototype.filecacheKind = function(payload)
 		return;
 	}
 
-	this.controller.stageController.pushScene("item", "File Cache Type", payload);
+	this.controller.stageController.pushScene("item", "File Cache Type", payload, 'filecache', false);
 };
 
 FilecacheExploreAssistant.prototype.errorMessage = function(msg)

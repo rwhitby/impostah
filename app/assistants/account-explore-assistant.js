@@ -227,7 +227,8 @@ AccountExploreAssistant.prototype.accountKind = function(payload)
 	this.controller.modelChanged(this.spinnerModel);
 
 	if (payload.result) {
-		this.controller.stageController.pushScene("item", "Account Record", payload.result, this.accountId);
+		this.controller.stageController.pushScene("item", "Account Record", payload.result, this.accountId,
+												  payload.result['_id']);
 	}
 };
 

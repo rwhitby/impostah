@@ -234,7 +234,7 @@ AppCookieExploreAssistant.prototype.showTap = function(event)
 			var newValue = decodeURIComponent(this.cookie.value);
 		}
 		this.cookie.value = newValue;
-		this.controller.stageController.pushScene("item", "App Cookie", this.cookie);
+		this.controller.stageController.pushScene("item", "App Cookie", this.cookie, this.cookie.name, false);
 	}
 };
 

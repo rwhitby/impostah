@@ -214,7 +214,7 @@ WebCookieExploreAssistant.prototype.cookieNameChanged = function(event)
 WebCookieExploreAssistant.prototype.showTap = function(event)
 {
 	if (this.url && this.name && this.cookie) {
-		this.controller.stageController.pushScene("item", "Web Cookie", this.cookie);
+		this.controller.stageController.pushScene("item", "Web Cookie", this.cookie, this.cookie.name, false);
 	}
 };
 

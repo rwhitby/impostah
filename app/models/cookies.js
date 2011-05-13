@@ -20,12 +20,12 @@ preferenceCookie.prototype.get = function(reload)
 				resourceHandlerCheck: true,
 				
 				// non-pref settings
+				lastAccountTemplate: '',
+				lastAccountId: '',
 				lastDatabaseSet: '',
 				lastDatabaseKind: '',
 				lastActivitySet: '',
 				lastActivityKind: '',
-				lastAccountSet: '',
-				lastAccountKind: '',
 				lastApplicationSet: '',
 				lastApplicationKind: '',
 				lastPermissionObject: '',

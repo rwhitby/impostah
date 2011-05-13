@@ -1,4 +1,5 @@
-<div class="account-explore">
+<div class="palm-scrim" id="overlay"></div>
+<div class="accounts">
   
   <div class="scene-fade-top" x-mojo-scroll-fade="top"></div>
 
@@ -6,7 +7,7 @@
     <div class="palm-page-header-wrapper">
       <div class="icon" id="icon"></div>
       <div class="spinner" id="spinner" x-mojo-element="Spinner"></div>
-      <div class="title" id="title">Account Exploration</div>
+      <div class="title" id="title">Accounts</div>
     </div>
   </div>
   
@@ -16,7 +17,7 @@
       
       <div class="palm-row single">
 	<div class="palm-row-wrapper">
-	  <div id="accountSet" x-mojo-element="ListSelector"></div>
+	  <div id="accountTemplates" x-mojo-element="ListSelector"></div>
 	</div>
       </div>
       
@@ -29,14 +30,16 @@
       
       <div class="palm-row single">
 	<div class="palm-row-wrapper">
-	  <div id="accountKind" x-mojo-element="ListSelector"></div>
+	  <div id="accountNames" x-mojo-element="ListSelector"></div>
 	</div>
       </div>
       
     </div>
   </div>
   
-  <div x-mojo-element="Button" id="showButton"></div>
+  <div x-mojo-element="Button" id="showAccountButton"></div>
+  
+  <div x-mojo-element="Button" id="removeAccountButton"></div>
   
   <div class="scene-fade-bottom" x-mojo-scroll-fade="bottom"></div>
   

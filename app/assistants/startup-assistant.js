@@ -11,6 +11,7 @@ function StartupAssistant(changelog)
     this.newMessages =
 	[
 	 // Don't forget the comma on all but the last entry
+	 { version: '0.8.9', log: [ 'Added the ability to delete accounts' ] },
 	 { version: '0.8.8', log: [ 'Added the ability to delete database records' ] },
 	 { version: '0.8.7', log: [ 'Fixed icon tap handlers for json load and save scenes' ] },
 	 { version: '0.8.6', log: [ 'Fixed the app catalog button enablement' ] },

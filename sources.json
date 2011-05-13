@@ -55,6 +55,10 @@
         "source": "app/assistants/app-catalog-assistant.js"
     },
     {
+        "scenes": "accounts",
+        "source": "app/assistants/accounts-assistant.js"
+    },
+    {
         "scenes": "backups",
         "source": "app/assistants/backups-assistant.js"
     },
@@ -81,10 +85,6 @@
     {
         "scenes": "activity-explore",
         "source": "app/assistants/activity-explore-assistant.js"
-    },
-    {
-        "scenes": "account-explore",
-        "source": "app/assistants/account-explore-assistant.js"
     },
     {
         "scenes": "application-explore",

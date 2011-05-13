@@ -140,7 +140,7 @@ ActivationAssistant.prototype.setup = function()
 	this.controller.setupWidget('loginToProfileButton', { type: Mojo.Widget.activityButton },
 								this.loginToProfileButtonModel);
 	this.controller.listen(this.loginToProfileButton, Mojo.Event.tap, this.loginToProfileTapHandler);
-	this.controller.setupWidget('createNewProfileButton', {  type: Mojo.Widget.activityButton },
+	this.controller.setupWidget('createNewProfileButton', { type: Mojo.Widget.activityButton },
 								this.createNewProfileButtonModel);
 	this.controller.listen(this.createNewProfileButton, Mojo.Event.tap, this.createNewProfileTapHandler);
 }

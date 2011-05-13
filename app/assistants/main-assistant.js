@@ -78,14 +78,14 @@ MainAssistant.prototype.setup = function()
 				});
 
     this.mainModel.items.push({
-			name:     $L('Backups'),
-				scene:   'backups',
+			name:     $L('Accounts'),
+				scene:   'accounts',
 				disabled: (Mojo.Environment.DeviceInfo.platformVersionMajor == 1)
 				});
 
     this.mainModel.items.push({
-			name:     $L('Accounts'),
-				scene:   'account-explore',
+			name:     $L('Backups'),
+				scene:   'backups',
 				disabled: (Mojo.Environment.DeviceInfo.platformVersionMajor == 1)
 				});
 

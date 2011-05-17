@@ -107,11 +107,11 @@ ActivationAssistant.prototype.setup = function()
 	this.authenticateFromDeviceHandler = this.authenticateFromDevice.bind(this);
 	this.loginToProfileHandler =	this.loginToProfile.bindAsEventListener(this);
 	this.authenticationUpdateHandler =	this.authenticationUpdate.bindAsEventListener(this);
+	this.viewAuthenticationInfoHandler =	this.viewAuthenticationInfo.bind(this);
 	this.createNewProfileTapHandler = this.createNewProfileTap.bindAsEventListener(this);
 	this.createNewProfileAckHandler = this.createNewProfileAck.bind(this);
 	this.createDeviceAccountHandler = this.createDeviceAccount.bind(this);
 	this.createNewProfileHandler =	this.createNewProfile.bindAsEventListener(this);
-	this.profileCreationHandler =	this.profileCreation.bindAsEventListener(this);
 	
 	// setup wigets
 	this.spinnerModel = {spinning: true};
@@ -411,43 +411,54 @@ ActivationAssistant.prototype.loginToProfile = function(payload)
 {
 	this.requestWebService = false;
 
+	this.loginToProfileButton.mojo.deactivate();
+
 	if (payload.returnValue === false) {
 		this.errorMessage('<b>Service Error (authenticateFromDevice):</b><br>'+payload.errorText);
 		this.overlay.hide();
-		this.loginToProfileButton.mojo.deactivate();
 		return;
 	}
 
 	if (payload.response.AuthenticateInfoEx) {
 		var info = payload.response.AuthenticateInfoEx;
-		this.authenticationInfo = info;
+		this.updateAuthentication(info);
+	}
+	else {
+		this.errorMessage('<b>Service Error (authenticateFromDevice):</b><br>Empty authentication response');
+		this.overlay.hide();
+		return;
+	}
+};
 
-		if (this.palmProfile) {
-			this.requestPalmService = ImpostahService.impersonate(this.authenticationUpdateHandler,
-														  "com.palm.configurator", "com.palm.db",
-														  "merge", {
-															  "objects" : [
-			{ "_id": "com.palm.palmprofile.token",
-			  "alias": info.accountAlias, "authenticatedTime": info.authenticationTime,
-			  "jabberId": info.jabberId, "state": info.accountState, "token": info.token,
-			  "tokenexpireTime": info.expirationTime, "uniqueId": info.uniqueId }
-																		   ]
-														  });
-		}
-		else {
-			this.requestPalmService = ImpostahService.impersonate(this.authenticationUpdateHandler,
-														  "com.palm.configurator", "com.palm.db",
-														  "put", {
-															  "objects" : [
-			{ "_id": "com.palm.palmprofile.token", "_kind": "com.palm.palmprofile:1",
-			  "accountServerUrl": this.accountServerUrl, "accountExpirationTime": "",
-			  "alias": info.accountAlias, "authenticatedTime": info.authenticationTime,
-			  "jabberId": info.jabberId, "phoneNumber": "", "state": info.accountState,
-			  "token": info.token, "tokenexpireTime": info.expirationTime,
-			  "uniqueId": info.uniqueId }
-																		   ]
-														  });
-		}
+ActivationAssistant.prototype.updateAuthentication = function(info)
+{
+	this.authenticationInfo = info;
+
+	if (this.palmProfile) {
+		this.requestPalmService = ImpostahService.impersonate(this.authenticationUpdateHandler,
+															  "com.palm.configurator", "com.palm.db",
+															  "merge", {
+																  "objects" : [
+		{ "_id": "com.palm.palmprofile.token",
+		  "alias": info.accountAlias, "authenticatedTime": info.authenticationTime,
+		  "jabberId": info.jabberId, "state": info.accountState, "token": info.token,
+		  "tokenexpireTime": info.expirationTime, "uniqueId": info.uniqueId }
+																			   ]
+															  });
+	}
+	else {
+		this.requestPalmService = ImpostahService.impersonate(this.authenticationUpdateHandler,
+															  "com.palm.configurator", "com.palm.db",
+															  "put", {
+																  "objects" : [
+		{ "_id": "com.palm.palmprofile.token", "_kind": "com.palm.palmprofile:1",
+		  "accountServerUrl": this.accountServerUrl, "accountExpirationTime": "",
+		  "alias": info.accountAlias, "authenticatedTime": info.authenticationTime,
+		  "jabberId": info.jabberId, "phoneNumber": "", "state": info.accountState,
+		  "token": info.token, "tokenexpireTime": info.expirationTime,
+		  "uniqueId": info.uniqueId }
+																			   ]
+															  });
 	}
 };
 
@@ -463,13 +474,22 @@ ActivationAssistant.prototype.authenticationUpdate = function(payload)
 		return;
 	}
 
-	if (this.authenticationInfo) {
+	this.controller.showAlertDialog({
+			allowHTMLMessage:	true,
+			title:				'Success',
+			choices:			[{label:$L("View Authentication Info"), value:'view', type:'affirmative'},{label:$L("Done"), value:'done'}],
+			onChoose:			this.viewAuthenticationInfoHandler
+		});
+
+	this.overlay.hide();
+};
+
+ActivationAssistant.prototype.viewAuthenticationInfo = function(value)
+{
+	if (value == "view") {
 		this.controller.stageController.pushScene("item", "Palm Profile", this.authenticationInfo,
 												  'com.palm.palmprofile.token', false);
 	}
-
-	this.overlay.hide();
-	this.loginToProfileButton.mojo.deactivate();
 
 	this.palmProfile = false;
 	this.updateSpinner(true);
@@ -604,70 +624,23 @@ ActivationAssistant.prototype.createNewProfile = function(payload)
 {
 	this.requestWebService = false;
 
+	this.createNewProfileButton.mojo.deactivate();
+
 	if (payload.returnValue === false) {
 		this.errorMessage('<b>Service Error (createDeviceAccount):</b><br>'+payload.errorText);
 		this.overlay.hide();
-		this.createNewProfileButton.mojo.deactivate();
 		return;
 	}
 
 	if (payload.response.AuthenticateInfoEx) {
-		// this.controller.stageController.pushScene("item", "Authentication Info", payload.response.AuthenticateInfoEx, false);
 		var info = payload.response.AuthenticateInfoEx;
-		this.authenticationInfo = info;
-
-		if (this.palmProfile) {
-			this.requestPalmService = ImpostahService.impersonate(this.authenticationUpdateHandler,
-														  "com.palm.configurator", "com.palm.db",
-														  "merge", {
-															  "objects" : [
-			{ "_id": "com.palm.palmprofile.token",
-			  "alias": info.accountAlias, "authenticatedTime": info.authenticationTime,
-			  "jabberId": info.jabberId, "state": info.accountState, "token": info.token,
-			  "tokenexpireTime": info.expirationTime, "uniqueId": info.uniqueId }
-																		   ]
-														  });
-		}
-		else {
-			this.requestPalmService = ImpostahService.impersonate(this.authenticationUpdateHandler,
-														  "com.palm.configurator", "com.palm.db",
-														  "put", {
-															  "objects" : [
-			{ "_id": "com.palm.palmprofile.token", "_kind": "com.palm.palmprofile:1",
-			  "accountServerUrl": this.accountServerUrl, "accountExpirationTime": "",
-			  "alias": info.accountAlias, "authenticatedTime": info.authenticationTime,
-			  "jabberId": info.jabberId, "phoneNumber": "", "state": info.accountState,
-			  "token": info.token, "tokenexpireTime": info.expirationTime,
-			  "uniqueId": info.uniqueId }
-																		   ]
-														  });
-		}
+		this.updateAuthentication(info);
 	}
-};
-
-ActivationAssistant.prototype.profileCreation = function(payload)
-{
-	if (this.requestPalmService) this.requestPalmService.cancel();
-	this.requestPalmService = false;
-
-	if (payload.returnValue === false) {
-		this.errorMessage('<b>Service Error (setPalmProfile):</b><br>'+payload.errorText);
+	else {
+		this.errorMessage('<b>Service Error (createDeviceAccount):</b><br>Empty authentication response');
 		this.overlay.hide();
-		this.createNewProfileButton.mojo.deactivate();
 		return;
 	}
-
-	if (this.authenticationInfo) {
-		this.controller.stageController.pushScene("item", "Palm Profile", this.authenticationInfo,
-												  'com.palm.palmprofile.token', false);
-	}
-
-	this.overlay.hide();
-	this.createNewProfileButton.mojo.deactivate();
-
-	this.palmProfile = false;
-	this.updateSpinner(true);
-	PalmProfile.getPalmProfile(this.getPalmProfile.bind(this), true);
 };
 
 ActivationAssistant.prototype.updateSpinner = function(active)

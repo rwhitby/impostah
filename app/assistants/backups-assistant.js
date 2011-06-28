@@ -32,20 +32,15 @@ function BackupsAssistant()
 		disabled: true
 	};
 
+	this.deviceId = false;
 	this.deviceProfile = false;
 	this.palmProfile = false;
+	this.metadataUrl = false;
+	this.storageAuthUrl = false;
+	this.storageUrl = false;
 
 	this.requestPalmService = false;
 	this.requestWebService = false;
-
-	// %%% FIXME %%%
-	// palm://com.palm.accountservices/getServerUrl '{}'
-	// {"serverUrl":"https://ps.palmws.com/palmcsext/services/deviceJ/","returnValue":true}
-	this.accountServerUrl = "https://ps.palmws.com/palmcsext/services/deviceJ/";
-	// https://ps.palmws.com/palmcsext/services/deviceJ/getPreferences
-	// {"InPreferences":{"preferenceKey":"APPLICATIONS, BKUP2_SRV","category":""}}
-	// {"OutParameterInfo":{"parameterInfos":[{"category":"SETTINGS","key":"METADATA_URL","value":"https://brm.palmws.com/backupmeta"},{"category":"SETTINGS","key":"STORAGE_AUTH_URL","value":"https://sta.palmws.com/storageauth"},{"category":"SETTINGS","key":"STORAGE_URL","value":"https://backup.st.palmws.com/storage"}],"size":3}}
-	this.authServerUrl = "https://sta.palmws.com/storageauth/";
 };
 
 BackupsAssistant.prototype.setup = function()
@@ -89,6 +84,22 @@ BackupsAssistant.prototype.setup = function()
 
 BackupsAssistant.prototype.activate = function()
 {
+	this.deviceId = false;
+	this.updateSpinner(true);
+	DeviceProfile.getDeviceId(this.getDeviceId.bind(this), false);
+};
+
+BackupsAssistant.prototype.getDeviceId = function(returnValue, deviceId, errorText)
+{
+	this.updateSpinner(false);
+
+	if (returnValue === false) {
+		this.errorMessage('<b>Service Error (getDeviceProfile):</b><br>'+errorText);
+		return;
+	}
+
+	this.deviceId = deviceId;
+
 	this.deviceProfile = false;
 	this.updateSpinner(true);
 	DeviceProfile.getDeviceProfile(this.getDeviceProfile.bind(this), false);
@@ -122,7 +133,11 @@ BackupsAssistant.prototype.getPalmProfile = function(returnValue, palmProfile, e
 	this.palmProfile = palmProfile;
 
 	if (this.palmProfile) {
-		this.getAuthTokenStart();
+		this.metadataUrl = false;
+		this.storageAuthUrl = false;
+		this.storageUrl = false;
+		this.updateSpinner(true);
+		BackupServer.getBackupServerUrls(this.getBackupServerUrls.bind(this), this.palmProfile.accountServerUrl, false);
 	}
 	else {
 		this.controller.showAlertDialog({
@@ -136,16 +151,44 @@ BackupsAssistant.prototype.getPalmProfile = function(returnValue, palmProfile, e
 	}
 };
 
+BackupsAssistant.prototype.getBackupServerUrls = function(returnValue, metadataUrl, storageAuthUrl, storageUrl, errorText)
+{
+	this.updateSpinner(false);
+
+	if (returnValue === false) {
+		this.errorMessage('<b>Service Error (getBackupServerUrls):</b><br>'+errorText);
+		return;
+	}
+
+	this.metadataUrl = metadataUrl;
+	this.storageAuthUrl = storageAuthUrl;
+	this.storageUrl = storageUrl;
+
+	if (this.storageAuthUrl && this.storageUrl) {
+		this.getAuthTokenStart();
+	}
+	else {
+		this.controller.showAlertDialog({
+				allowHTMLMessage:	true,
+				preventCancel:		true,
+				title:				'Backup Server Not Found',
+				message:			'This device does not have an active Backup Server associated with it.<br>An active Palm Profile is required to access Backup Server information.',
+				choices:			[{label:$L("Ok"), value:'ok'}],
+				onChoose:			function(e){}
+			});
+	}
+};
+
 BackupsAssistant.prototype.getAuthTokenStart = function()
 {
 	var callback = this.getAuthTokenHandler;
 
-	var deviceId = this.deviceProfile.deviceId;
+	var deviceId = this.deviceId;
 	if (deviceId.indexOf("IMEI") === 0) {
 		deviceId = deviceId.substring(0, deviceId.length - 2);
 	}
 
-	var url = (this.authServerUrl+"?email="+encodeURIComponent(this.palmProfile.alias)+
+	var url = (this.storageAuthUrl+"?email="+encodeURIComponent(this.palmProfile.alias)+
 			   "&deviceId="+ encodeURIComponent(deviceId)+
 			   "&token="+encodeURIComponent(this.palmProfile.token));
 
@@ -194,8 +237,7 @@ BackupsAssistant.prototype.getAuthToken = function(payload)
 		if (fields) {
 			var host = fields[1];
 			if (host) {
-				// %%% FIXME %%%
-				this.storageServerUrl = "https://"+host+".backup.st.palmws.com/storage/";
+				this.storageHostUrl = "https://"+host+"."+this.storageUrl.substring(8)+"/";
 				this.retrieveManifestList();
 			}
 		}
@@ -206,7 +248,7 @@ BackupsAssistant.prototype.retrieveManifestList = function()
 {
 	var callback = this.getManifestListHandler;
 
-	var url = this.storageServerUrl+"manifests/";
+	var url = this.storageHostUrl+"manifests/";
 
 	var authorization = "PalmDevice "+this.storageAuthToken;
 
@@ -287,7 +329,7 @@ BackupsAssistant.prototype.showManifestTap = function(event)
 {
 	var callback = this.showManifestHandler;
 
-	var url = this.storageServerUrl+"manifests/"+this.manifestSelectorModel.value;
+	var url = this.storageHostUrl+"manifests/"+this.manifestSelectorModel.value;
 
 	var authorization = "PalmDevice "+this.storageAuthToken;
 

@@ -74,18 +74,13 @@ function AppCatalogAssistant()
 	this.deviceId = false;
 	this.deviceProfile = false;
 	this.palmProfile = false;
+	this.paymentServerUrl = false;
 	this.appInfo = false;
 	this.appDetail = false;
 	this.promoCodeInfo = false;
 
 	this.requestPalmService = false;
 	this.requestWebService = false;
-
-	// %%% FIXME %%%
-	// https://ps.palmws.com/palmcsext/services/deviceJ/getPreferences
-	// {"InPreferences":{"preferenceKey":"APPLICATIONS, PAYMENT","category":""}}
-	// {"OutParameterInfo":{"parameterInfos":{"category":"SETTINGS","key":"PAYMENT_URL","value":"https://pmt.palmws.com/palmcspmtext/services/paymentJ/"},"size":1}}
-	this.paymentServerUrl = "https://pmt.palmws.com/palmcspmtext/services/paymentJ/";
 };
 
 AppCatalogAssistant.prototype.setup = function()
@@ -237,8 +232,10 @@ AppCatalogAssistant.prototype.getPalmProfile = function(returnValue, palmProfile
 		this.controller.modelChanged(this.paidAppsButtonModel);
 		this.accessCountryButtonModel.disabled = false;
 		this.controller.modelChanged(this.accessCountryButtonModel);
-		this.promoCodeInputFieldModel.disabled = false;
-		this.controller.modelChanged(this.promoCodeInputFieldModel);
+
+		this.paymentServerUrl = false;
+		this.updateSpinner(true);
+		PaymentServer.getPaymentServerUrl(this.getPaymentServerUrl.bind(this), this.palmProfile.accountServerUrl, false);
 	}
 	else {
 		this.controller.showAlertDialog({
@@ -246,6 +243,33 @@ AppCatalogAssistant.prototype.getPalmProfile = function(returnValue, palmProfile
 				preventCancel:		true,
 				title:				'Palm Profile Not Found',
 				message:			'This device does not have an active Palm Profile associated with it.<br>An active Palm Profile is required to access App Catalog information.',
+				choices:			[{label:$L("Ok"), value:'ok'}],
+				onChoose:			function(e){}
+			});
+	}
+};
+
+AppCatalogAssistant.prototype.getPaymentServerUrl = function(returnValue, paymentServerUrl, errorText)
+{
+	this.updateSpinner(false);
+
+	if (returnValue === false) {
+		this.errorMessage('<b>Service Error (getPaymentServerUrl):</b><br>'+errorText);
+		return;
+	}
+
+	this.paymentServerUrl = paymentServerUrl;
+
+	if (this.paymentServerUrl) {
+		this.promoCodeInputFieldModel.disabled = false;
+		this.controller.modelChanged(this.promoCodeInputFieldModel);
+	}
+	else {
+		this.controller.showAlertDialog({
+				allowHTMLMessage:	true,
+				preventCancel:		true,
+				title:				'Payment Server Not Found',
+				message:			'This device does not have an active Payment Server associated with it.<br>An active Palm Profile is required to access Payment Server information.',
 				choices:			[{label:$L("Ok"), value:'ok'}],
 				onChoose:			function(e){}
 			});
@@ -917,8 +941,10 @@ AppCatalogAssistant.prototype.getCodeInfo = function(payload)
 	if (this.promoCodeInfo) {
 		this.controller.stageController.pushScene("item", "Promo Code Info", this.promoCodeInfo,
 												  this.promoCodeInputFieldModel.value, false);
-		this.checkCodeStatusButtonModel.disabled = false;
-		this.controller.modelChanged(this.checkCodeStatusButtonModel);
+		if (this.promoCodeInfo.items.length) {
+			this.checkCodeStatusButtonModel.disabled = false;
+			this.controller.modelChanged(this.checkCodeStatusButtonModel);
+		}
 	}
 
 	this.overlay.hide();

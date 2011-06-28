@@ -9,6 +9,8 @@
     {"source": "app/models/accountServer.js"},
     {"source": "app/models/deviceProfile.js"},
     {"source": "app/models/palmProfile.js"},
+    {"source": "app/models/paymentServer.js"},
+    {"source": "app/models/backupServer.js"},
     {"source": "app/assistants/app-assistant.js"},
     {
         "scenes": "startup",

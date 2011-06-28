@@ -3,6 +3,8 @@ var vers =  new versionCookie();
 var DeviceProfile =  new deviceProfile();
 var PalmProfile =  new palmProfile();
 var AccountServer =  new accountServer();
+var PaymentServer =  new paymentServer();
+var BackupServer =  new backupServer();
 
 // resource handler object
 var rh = new resourceHandler(

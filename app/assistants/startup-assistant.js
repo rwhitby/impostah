@@ -253,7 +253,8 @@ StartupAssistant.prototype.handleCommand = function(event)
 
 StartupAssistant.prototype.cleanup = function(event)
 {
-	this.controller.stopListening(this.backElement,  Mojo.Event.tap, this.backTapHandler);
+	if (this.justChangelog)
+		this.controller.stopListening(this.backElement,  Mojo.Event.tap, this.backTapHandler);
 };
 
 // Local Variables:

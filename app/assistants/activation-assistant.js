@@ -66,6 +66,7 @@ function ActivationAssistant()
 		disabled: true
 	};
 
+	this.deviceId = false;
 	this.deviceProfile = false;
 	this.palmProfile = false;
 
@@ -147,6 +148,23 @@ ActivationAssistant.prototype.setup = function()
 
 ActivationAssistant.prototype.activate = function()
 {
+	this.deviceId = false;
+	this.deviceProfile = false;
+	this.updateSpinner(true);
+	DeviceProfile.getDeviceId(this.getDeviceId.bind(this), false);
+};
+
+ActivationAssistant.prototype.getDeviceId = function(returnValue, deviceId, errorText)
+{
+	this.updateSpinner(false);
+
+	if (returnValue === false) {
+		this.errorMessage('<b>Service Error (getDeviceId):</b><br>'+errorText);
+		return;
+	}
+
+	this.deviceId = deviceId;
+
 	this.deviceProfile = false;
 	this.updateSpinner(true);
 	DeviceProfile.getDeviceProfile(this.getDeviceProfile.bind(this), false);
@@ -338,19 +356,22 @@ ActivationAssistant.prototype.authenticateFromDevice = function(returnValue, acc
 			"password": this.passwordInputFieldModel.value,
 			"device": {
 				"serialNumber": this.deviceProfile.serialNumber,
+				"HPSerialNumber": this.deviceProfile.HPSerialNumber,
 				"carrier": this.deviceProfile.carrier,
 				"dataNetwork": this.deviceProfile.dataNetwork,
-				"deviceID": this.deviceProfile.deviceId,
+				"deviceID": this.deviceId,
 				"phoneNumber": this.deviceProfile.phoneNumber,
 				"nduID": this.deviceProfile.nduId,
 				"deviceModel": this.deviceProfile.deviceModel,
 				"firmwareVersion": this.deviceProfile.firmwareVersion,
 				"network": this.deviceProfile.network,
 				"platform": this.deviceProfile.platform,
+				"macAddress": this.deviceProfile.macAddress,
 				"homeMcc": this.overrideMcc || this.deviceProfile.homeMcc,
 				"homeMnc": this.overrideMnc || this.deviceProfile.homeMnc,
 				"currentMcc": this.overrideMcc || this.deviceProfile.currentMcc,
-				"currentMnc": this.overrideMnc || this.deviceProfile.currentMnc
+				"currentMnc": this.overrideMnc || this.deviceProfile.currentMnc,
+				"productSku": this.deviceProfile.productSku
 			},
 			"romToken": {
 				"buildVariant": this.deviceProfile.dmSets,
@@ -551,19 +572,22 @@ ActivationAssistant.prototype.createDeviceAccount = function(returnValue, accoun
 			"password": this.passwordInputFieldModel.value,
 			"device": {
 				"serialNumber": this.deviceProfile.serialNumber,
+				"HPSerialNumber": this.deviceProfile.HPSerialNumber,
 				"carrier": this.deviceProfile.carrier,
 				"dataNetwork": this.deviceProfile.dataNetwork,
-				"deviceID": this.deviceProfile.deviceId,
+				"deviceID": this.deviceId,
 				"phoneNumber": this.deviceProfile.phoneNumber,
 				"nduID": this.deviceProfile.nduId,
 				"deviceModel": this.deviceProfile.deviceModel,
 				"firmwareVersion": this.deviceProfile.firmwareVersion,
 				"network": this.deviceProfile.network,
 				"platform": this.deviceProfile.platform,
+				"macAddress": this.deviceProfile.macAddress,
 				"homeMcc": this.overrideMcc || this.deviceProfile.homeMcc,
 				"homeMnc": this.overrideMnc || this.deviceProfile.homeMnc,
 				"currentMcc": this.overrideMcc || this.deviceProfile.currentMcc,
-				"currentMnc": this.overrideMnc || this.deviceProfile.currentMnc
+				"currentMnc": this.overrideMnc || this.deviceProfile.currentMnc,
+				"productSku": this.deviceProfile.productSku
 			},
 			"romToken": {
 				"buildVariant": this.deviceProfile.dmSets,

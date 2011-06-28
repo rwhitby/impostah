@@ -99,8 +99,6 @@ AppCatalogAssistant.prototype.setup = function()
 	
 	// get elements
 	this.overlay = 		this.controller.get('overlay'); this.overlay.hide();
-	this.iconElement =			this.controller.get('icon');
-	this.iconElement.style.display = 'none';
 	this.spinnerElement = 		this.controller.get('spinner');
 	this.appIdInputField = this.controller.get('appIdInputField');
 	this.getAppInfoButton = this.controller.get('getAppInfoButton');
@@ -116,8 +114,12 @@ AppCatalogAssistant.prototype.setup = function()
 	this.getCodeInfoButton = this.controller.get('getCodeInfoButton');
 	this.checkCodeStatusButton = this.controller.get('checkCodeStatusButton');
 	
+	// setup back tap
+	this.backElement = this.controller.get('icon');
+	this.backTapHandler = this.backTap.bindAsEventListener(this);
+	this.controller.listen(this.backElement,  Mojo.Event.tap, this.backTapHandler);
+	
 	// setup handlers
-	this.iconTapHandler = this.iconTap.bindAsEventListener(this);
 	this.appIdChangedHandler = this.appIdChanged.bindAsEventListener(this);
 	this.getAppInfoTapHandler = this.getAppInfoTap.bindAsEventListener(this);
 	this.getAppInfoHandler =	this.getAppInfo.bindAsEventListener(this);
@@ -144,9 +146,7 @@ AppCatalogAssistant.prototype.setup = function()
 	
 	// setup wigets
 	this.spinnerModel = {spinning: true};
-	this.controller.setupWidget('spinner', {spinnerSize: 'small'}, this.spinnerModel);
-	this.controller.listen(this.iconElement,  Mojo.Event.tap, this.iconTapHandler);
-	this.controller.listen(this.spinnerElement,  Mojo.Event.tap, this.iconTapHandler);
+	this.controller.setupWidget('spinner', {spinnerSize: 'large'}, this.spinnerModel);
 	this.controller.setupWidget('appIdInputField', {
 			autoFocus: true,
 				autoReplace: false,
@@ -1071,13 +1071,11 @@ AppCatalogAssistant.prototype.checkCodeStatus = function(payload)
 AppCatalogAssistant.prototype.updateSpinner = function(active)
 {
 	if (active)  {
-		this.iconElement.style.display = 'none';
 		this.spinnerModel.spinning = true;
 		this.controller.modelChanged(this.spinnerModel);
 		this.overlay.show();
 	}
 	else {
-		this.iconElement.style.display = 'inline';
 		this.spinnerModel.spinning = false;
 		this.controller.modelChanged(this.spinnerModel);
 		this.overlay.hide();
@@ -1096,7 +1094,7 @@ AppCatalogAssistant.prototype.errorMessage = function(msg)
 		});
 };
 
-AppCatalogAssistant.prototype.iconTap = function(event)
+AppCatalogAssistant.prototype.backTap = function(event)
 {
 	this.controller.stageController.popScene();
 };
@@ -1118,10 +1116,8 @@ AppCatalogAssistant.prototype.handleCommand = function(event)
 
 AppCatalogAssistant.prototype.cleanup = function(event)
 {
-	this.controller.stopListening(this.iconElement,  Mojo.Event.tap,
-								  this.iconTapHandler);
-	this.controller.stopListening(this.spinnerElement,  Mojo.Event.tap,
-								  this.iconTapHandler);
+	this.controller.stopListening(this.backElement,  Mojo.Event.tap,
+								  this.backTapHandler);
 	this.controller.stopListening(this.appIdInputField, Mojo.Event.propertyChange,
 								  this.appIdChangedHandler);
 	this.controller.stopListening(this.getAppInfoButton,  Mojo.Event.tap,

@@ -1,7 +1,12 @@
 APPID = org.webosinternals.impostah
 
-package: clean
+emulator:
+	cd src && ${MAKE}
+
+device:
 	cd src && ${MAKE} DEVICE=1
+
+package: clean emulator
 	palm-package .
 	ar q ${APPID}_*.ipk pmPostInstall.script
 	ar q ${APPID}_*.ipk pmPreRemove.script

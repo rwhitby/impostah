@@ -29,14 +29,14 @@ ItemAssistant.prototype.setup = function() {
 	this.controller.setupWidget(Mojo.Menu.appMenu, { omitDefaultItems: true }, this.menuModel);
 	
 	// get elements
-	this.iconElement = this.controller.get('icon');
+	this.backElement = this.controller.get('icon');
 	this.titleElement = this.controller.get('title');
 	this.listElement = this.controller.get('mainList');
 
 	this.titleElement.innerHTML = this.label;
 
     // handlers
-	this.iconTapHandler = this.iconTap.bindAsEventListener(this);
+	this.backTapHandler = this.backTap.bindAsEventListener(this);
     this.listTapHandler = this.listTap.bindAsEventListener(this);
     this.deleteItemAckHandler = this.deleteItemAck.bind(this);
     this.itemDeletedHandler = this.itemDeleted.bind(this);
@@ -61,7 +61,7 @@ ItemAssistant.prototype.setup = function() {
 	}
 
     // setup widgets
-	this.controller.listen(this.iconElement,  Mojo.Event.tap, this.iconTapHandler);
+	this.controller.listen(this.backElement,  Mojo.Event.tap, this.backTapHandler);
     this.controller.setupWidget('mainList', {
 			itemTemplate: "item/rowTemplate", swipeToDelete: false, reorderable: false }, this.mainModel);
     this.controller.listen(this.listElement, Mojo.Event.listTap, this.listTapHandler);
@@ -164,7 +164,7 @@ ItemAssistant.prototype.errorMessage = function(msg)
     });
 };
 
-ItemAssistant.prototype.iconTap = function(event)
+ItemAssistant.prototype.backTap = function(event)
 {
 	this.controller.stageController.popScene();
 };
@@ -199,7 +199,7 @@ ItemAssistant.prototype.handleCommand = function(event)
 };
 
 ItemAssistant.prototype.cleanup = function(event) {
-	this.controller.stopListening(this.iconElement,  Mojo.Event.tap, this.iconTapHandler);
+	this.controller.stopListening(this.backElement,  Mojo.Event.tap, this.backTapHandler);
     this.controller.stopListening(this.listElement, Mojo.Event.listTap, this.listTapHandler);
 };
 

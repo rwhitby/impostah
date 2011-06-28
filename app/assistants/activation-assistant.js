@@ -86,10 +86,8 @@ ActivationAssistant.prototype.setup = function()
 	this.controller.setupWidget(Mojo.Menu.appMenu, { omitDefaultItems: true }, this.menuModel);
 	
 	// get elements
-	this.overlay = 		this.controller.get('overlay'); this.overlay.hide();
-	this.iconElement =			this.controller.get('icon');
-	this.iconElement.style.display = 'none';
-	this.spinnerElement = 		this.controller.get('spinner');
+	this.overlay = this.controller.get('overlay'); this.overlay.hide();
+	this.spinnerElement = this.controller.get('spinner');
 	this.languageSelector = this.controller.get('languageSelector');
 	this.countrySelector = this.controller.get('countrySelector');
 	this.emailInputField = this.controller.get('emailInputField');
@@ -97,8 +95,12 @@ ActivationAssistant.prototype.setup = function()
 	this.loginToProfileButton = this.controller.get('loginToProfileButton');
 	this.createNewProfileButton = this.controller.get('createNewProfileButton');
 	
+	// setup back tap
+	this.backElement = this.controller.get('icon');
+	this.backTapHandler = this.backTap.bindAsEventListener(this);
+	this.controller.listen(this.backElement,  Mojo.Event.tap, this.backTapHandler);
+	
 	// setup handlers
-	this.iconTapHandler = this.iconTap.bindAsEventListener(this);
 	this.countryChangedHandler = this.countryChanged.bindAsEventListener(this);
 	this.emailChangedHandler = this.emailChanged.bindAsEventListener(this);
 	this.passwordChangedHandler = this.passwordChanged.bindAsEventListener(this);
@@ -115,9 +117,7 @@ ActivationAssistant.prototype.setup = function()
 	
 	// setup wigets
 	this.spinnerModel = {spinning: true};
-	this.controller.setupWidget('spinner', {spinnerSize: 'small'}, this.spinnerModel);
-	this.controller.listen(this.iconElement,  Mojo.Event.tap, this.iconTapHandler);
-	this.controller.listen(this.spinnerElement,  Mojo.Event.tap, this.iconTapHandler);
+	this.controller.setupWidget('spinner', {spinnerSize: 'large'}, this.spinnerModel);
 	this.controller.setupWidget('countrySelector', { label: $L("Country") }, this.countrySelectorModel);
 	this.controller.listen(this.countrySelector, Mojo.Event.propertyChange, this.countryChangedHandler);
 	this.controller.setupWidget('languageSelector', { label: $L("Language") }, this.languageSelectorModel);
@@ -646,13 +646,11 @@ ActivationAssistant.prototype.createNewProfile = function(payload)
 ActivationAssistant.prototype.updateSpinner = function(active)
 {
 	if (active)  {
-		this.iconElement.style.display = 'none';
 		this.spinnerModel.spinning = true;
 		this.controller.modelChanged(this.spinnerModel);
 		this.overlay.show();
 	}
 	else {
-		this.iconElement.style.display = 'inline';
 		this.spinnerModel.spinning = false;
 		this.controller.modelChanged(this.spinnerModel);
 		this.overlay.hide();
@@ -671,7 +669,7 @@ ActivationAssistant.prototype.errorMessage = function(msg)
 		});
 };
 
-ActivationAssistant.prototype.iconTap = function(event)
+ActivationAssistant.prototype.backTap = function(event)
 {
 	this.controller.stageController.popScene();
 };
@@ -693,10 +691,8 @@ ActivationAssistant.prototype.handleCommand = function(event)
 
 ActivationAssistant.prototype.cleanup = function(event)
 {
-	this.controller.stopListening(this.iconElement,  Mojo.Event.tap,
-								  this.iconTapHandler);
-	this.controller.stopListening(this.spinnerElement,  Mojo.Event.tap,
-								  this.iconTapHandler);
+	this.controller.stopListening(this.backElement,  Mojo.Event.tap,
+								  this.backTapHandler);
 	this.controller.stopListening(this.countrySelector, Mojo.Event.propertyChange,
 								  this.countryChangedHandler);
 	this.controller.stopListening(this.emailInputField, Mojo.Event.propertyChange,

@@ -115,13 +115,7 @@ PreferencesAssistant.prototype.handleCommand = function(event)
 	}
 };
 
-PreferencesAssistant.prototype.activate = function(event)
-{
-	if (this.controller.stageController.setWindowOrientation)
-	{
-    	this.controller.stageController.setWindowOrientation("up");
-	}
-};
+PreferencesAssistant.prototype.activate = function(event) {};
 
 PreferencesAssistant.prototype.deactivate = function(event)
 {

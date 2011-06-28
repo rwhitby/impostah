@@ -729,6 +729,11 @@ bool listWebCookies_method(LSHandle* lshandle, LSMessage *message, void *ctx) {
     dump_sqlite(message, "/var/palm/data/browser-cookies.db", "Cookies");
 }
 
+bool listSystemPrefs_method(LSHandle* lshandle, LSMessage *message, void *ctx) {
+  return access_denied(message) || \
+    dump_sqlite(message, "/var/luna/preferences/systemprefs.db", "Preferences");
+}
+
 //
 // Handler for the impersonate service.
 //
@@ -1170,6 +1175,8 @@ LSMethod luna_methods[] = {
   { "listAppDatabases",		listAppDatabases_method },
   { "listAppCookies",		listAppCookies_method },
   { "listWebCookies",		listWebCookies_method },
+
+  { "listSystemPrefs",		listSystemPrefs_method },
 
   { "impersonate",		impersonate_method },
 

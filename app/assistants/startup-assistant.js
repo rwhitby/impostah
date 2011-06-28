@@ -11,6 +11,7 @@ function StartupAssistant(changelog)
     this.newMessages =
 	[
 	 // Don't forget the comma on all but the last entry
+	 { version: '0.9.2', log: [ 'Now useable on devices without a back gesture' ] },
 	 { version: '0.9.1', log: [ 'Improved the activation scene user interface' ] },
 	 { version: '0.9.0', log: [ 'Improved the accounts scene user interface' ] },
 	 { version: '0.8.9', log: [ 'Added the ability to delete accounts' ] },
@@ -112,20 +113,36 @@ function StartupAssistant(changelog)
 StartupAssistant.prototype.setup = function()
 {
     // set theme because this can be the first scene pushed
-    this.controller.document.body.className = prefs.get().theme;
+	var deviceTheme = '';
+	if (Mojo.Environment.DeviceInfo.modelNameAscii == 'Pixi' ||
+		Mojo.Environment.DeviceInfo.modelNameAscii == 'Veer')
+		deviceTheme += ' small-device';
+	if (Mojo.Environment.DeviceInfo.modelNameAscii == 'TouchPad' ||
+		Mojo.Environment.DeviceInfo.modelNameAscii == 'Emulator')
+		deviceTheme += ' no-gesture';
+    this.controller.document.body.className = prefs.get().theme + deviceTheme;
 	
     // get elements
-	this.iconElement =    this.controller.get('icon');
     this.titleContainer = this.controller.get('title');
     this.dataContainer =  this.controller.get('data');
+
+	if (Mojo.Environment.DeviceInfo.modelNameAscii == 'TouchPad' ||
+		Mojo.Environment.DeviceInfo.modelNameAscii == 'Emulator')
+		this.backElement = this.controller.get('icon');
+	else
+		this.backElement = this.controller.get('header');
 	
     // set title
 	if (this.justChangelog)
 	{
 		this.titleContainer.innerHTML = $L('Changelog');
+		// setup back tap
+		this.backTapHandler = this.backTap.bindAsEventListener(this);
+		this.controller.listen(this.backElement, Mojo.Event.tap, this.backTapHandler);
 	}
 	else
 	{
+		this.controller.get('icon').hide();
 	    if (vers.isFirst) {
 			this.titleContainer.innerHTML = $L('Welcome To Impostah');
 	    }
@@ -178,9 +195,6 @@ StartupAssistant.prototype.setup = function()
     // set data
     this.dataContainer.innerHTML = html;
 	
-	this.iconTapHandler = this.iconTap.bindAsEventListener(this);
-	this.controller.listen(this.iconElement,  Mojo.Event.tap, this.iconTapHandler);
-	
     // setup menu
     this.controller.setupWidget(Mojo.Menu.appMenu, { omitDefaultItems: true }, this.menuModel);
 	
@@ -196,9 +210,12 @@ StartupAssistant.prototype.setup = function()
 
 StartupAssistant.prototype.activate = function(event)
 {
-    // start continue button timer
-    // this.timer = this.controller.window.setTimeout(this.showContinue.bind(this), 5 * 1000);
-    this.showContinue();
+	if (!this.justChangelog) {
+		// start continue button timer
+		// this.timer = this.controller.window.setTimeout(this.showContinue.bind(this), 5 * 1000);
+		// this.showContinue();
+		this.controller.stageController.swapScene({name: 'main', transition: Mojo.Transition.crossFade});
+	}
 };
 
 StartupAssistant.prototype.showContinue = function()
@@ -207,7 +224,7 @@ StartupAssistant.prototype.showContinue = function()
     this.controller.setMenuVisible(Mojo.Menu.commandMenu, true);
 };
 
-StartupAssistant.prototype.iconTap = function(event)
+StartupAssistant.prototype.backTap = function(event)
 {
 	if (this.justChangelog) {
 		this.controller.stageController.popScene();
@@ -233,9 +250,9 @@ StartupAssistant.prototype.handleCommand = function(event)
     }
 };
 
-StartupAssistant.prototype.cleanrup = function(event)
+StartupAssistant.prototype.cleanup = function(event)
 {
-	this.controller.stopListening(this.iconElement,  Mojo.Event.tap, this.iconTapHandler);
+	this.controller.stopListening(this.backElement,  Mojo.Event.tap, this.backTapHandler);
 };
 
 // Local Variables:

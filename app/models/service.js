@@ -83,6 +83,17 @@ ImpostahService.listWebCookies = function(callback)
     return request;
 };
 
+ImpostahService.listSystemPrefs = function(callback)
+{
+    var request = new Mojo.Service.Request(ImpostahService.identifier,
+	{
+	    method: 'listSystemPrefs',
+	    onSuccess: callback,
+	    onFailure: callback
+	});
+    return request;
+};
+
 ImpostahService.impersonate = function(callback, id, service, method, params)
 {
     var request = new Mojo.Service.Request(ImpostahService.identifier,

@@ -43,16 +43,18 @@ PalmProfileAssistant.prototype.setup = function()
 	this.controller.setupWidget(Mojo.Menu.appMenu, { omitDefaultItems: true }, this.menuModel);
 	
 	// get elements
-	this.overlay = 		this.controller.get('overlay'); this.overlay.hide();
-	this.iconElement =			this.controller.get('icon');
-	this.iconElement.style.display = 'none';
-	this.spinnerElement = 		this.controller.get('spinner');
+	this.overlay = this.controller.get('overlay'); this.overlay.hide();
+	this.spinnerElement = this.controller.get('spinner');
 	this.palmProfileButton = this.controller.get('palmProfileButton');
 	this.manageOverridesButton = this.controller.get('manageOverridesButton');
 	this.resetPalmProfileButton = this.controller.get('resetPalmProfileButton');
 	
+	// setup back tap
+	this.backElement = this.controller.get('icon');
+	this.backTapHandler = this.backTap.bindAsEventListener(this);
+	this.controller.listen(this.backElement,  Mojo.Event.tap, this.backTapHandler);
+	
 	// setup handlers
-	this.iconTapHandler = this.iconTap.bindAsEventListener(this);
 	this.palmProfileTapHandler = this.palmProfileTap.bindAsEventListener(this);
 	this.manageOverridesTapHandler = this.manageOverridesTap.bindAsEventListener(this);
 	this.resetPalmProfileTapHandler = this.resetPalmProfileTap.bindAsEventListener(this);
@@ -63,9 +65,7 @@ PalmProfileAssistant.prototype.setup = function()
 	
 	// setup wigets
 	this.spinnerModel = {spinning: true};
-	this.controller.setupWidget('spinner', {spinnerSize: 'small'}, this.spinnerModel);
-	this.controller.listen(this.iconElement,  Mojo.Event.tap, this.iconTapHandler);
-	this.controller.listen(this.spinnerElement,  Mojo.Event.tap, this.iconTapHandler);
+	this.controller.setupWidget('spinner', {spinnerSize: 'large'}, this.spinnerModel);
 	this.controller.setupWidget('palmProfileButton', { }, this.palmProfileButtonModel);
 	this.controller.listen(this.palmProfileButton, Mojo.Event.tap, this.palmProfileTapHandler);
 	this.controller.setupWidget('manageOverridesButton', { }, this.manageOverridesButtonModel);
@@ -232,13 +232,11 @@ PalmProfileAssistant.prototype.palmProfileDeletionDone = function(payload)
 PalmProfileAssistant.prototype.updateSpinner = function(active)
 {
 	if (active)  {
-		this.iconElement.style.display = 'none';
 		this.spinnerModel.spinning = true;
 		this.controller.modelChanged(this.spinnerModel);
 		this.overlay.show();
 	}
 	else {
-		this.iconElement.style.display = 'inline';
 		this.spinnerModel.spinning = false;
 		this.controller.modelChanged(this.spinnerModel);
 		this.overlay.hide();
@@ -257,7 +255,7 @@ PalmProfileAssistant.prototype.errorMessage = function(msg)
 		});
 };
 
-PalmProfileAssistant.prototype.iconTap = function(event)
+PalmProfileAssistant.prototype.backTap = function(event)
 {
 	this.controller.stageController.popScene();
 };
@@ -279,10 +277,8 @@ PalmProfileAssistant.prototype.handleCommand = function(event)
 
 PalmProfileAssistant.prototype.cleanup = function(event)
 {
-	this.controller.stopListening(this.iconElement,  Mojo.Event.tap,
-								  this.iconTapHandler);
-	this.controller.stopListening(this.spinnerElement,  Mojo.Event.tap,
-								  this.iconTapHandler);
+	this.controller.stopListening(this.backElement,  Mojo.Event.tap,
+								  this.backTapHandler);
 	this.controller.stopListening(this.palmProfileButton,  Mojo.Event.tap,
 								  this.palmProfileTapHandler);
 	this.controller.stopListening(this.manageOverridesButton,  Mojo.Event.tap,

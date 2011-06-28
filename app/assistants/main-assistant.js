@@ -31,10 +31,6 @@ function MainAssistant()
 
 MainAssistant.prototype.setup = function()
 {
-	
-	// set theme because this can be the first scene pushed
-	this.controller.document.body.className = prefs.get().theme;
-	
 	// setup menu
 	this.controller.setupWidget(Mojo.Menu.appMenu, { omitDefaultItems: true }, this.menuModel);
 	

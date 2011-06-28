@@ -99,13 +99,7 @@ HelpAssistant.prototype.iconTap = function(event)
 	this.controller.stageController.popScene();
 };
 
-HelpAssistant.prototype.activate = function(event)
-{
-	if (this.controller.stageController.setWindowOrientation)
-	{
-    	this.controller.stageController.setWindowOrientation("up");
-	}
-};
+HelpAssistant.prototype.activate = function(event) {};
 HelpAssistant.prototype.deactivate = function(event) {};
 HelpAssistant.prototype.cleanup = function(event)
 {

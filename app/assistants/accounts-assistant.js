@@ -52,16 +52,18 @@ AccountsAssistant.prototype.setup = function()
 	
 	// get elements
 	this.overlay = 		this.controller.get('overlay'); this.overlay.hide();
-	this.iconElement =			this.controller.get('icon');
-	this.iconElement.style.display = 'none';
 	this.spinnerElement = 		this.controller.get('spinner');
 	this.accountTemplatesElement =	this.controller.get('accountTemplates');
 	this.accountNamesElement =	this.controller.get('accountNames');
 	this.showAccountButton =	this.controller.get('showAccountButton');
 	this.removeAccountButton =	this.controller.get('removeAccountButton');
 	
+	// setup back tap
+	this.backElement = this.controller.get('icon');
+	this.backTapHandler = this.backTap.bindAsEventListener(this);
+	this.controller.listen(this.backElement,  Mojo.Event.tap, this.backTapHandler);
+	
 	// setup handlers
-	this.iconTapHandler = this.iconTap.bindAsEventListener(this);
 	this.listAccountTemplatesHandler = this.listAccountTemplates.bindAsEventListener(this);
 	this.accountTemplatesChangedHandler = this.accountTemplatesChanged.bindAsEventListener(this);
 	this.listAccountsHandler = this.listAccounts.bindAsEventListener(this);
@@ -74,9 +76,7 @@ AccountsAssistant.prototype.setup = function()
 	
 	// setup wigets
 	this.spinnerModel = {spinning: true};
-	this.controller.setupWidget('spinner', {spinnerSize: 'small'}, this.spinnerModel);
-	this.controller.listen(this.iconElement,  Mojo.Event.tap, this.iconTapHandler);
-	this.controller.listen(this.spinnerElement,  Mojo.Event.tap, this.iconTapHandler);
+	this.controller.setupWidget('spinner', {spinnerSize: 'large'}, this.spinnerModel);
 	this.controller.setupWidget('accountTemplates', {}, this.accountTemplatesModel);
 	this.controller.listen(this.accountTemplatesElement, Mojo.Event.propertyChange, this.accountTemplatesChangedHandler);
 	this.controller.setupWidget('accountNames', {}, this.accountNamesModel);
@@ -325,13 +325,11 @@ AccountsAssistant.prototype.accountDeleted = function(payload)
 AccountsAssistant.prototype.updateSpinner = function(active)
 {
 	if (active)  {
-		this.iconElement.style.display = 'none';
 		this.spinnerModel.spinning = true;
 		this.controller.modelChanged(this.spinnerModel);
 		this.overlay.show();
 	}
 	else {
-		this.iconElement.style.display = 'inline';
 		this.spinnerModel.spinning = false;
 		this.controller.modelChanged(this.spinnerModel);
 		this.overlay.hide();
@@ -350,7 +348,7 @@ AccountsAssistant.prototype.errorMessage = function(msg)
 		});
 };
 
-AccountsAssistant.prototype.iconTap = function(event)
+AccountsAssistant.prototype.backTap = function(event)
 {
 	this.controller.stageController.popScene();
 };
@@ -372,8 +370,7 @@ AccountsAssistant.prototype.handleCommand = function(event)
 
 AccountsAssistant.prototype.cleanup = function(event)
 {
-	this.controller.stopListening(this.iconElement, Mojo.Event.tap, this.iconTapHandler);
-	this.controller.stopListening(this.spinnerElement, Mojo.Event.tap, this.iconTapHandler);
+	this.controller.stopListening(this.backElement, Mojo.Event.tap, this.backTapHandler);
 	this.controller.stopListening(this.accountTemplatesElement, Mojo.Event.propertyChange,
 								  this.accountTemplatesChangedHandler);
 	this.controller.stopListening(this.accountNamesElement, Mojo.Event.propertyChange,

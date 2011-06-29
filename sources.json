@@ -11,6 +11,7 @@
     {"source": "app/models/palmProfile.js"},
     {"source": "app/models/paymentServer.js"},
     {"source": "app/models/backupServer.js"},
+    {"source": "app/models/systemPreferences.js"},
     {"source": "app/assistants/app-assistant.js"},
     {
         "scenes": "startup",
@@ -63,6 +64,10 @@
     {
         "scenes": "backups",
         "source": "app/assistants/backups-assistant.js"
+    },
+    {
+        "scenes": "system-preferences",
+        "source": "app/assistants/system-preferences-assistant.js"
     },
     {
         "scenes": "database-explore",

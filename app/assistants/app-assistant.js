@@ -1,6 +1,7 @@
 var prefs = new preferenceCookie();
 var vers =  new versionCookie();
 var DeviceProfile =  new deviceProfile();
+var SystemPreferences =  new systemPreferences();
 var PalmProfile =  new palmProfile();
 var AccountServer =  new accountServer();
 var PaymentServer =  new paymentServer();

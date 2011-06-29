@@ -56,6 +56,12 @@ MainAssistant.prototype.setup = function()
 				});
 
     this.mainModel.items.push({
+			name:     $L('System Prefs'),
+				scene:   'system-preferences',
+				disabled: (Mojo.Environment.DeviceInfo.platformVersionMajor == 1)
+				});
+
+    this.mainModel.items.push({
 			name:     $L('Activation'),
 				scene:   'activation',
 				disabled: (Mojo.Environment.DeviceInfo.platformVersionMajor == 1)

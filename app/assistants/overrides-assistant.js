@@ -37,30 +37,35 @@ OverridesAssistant.prototype.setup = function()
 	this.controller.setupWidget(Mojo.Menu.appMenu, { omitDefaultItems: true }, this.menuModel);
 	
 	// get elements
-	this.iconElement =			this.controller.get('icon');
-	this.iconElement.style.display = 'none';
-	this.spinnerElement = 		this.controller.get('spinner');
+	this.overlay = this.controller.get('overlay'); this.overlay.hide();
+	this.spinnerElement = this.controller.get('spinner');
 	this.titleElement = this.controller.get('title');
 	this.newNameElement = this.controller.get('newName');
 	this.newButtonElement = this.controller.get('newButton');
 	this.overridesListElement = this.controller.get('overridesList');
+	this.clearButtonElement = this.controller.get('clearButton');
 
 	this.titleElement.innerHTML = this.label;
 
 	// set this scene's default transition
 	this.controller.setDefaultTransition(Mojo.Transition.zoomFade);
 	
-	this.iconTapHandler = this.iconTap.bindAsEventListener(this);
+	// setup back tap
+	this.backElement = this.controller.get('icon');
+	this.backTapHandler = this.backTap.bindAsEventListener(this);
+	this.controller.listen(this.backElement,  Mojo.Event.tap, this.backTapHandler);
+	
 	this.newNameChangedHandler =  this.newNameChanged.bindAsEventListener(this);
+	this.readOverridesHandler = this.readOverrides.bindAsEventListener(this);
 	this.getOverridesHandler =  this.getOverrides.bindAsEventListener(this);
 	this.delOverridesHandler =  this.delOverrides.bindAsEventListener(this);
 	this.putOverridesHandler =  this.putOverrides.bindAsEventListener(this);
+	this.clearOverridesHandler = this.clearOverrides.bindAsEventListener(this);
+	this.clearedOverridesHandler = this.clearedOverrides.bindAsEventListener(this);
 
 	// setup widgets
 	this.spinnerModel = {spinning: true};
-	this.controller.setupWidget('spinner', {spinnerSize: 'small'}, this.spinnerModel);
-	this.controller.listen(this.iconElement,  Mojo.Event.tap, this.iconTapHandler);
-	this.controller.listen(this.spinnerElement,  Mojo.Event.tap, this.iconTapHandler);
+	this.controller.setupWidget('spinner', {spinnerSize: 'large'}, this.spinnerModel);
 	this.controller.setupWidget('newName', { label: "Attribute" }, this.newNameModel);
 	this.controller.listen(this.newNameElement, Mojo.Event.propertyChange, this.newNameChangedHandler);
 	this.controller.setupWidget('newValue', {
@@ -99,6 +104,17 @@ OverridesAssistant.prototype.setup = function()
 	this.controller.listen(this.overridesListElement, Mojo.Event.listDelete, this.overrideDeleted.bindAsEventListener(this));
 	this.controller.listen(this.overridesListElement, Mojo.Event.listTap, this.overrideTapped.bindAsEventListener(this));
 	
+	this.controller.setupWidget(
+		'clearButton',
+		{
+			type: Mojo.Widget.activityButton
+		},
+		{
+			buttonLabel: $L("Clear All Overrides"),
+			buttonClass: 'palm-button'
+		}
+	);
+	this.controller.listen(this.clearButtonElement, Mojo.Event.tap, this.clearOverridesHandler);
 	
 	// make it so nothing is selected by default
 	this.controller.setInitialFocusedElement(null);
@@ -111,7 +127,9 @@ OverridesAssistant.prototype.activate = function()
 
 OverridesAssistant.prototype.readOverrides = function()
 {
-	if (this.requestDb8) this.request.cancel();
+	this.updateSpinner(true);
+
+	if (this.requestDb8) this.requestDb8.cancel();
 	this.requestDb8 = new Mojo.Service.Request("palm://com.palm.db/", {
 			method: "get",
 			parameters: {
@@ -120,8 +138,6 @@ OverridesAssistant.prototype.readOverrides = function()
 			onSuccess: this.getOverridesHandler,
 			onFailure: this.getOverridesHandler
 		});
-
-	this.updateSpinner(true);
 };
 
 OverridesAssistant.prototype.getOverrides = function(payload)
@@ -140,6 +156,12 @@ OverridesAssistant.prototype.getOverrides = function(payload)
 		this.overrides = payload.results[0];
 		delete this.overrides["_rev"];
 		delete this.overrides["_sync"];
+		if (this.overrides["_del"] == true) {
+			this.overrides = {
+				"_id":this.id,
+				"_kind":"org.webosinternals.impostah:1"
+			}
+		}
 	}
 	else {
 		this.overrides = {
@@ -172,7 +194,7 @@ OverridesAssistant.prototype.loadOverrides = function()
 	}
 
 	this.overridesModel.items = [];
-	this.overridesListElement.mojo.invalidateItems(0);
+	this.overridesListElement.mojo.setLengthAndInvalidate(0);
 
 	// Load the overrides using the same ordering as the attributes
 	for (f in this.attributes) {
@@ -287,7 +309,7 @@ OverridesAssistant.prototype.newOverrideButton = function()
 
 OverridesAssistant.prototype.saveOverrides = function()
 {
-	if (this.requestDb8) this.request.cancel();
+	if (this.requestDb8) this.requestDb8.cancel();
 	this.requestDb8 = new Mojo.Service.Request("palm://com.palm.db/", {
 			method: "del",
 			parameters: {
@@ -296,8 +318,6 @@ OverridesAssistant.prototype.saveOverrides = function()
 			onSuccess: this.delOverridesHandler,
 			onFailure: this.delOverridesHandler
 		});
-
-	this.updateSpinner(true);
 };
 
 OverridesAssistant.prototype.delOverrides = function(payload)
@@ -311,16 +331,12 @@ OverridesAssistant.prototype.delOverrides = function(payload)
 			onSuccess: this.putOverridesHandler,
 			onFailure: this.putOverridesHandler
 		});
-	
-	this.updateSpinner(true);
 }
 
 OverridesAssistant.prototype.putOverrides = function(payload)
 {
 	if (this.requestDb8) this.requestDb8.cancel();
 	this.requestDb8 = false;
-
-	this.updateSpinner(false);
 
 	this.newButtonElement.mojo.deactivate();
 
@@ -333,17 +349,42 @@ OverridesAssistant.prototype.putOverrides = function(payload)
 	this.readOverrides();
 }
 
+OverridesAssistant.prototype.clearOverrides = function()
+{
+	this.overrides = {
+		"_id":this.id,
+		"_kind":"org.webosinternals.impostah:1"
+	}
+
+	if (this.requestDb8) this.requestDb8.cancel();
+	this.requestDb8 = new Mojo.Service.Request("palm://com.palm.db/", {
+			method: "del",
+			parameters: {
+				"ids" : [this.id]
+			},
+			onSuccess: this.clearedOverridesHandler,
+			onFailure: this.clearedOverridesHandler
+		});
+};
+
+OverridesAssistant.prototype.clearedOverrides = function()
+{
+	this.clearButtonElement.mojo.deactivate();
+
+	this.readOverrides();
+};
+
 OverridesAssistant.prototype.updateSpinner = function(active)
 {
 	if (active)  {
-		this.iconElement.style.display = 'none';
 		this.spinnerModel.spinning = true;
 		this.controller.modelChanged(this.spinnerModel);
+		this.overlay.show();
 	}
 	else {
-		this.iconElement.style.display = 'inline';
 		this.spinnerModel.spinning = false;
 		this.controller.modelChanged(this.spinnerModel);
+		this.overlay.hide();
 	}
 };
 
@@ -370,7 +411,7 @@ OverridesAssistant.prototype.errorMessage = function(msg)
 		});
 };
 
-OverridesAssistant.prototype.iconTap = function(event)
+OverridesAssistant.prototype.backTap = function(event)
 {
 	this.controller.stageController.popScene();
 };
@@ -399,8 +440,7 @@ OverridesAssistant.prototype.handleCommand = function(event)
 };
 
 OverridesAssistant.prototype.cleanup = function(event) {
-	this.controller.stopListening(this.iconElement,  Mojo.Event.tap, this.iconTapHandler);
-	this.controller.stopListening(this.spinnerElement,  Mojo.Event.tap, this.iconTapHandler);
+	this.controller.stopListening(this.backElement,  Mojo.Event.tap, this.backTapHandler);
 	this.controller.stopListening(this.newNameElement, Mojo.Event.propertyChange, this.newNameChangedHandler);
 	this.controller.stopListening(this.newButtonElement, Mojo.Event.tap, this.newOverrideButton.bindAsEventListener(this));
 	this.controller.stopListening(this.overridesListElement, Mojo.Event.listDelete, this.overrideDeleted.bindAsEventListener(this));

@@ -6,7 +6,7 @@ function accountServer()
     this.requestPalmService = false;
 };
 
-accountServer.prototype.getAccountServerUrl = function(callback, email, reload)
+accountServer.prototype.getAccountServerUrl = function(callback, reload)
 {
     this.callback = callback;
 
@@ -20,32 +20,13 @@ accountServer.prototype.getAccountServerUrl = function(callback, email, reload)
     this.accountServerUrl = false;
 
     if (this.requestPalmService) this.requestPalmService.cancel();
-    this.requestPalmService = ImpostahService.impersonate(this._gotEmailAvailable.bind(this),
+    this.requestPalmService = ImpostahService.impersonate(this._gotAccountServerUrl.bind(this),
 							  "com.palm.configurator",
 							  "com.palm.accountservices",
-							  "isEmailAvailable", {"email":email});
+							  "getServerUrl", {});
 };
 
-accountServer.prototype._gotEmailAvailable = function(payload)
-{
-    if (this.requestPalmService) this.requestPalmService.cancel();
-    this.requestPalmService = false;
-
-    if (payload.returnValue === false) {
-	if (this.callback !== false) {
-	    this.callback(false, false, payload.errorText);
-	}
-	return;
-    }
-
-    if (this.requestPalmService) this.requestPalmService.cancel();
-    this.requestPalmService = ImpostahService.impersonate(this._gotLocationHost.bind(this),
-							  "com.palm.configurator",
-							  "com.palm.systemservice",
-							  "getPreferences", {"keys":["locationHost"]});
-};
-
-accountServer.prototype._gotLocationHost = function(payload)
+accountServer.prototype._gotAccountServerUrl = function(payload)
 {
     if (this.requestPalmService) this.requestPalmService.cancel();
     this.requestPalmService = false;
@@ -56,8 +37,8 @@ accountServer.prototype._gotLocationHost = function(payload)
 	}
     }
     else {
-	if (payload.locationHost) {
-	    this.accountServerUrl = "https://" + payload.locationHost + "/palmcsext/services/deviceJ/";
+	if (payload.serverUrl) {
+	    this.accountServerUrl = payload.serverUrl;
 	}
 	if (this.callback !== false) {
 	    this.callback(true, this.accountServerUrl, '');

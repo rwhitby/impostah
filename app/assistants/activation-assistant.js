@@ -69,9 +69,7 @@ function ActivationAssistant()
 	this.deviceId = false;
 	this.deviceProfile = false;
 	this.palmProfile = false;
-
 	this.accountServerUrl = false;
-	this.reloadAccountServerUrl = false;
 
 	this.overrideMcc = false;
 	this.overrideMnc = false;
@@ -106,13 +104,11 @@ ActivationAssistant.prototype.setup = function()
 	this.emailChangedHandler = this.emailChanged.bindAsEventListener(this);
 	this.passwordChangedHandler = this.passwordChanged.bindAsEventListener(this);
 	this.loginToProfileTapHandler = this.loginToProfileTap.bindAsEventListener(this);
-	this.loginToProfileAckHandler = this.loginToProfileAck.bind(this);
 	this.authenticateFromDeviceHandler = this.authenticateFromDevice.bind(this);
 	this.loginToProfileHandler =	this.loginToProfile.bindAsEventListener(this);
 	this.authenticationUpdateHandler =	this.authenticationUpdate.bindAsEventListener(this);
 	this.viewAuthenticationInfoHandler =	this.viewAuthenticationInfo.bind(this);
 	this.createNewProfileTapHandler = this.createNewProfileTap.bindAsEventListener(this);
-	this.createNewProfileAckHandler = this.createNewProfileAck.bind(this);
 	this.createDeviceAccountHandler = this.createDeviceAccount.bind(this);
 	this.createNewProfileHandler =	this.createNewProfile.bindAsEventListener(this);
 	
@@ -200,6 +196,22 @@ ActivationAssistant.prototype.getDeviceProfile = function(returnValue, devicePro
 		}
 	}
 
+	this.accountServerUrl = false;
+	this.updateSpinner(true);
+	AccountServer.getAccountServerUrl(this.getAccountServerUrl.bind(this), false);
+};
+
+ActivationAssistant.prototype.getAccountServerUrl = function(returnValue, accountServerUrl, errorText)
+{
+	this.updateSpinner(false);
+
+	if (returnValue === false) {
+		this.errorMessage('<b>Service Error (getAccountServerUrl):</b><br>'+errorText);
+		return;
+	}
+
+	this.accountServerUrl = accountServerUrl;
+
 	this.palmProfile = false;
 	this.updateSpinner(true);
 	PalmProfile.getPalmProfile(this.getPalmProfile.bind(this), false);
@@ -263,8 +275,6 @@ ActivationAssistant.prototype.countryChanged = function(event)
 
 ActivationAssistant.prototype.emailChanged = function(event)
 {
-	this.dirtyAccountServerUrl();
-
 	if (event.value != '') {
 		this.passwordInputFieldModel.disabled = false;
 		this.controller.modelChanged(this.passwordInputFieldModel);
@@ -283,11 +293,6 @@ ActivationAssistant.prototype.emailChanged = function(event)
 		this.createNewProfileButtonModel.disabled = true;
 		this.controller.modelChanged(this.createNewProfileButtonModel);
 	}
-};
-
-ActivationAssistant.prototype.dirtyAccountServerUrl = function()
-{
-	this.reloadAccountServerUrl = true;
 };
 
 ActivationAssistant.prototype.passwordChanged = function(event)
@@ -315,11 +320,11 @@ ActivationAssistant.prototype.loginToProfileTap = function(event)
 			title:				'Login To Profile',
 			message:			"Are you sure? This will replace any current Palm Profile on your device, which may have an unknown impact on your apps and data in your Palm Profile.",
 			choices:			[{label:$L("Login To Profile"), value:'login', type:'affirmative'},{label:$L("Cancel"), value:'cancel', type:'negative'}],
-			onChoose:			this.loginToProfileAckHandler
+			onChoose:			this.authenticateFromDeviceHandler
 		});
 };
 
-ActivationAssistant.prototype.loginToProfileAck = function(value)
+ActivationAssistant.prototype.authenticateFromDevice = function(value)
 {
 	if (value != "login") {
 		this.overlay.hide();
@@ -327,23 +332,6 @@ ActivationAssistant.prototype.loginToProfileAck = function(value)
 		return;
 	}
 	
-	AccountServer.getAccountServerUrl(this.authenticateFromDeviceHandler,
-									  this.emailInputFieldModel.value,
-									  this.reloadAccountServerUrl);
-};
-
-ActivationAssistant.prototype.authenticateFromDevice = function(returnValue, accountServerUrl, errorText)
-{
-	if ((returnValue === false) || (accountServerUrl === false)) {
-		this.errorMessage('<b>Service Error (getAccountServerUrl):</b><br>'+errorText);
-		this.overlay.hide();
-		this.loginToProfileButton.mojo.deactivate();
-		return;
-	}
-
-	this.accountServerUrl = accountServerUrl;
-	this.reloadAccountServerUrl = false;
-
 	this.authenticationInfo = false;
 
 	var callback = this.loginToProfileHandler;
@@ -526,34 +514,17 @@ ActivationAssistant.prototype.createNewProfileTap = function(event)
 			title:				'Create New Profile',
 			message:			"Are you sure? This will replace any current Palm Profile on your device, which may have an unknown impact on your apps and data in your Palm Profile.",
 			choices:			[{label:$L("Create New Profile"), value:'create', type:'affirmative'},{label:$L("Cancel"), value:'cancel', type:'negative'}],
-			onChoose:			this.createNewProfileAckHandler
+			onChoose:			this.createDeviceAccountHandler
 		});
 };
 
-ActivationAssistant.prototype.createNewProfileAck = function(value)
+ActivationAssistant.prototype.createDeviceAccount = function(value)
 {
 	if (value != "create") {
 		this.overlay.hide();
 		this.createNewProfileButton.mojo.deactivate();
 		return;
 	}
-
-	AccountServer.getAccountServerUrl(this.createDeviceAccount.bind(this),
-									  this.emailInputFieldModel.value,
-									  this.reloadAccountServerUrl);
-};
-
-ActivationAssistant.prototype.createDeviceAccount = function(returnValue, accountServerUrl, errorText)
-{
-	if ((returnValue === false) || (accountServerUrl === false)) {
-		this.errorMessage('<b>Service Error (getAccountServerUrl):</b><br>'+errorText);
-		this.overlay.hide();
-		this.createNewProfileButton.mojo.deactivate();
-		return;
-	}
-
-	this.accountServerUrl = accountServerUrl;
-	this.reloadAccountServerUrl = false;
 
 	this.authenticationInfo = false;
 

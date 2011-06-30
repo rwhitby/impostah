@@ -32,15 +32,23 @@ function FilePickerAssistant(picker)
 	this.selected = false;
 	this.folderTree = [];
 	this.initialTree = 0;
-}
+};
+
 FilePickerAssistant.prototype.setup = function()
 {
-	// set theme
-	this.controller.document.body.className = prefs.get().theme;
+    // set theme because this can be the first scene pushed
+	var deviceTheme = '';
+	if (Mojo.Environment.DeviceInfo.modelNameAscii == 'Pixi' ||
+		Mojo.Environment.DeviceInfo.modelNameAscii == 'Veer')
+		deviceTheme += ' small-device';
+	if (Mojo.Environment.DeviceInfo.modelNameAscii == 'TouchPad' ||
+		Mojo.Environment.DeviceInfo.modelNameAscii == 'Emulator')
+		deviceTheme += ' no-gesture';
+	this.controller.document.body.className = prefs.get().theme + deviceTheme;
 
 	this.picker.setAssistant(this);
 	
-    this.flickHandler = this.flickHandler.bindAsEventListener(this);
+	this.flickHandler = this.flickHandler.bindAsEventListener(this);
 
 	this.controller.setupWidget(Mojo.Menu.appMenu, { omitDefaultItems: true }, this.menuModel);
 	
@@ -53,22 +61,18 @@ FilePickerAssistant.prototype.setup = function()
 	this.controller.setupWidget(Mojo.Menu.commandMenu, { menuClass: 'no-fade' }, this.cmdMenuModel);
 	
 	this.initialData();
-}
+};
 
 FilePickerAssistant.prototype.initialData = function()
 {
-	try
-	{
+	try {
 		this.addFolder(this.picker.topLevel, this.folderHolder, true);
 		
 		var tmp = this.picker.folder.replace(this.picker.topLevel, '').split('/');
 		var build = this.picker.topLevel;
-		if (tmp.length > 0)
-		{
-			for (var t = 0; t < tmp.length; t++)
-			{
-				if (tmp[t])
-				{
+		if (tmp.length > 0) {
+			for (var t = 0; t < tmp.length; t++) {
+				if (tmp[t]) {
 					build += tmp[t];
 					this.folderTap(false, build);
 					build += '/';
@@ -77,19 +81,12 @@ FilePickerAssistant.prototype.initialData = function()
 			this.initialTree = this.folderTree.length;
 		}
 	}
-	catch (e) 
-	{
+	catch (e) {
 		Mojo.Log.logException(e, 'file-picker#initialData');
 	}
-}
-FilePickerAssistant.prototype.activate = function(event)
-{
-	if (!this.alreadyActivated)
-	{
-		
-	}
-	this.alreadyActivated = true;
-}
+};
+
+FilePickerAssistant.prototype.activate = function(event) {};
 
 FilePickerAssistant.prototype.addFolder = function(folder, parent, initial)
 {
@@ -104,13 +101,12 @@ FilePickerAssistant.prototype.addFolder = function(folder, parent, initial)
 	if (this.folderTree[this.folderTree.length-2]) prevFolderId = filePicker.parseFileStringForId(this.folderTree[this.folderTree.length-2]);
 	
 	this.picker.getDirectory(folder, this.addFolderPart2.bindAsEventListener(this, folderId, prevFolderId, initial));
-}
+};
+
 FilePickerAssistant.prototype.addFolderPart2 = function(data, folderId, prevFolderId, initial)
 {
-	if (data.length > 0)
-	{
-		for (var d = 0; d < data.length; d++)
-		{
+	if (data.length > 0) {
+		for (var d = 0; d < data.length; d++) {
 			this.addRow({name: data[d].name, location: data[d].location, isFolder: (data[d].type == 'directory' ? true : false), rowClass: (d == data.length-1?'last':'')}, this.controller.get('list' + folderId));
 		}
 	}
@@ -120,8 +116,7 @@ FilePickerAssistant.prototype.addFolderPart2 = function(data, folderId, prevFold
 	
     this.controller.listen('folder'+folderId, Mojo.Event.flick, this.flickHandler);
 	
-	if (!initial && prevFolderId)
-	{
+	if (!initial && prevFolderId) {
 		Mojo.Animation.animateStyle(
 		    this.controller.get('folder' + prevFolderId),
 		    'left',
@@ -135,7 +130,8 @@ FilePickerAssistant.prototype.addFolderPart2 = function(data, folderId, prevFold
 			{from: 321, to: 0, duration: this.animationDuration, currentValue: 321}
 		);
 	}
-}
+};
+
 FilePickerAssistant.prototype.addRow = function(data, parent)
 {
 	var tpl = 'file-picker/file-row';
@@ -144,25 +140,23 @@ FilePickerAssistant.prototype.addRow = function(data, parent)
 	var html = Mojo.View.render({object: {name: data.name, file: fileId, rowClass: data.rowClass, iconClass: (data.isFolder?'folderIcon':'fileIcon')}, template: tpl});
 	parent.insert({bottom: html});
 	
-	if (data.isFolder)
-	{
+	if (data.isFolder) {
 		this.controller.listen('file' + fileId, Mojo.Event.tap, this.folderTap.bindAsEventListener(this, data.location));
 	}
-	else
-	{
+	else {
 		this.controller.listen('file' + fileId, Mojo.Event.tap, this.fileTap.bindAsEventListener(this, data.location));
 	}
-}
+};
 
 FilePickerAssistant.prototype.folderTap = function(event, location)
 {
 	this.addFolder(location+'/', this.folderHolder);
 	this.selectFile(false);
-}
+};
+
 FilePickerAssistant.prototype.back = function()
 {
-	if (this.folderTree.length > 1)
-	{
+	if (this.folderTree.length > 1) {
 		this.selectFile(false);
 		this.movingBack = true;
 		Mojo.Animation.animateStyle(
@@ -179,61 +173,58 @@ FilePickerAssistant.prototype.back = function()
 			{from: -321, to: 0, duration: this.animationDuration}
 		);
 	}
-}
+};
+
 FilePickerAssistant.prototype.delFolder = function(e)
 {
 	e.remove();
 	this.folderTree = this.folderTree.without(this.folderTree[this.folderTree.length-1]);
-	if (this.folderTree.length < this.initialTree)
-	{
+	if (this.folderTree.length < this.initialTree) {
 		this.initialTree = this.folderTree.length;
 	}
 	this.movingBack = false;
-}
+};
+
 FilePickerAssistant.prototype.fileTap = function(event, location)
 {
 	this.selectFile(location);
-}
+};
+
 FilePickerAssistant.prototype.selectFile = function(file)
 {
-	if (this.selectedFile)
-	{
+	if (this.selectedFile) {
 		var tmpCN = this.controller.get('file' + filePicker.parseFileStringForId(this.selectedFile)).className;
 		this.controller.get('file' + filePicker.parseFileStringForId(this.selectedFile)).className = tmpCN.replace(/check/g, '');
 	}
 	this.selectedFile = file;
-	if (this.selectedFile)
-	{
+	if (this.selectedFile) {
 		var tmpCN = this.controller.get('file' + filePicker.parseFileStringForId(this.selectedFile)).className;
 		this.controller.get('file' + filePicker.parseFileStringForId(this.selectedFile)).className = tmpCN + ' check';
 	}
 	this.updateCommandMenu();
-}
+};
 
 FilePickerAssistant.prototype.flickHandler = function(event)
 {
 	event.stop();
-	if (event.velocity.x > 500 && this.folderTree.length > 1 && !this.movingBack)
-	{
+	if (event.velocity.x > 500 && this.folderTree.length > 1 && !this.movingBack) {
 		this.back();
 	}
-}
+};
 
 FilePickerAssistant.prototype.updateCommandMenu = function(skipUpdate)
 {
 	this.cmdMenuModel.items = [];
 	this.cmdMenuModel.items.push({});
 	
-	if (this.selectedFile)
-	{
+	if (this.selectedFile) {
 		this.cmdMenuModel.items.push({
 			label: $L('Ok'),
 			command: 'ok',
 			width: 100
 		});
 	}
-	else
-	{
+	else {
 		this.cmdMenuModel.items.push({
 			label: $L('Ok'),
 			disabled: true,
@@ -250,32 +241,26 @@ FilePickerAssistant.prototype.updateCommandMenu = function(skipUpdate)
 	
 	this.cmdMenuModel.items.push({});
 	
-	if (!skipUpdate)
-	{
+	if (!skipUpdate) {
 		this.controller.modelChanged(this.cmdMenuModel);
 		this.controller.setMenuVisible(Mojo.Menu.commandMenu, true);
 	}		
-}
+};
 FilePickerAssistant.prototype.handleCommand = function(event)
 {
-	if(event.type == Mojo.Event.back || event.type == Mojo.Event.forward)
-	{
-		if (this.folderTree.length > this.initialTree && !this.movingBack)
-		{
+	if(event.type == Mojo.Event.back || event.type == Mojo.Event.forward) {
+		if (this.folderTree.length > this.initialTree && !this.movingBack) {
 			event.preventDefault();
 			event.stopPropagation();
 			this.back();
 		}
-		else if (this.movingBack)
-		{
+		else if (this.movingBack) {
 			event.preventDefault();
 			event.stopPropagation();
 		}
 	}
-	else if(event.type == Mojo.Event.command)
-	{
-		switch (event.command)
-		{
+	else if(event.type == Mojo.Event.command) {
+		switch (event.command) {
 			case 'do-help':
 				this.controller.stageController.pushScene('help');
 				break;
@@ -297,9 +282,14 @@ FilePickerAssistant.prototype.handleCommand = function(event)
 				break;
 		}
 	}
-}
+};
+
 FilePickerAssistant.prototype.cleanup = function(event)
 {
 	if (!this.selected)
 		this.picker.cancel();
-}
+};
+
+// Local Variables:
+// tab-width: 4
+// End:

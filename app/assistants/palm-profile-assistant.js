@@ -31,10 +31,18 @@ function PalmProfileAssistant()
 		disabled: true
 	};
 
+	this.getAccountInfoButtonModel = {
+		label: $L("Show Account Info"),
+		disabled: true
+	};
+
 	this.palmProfile = false;
 	this.reloadPalmProfile = false;
 
+	this.accountInfo = false;
+
 	this.requestPalmService = false;
+	this.requestWebService = false;
 };
 
 PalmProfileAssistant.prototype.setup = function()
@@ -48,6 +56,7 @@ PalmProfileAssistant.prototype.setup = function()
 	this.palmProfileButton = this.controller.get('palmProfileButton');
 	this.manageOverridesButton = this.controller.get('manageOverridesButton');
 	this.resetPalmProfileButton = this.controller.get('resetPalmProfileButton');
+	this.getAccountInfoButton = this.controller.get('getAccountInfoButton');
 	
 	// setup back tap
 	this.backElement = this.controller.get('icon');
@@ -62,6 +71,8 @@ PalmProfileAssistant.prototype.setup = function()
 	this.palmProfileDeletedHandler = this.palmProfileDeleted.bindAsEventListener(this);
 	this.palmProfileDeletionAckHandler = this.palmProfileDeletionAck.bind(this);
 	this.palmProfileDeletionDoneHandler = this.palmProfileDeletionDone.bindAsEventListener(this);
+	this.getAccountInfoTapHandler = this.getAccountInfoTap.bindAsEventListener(this);
+	this.getAccountInfoHandler = this.getAccountInfo.bind(this);
 	
 	// setup wigets
 	this.spinnerModel = {spinning: true};
@@ -73,6 +84,8 @@ PalmProfileAssistant.prototype.setup = function()
 	this.controller.setupWidget('resetPalmProfileButton', { type: Mojo.Widget.activityButton },
 								this.resetPalmProfileButtonModel);
 	this.controller.listen(this.resetPalmProfileButton, Mojo.Event.tap, this.resetPalmProfileTapHandler);
+	this.controller.setupWidget('getAccountInfoButton', { type: Mojo.Widget.activityButton }, this.getAccountInfoButtonModel);
+	this.controller.listen(this.getAccountInfoButton, Mojo.Event.tap, this.getAccountInfoTapHandler);
 }
 
 PalmProfileAssistant.prototype.activate = function()
@@ -106,6 +119,8 @@ PalmProfileAssistant.prototype.getPalmProfile = function(returnValue, palmProfil
 		this.controller.modelChanged(this.manageOverridesButtonModel);
 		this.resetPalmProfileButtonModel.disabled = false;
 		this.controller.modelChanged(this.resetPalmProfileButtonModel);
+		this.getAccountInfoButtonModel.disabled = false;
+		this.controller.modelChanged(this.getAccountInfoButtonModel);
 	}
 	else {
 		this.controller.showAlertDialog({
@@ -229,6 +244,85 @@ PalmProfileAssistant.prototype.palmProfileDeletionDone = function(payload)
 	this.requestPalmService = ImpostahService.restartLuna();
 };
 
+PalmProfileAssistant.prototype.getAccountInfoTap = function(event)
+{
+	this.overlay.show();
+
+	var callback = this.getAccountInfoHandler;
+
+	var url = this.palmProfile.accountServerUrl+"getAccountInfoAggregate";
+	var body = {
+		"InAccountInfoAggretate": {
+			"locale": "en_us",
+			"token": this.palmProfile.token,
+			"email": this.palmProfile.alias
+		}
+	};
+
+	Mojo.Log.warn("request %j", body);
+
+	this.accountInfo = false;
+
+	this.requestWebService = new Ajax.Request(url, {
+			method: 'POST',
+			contentType: 'application/json',
+			postBody: Object.toJSON(body),
+			evalJSON: 'force',
+			onSuccess: function(response) {
+				response = response.responseJSON;
+				Mojo.Log.warn("onSuccess %j", response);
+				if (!response) {
+					callback({"returnValue":true}); // Empty replies are okay
+				}
+				else {
+					var exception = response.JSONException;
+					if (exception) {
+						Mojo.Log.error("CatalogServer._callServer %j", exception);
+						callback({"returnValue":false, "errorText":Object.toJSON(exception)});
+					}
+					else {
+						callback({"returnValue":true, "response":response});
+					}
+				}
+			},
+			onFailure: function(response) {
+				Mojo.Log.warn("onFailure %j", response);
+				if (response.responseJSON && response.responseJSON.JSONException) {
+					callback({"returnValue":false, "errorText":Object.toJSON(response.responseJSON.JSONException)});
+				}
+				else {
+					callback({"returnValue":false, "errorText":response.status});
+				}
+			},
+			on0: function(response) {
+				Mojo.Log.warn("on0 %j", response);
+				callback({"returnValue":false, "errorText":response.status});
+			}
+	});
+};
+
+PalmProfileAssistant.prototype.getAccountInfo = function(payload)
+{
+	this.requestWebService = false;
+
+	if (payload.returnValue === false) {
+		this.errorMessage('<b>Service Error (getAccountInfo):</b><br>'+payload.errorText);
+		this.overlay.hide();
+		this.getAccountInfoButton.mojo.deactivate();
+		return;
+	}
+
+	this.accountInfo = payload.response.OutAccountInfoAggregate;
+
+	if (this.accountInfo) {
+		this.controller.stageController.pushScene("item", "Account Info", this.accountInfo,
+												  this.palmProfile.alias);
+	}
+
+	this.overlay.hide();
+	this.getAccountInfoButton.mojo.deactivate();
+};
+
 PalmProfileAssistant.prototype.updateSpinner = function(active)
 {
 	if (active)  {
@@ -285,12 +379,8 @@ PalmProfileAssistant.prototype.cleanup = function(event)
 								  this.manageOverridesTapHandler);
 	this.controller.stopListening(this.resetPalmProfileButton,  Mojo.Event.tap,
 								  this.resetPalmProfileTapHandler);
-	this.controller.stopListening(this.deviceInUseButton,  Mojo.Event.tap,
-								  this.deviceInUseTapHandler);
-	this.controller.stopListening(this.authenticateFromDeviceButton,  Mojo.Event.tap,
-								  this.authenticateFromDeviceTapHandler);
-	this.controller.stopListening(this.createDeviceAccountButton,  Mojo.Event.tap,
-								  this.createDeviceAccountTapHandler);
+	this.controller.stopListening(this.getAccountInfoButton,  Mojo.Event.tap,
+								  this.getAccountInfoTapHandler);
 };
 
 // Local Variables:

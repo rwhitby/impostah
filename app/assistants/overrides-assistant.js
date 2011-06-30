@@ -25,6 +25,7 @@ function OverridesAssistant(label, attributes, id, dirtyCallback)
 
 	this.newValueModel = { };
 	this.newValueModel.value = this.attributes[this.newNameModel.value];
+	this.newValueModel.disabled = (typeof(this.newValueModel.value) == 'object');
 
 	this.overrides = {};
 
@@ -166,6 +167,7 @@ OverridesAssistant.prototype.loadOverrides = function()
 		else {
 			this.newValueModel.value = this.attributes[name];
 		}
+		this.newValueModel.disabled = (typeof(this.newValueModel.value) == 'object');
 		this.controller.modelChanged(this.newValueModel);
 	}
 
@@ -188,6 +190,7 @@ OverridesAssistant.prototype.overrideTapped = function(event)
 	this.newNameModel.value = event.item.label;
 	this.controller.modelChanged(this.newNameModel);
 	this.newValueModel.value = this.overrides[event.item.label];
+	this.newValueModel.disabled = (typeof(this.newValueModel.value) == 'object');
 	this.controller.modelChanged(this.newValueModel);
 	this.controller.getSceneScroller().mojo.revealTop();
 };
@@ -201,6 +204,7 @@ OverridesAssistant.prototype.overrideDeleted = function(event)
 OverridesAssistant.prototype.newNameChanged = function(event)
 {
 	this.newValueModel.value = this.attributes[event.value];
+	this.newValueModel.disabled = (typeof(this.newValueModel.value) == 'object');
 	this.controller.modelChanged(this.newValueModel);
 };
 
@@ -209,7 +213,7 @@ OverridesAssistant.prototype.newOverrideButton = function()
 	var name = this.newNameModel.value;
 	var value = this.newValueModel.value;
 
-	if (name != '') {
+	if ((name != '') && (typeof(value) != 'object')) {
 		this.overrides[name] = value;
 	}
 
@@ -275,6 +279,7 @@ OverridesAssistant.prototype.newOverrideButton = function()
 	else {
 		this.newValueModel.value = this.attributes[newname];
 	}
+	this.newValueModel.disabled = (typeof(this.newValueModel.value) == 'object');
 	this.controller.modelChanged(this.newValueModel);
 
 	this.saveOverrides();

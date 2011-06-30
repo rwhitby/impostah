@@ -28,11 +28,19 @@ function FolderPickerAssistant(picker)
 	this.selectedFolder = this.picker.folder;
 	this.selected = false;
 	this.loadedFolders = [];
-}
+};
+
 FolderPickerAssistant.prototype.setup = function()
 {
-	// set theme
-	this.controller.document.body.className = prefs.get().theme;
+    // set theme because this can be the first scene pushed
+	var deviceTheme = '';
+	if (Mojo.Environment.DeviceInfo.modelNameAscii == 'Pixi' ||
+		Mojo.Environment.DeviceInfo.modelNameAscii == 'Veer')
+		deviceTheme += ' small-device';
+	if (Mojo.Environment.DeviceInfo.modelNameAscii == 'TouchPad' ||
+		Mojo.Environment.DeviceInfo.modelNameAscii == 'Emulator')
+		deviceTheme += ' no-gesture';
+	this.controller.document.body.className = prefs.get().theme + deviceTheme;
 
 	this.picker.setAssistant(this);
 
@@ -46,34 +54,28 @@ FolderPickerAssistant.prototype.setup = function()
 	this.controller.setupWidget(Mojo.Menu.commandMenu, { menuClass: 'no-fade' }, this.cmdMenuModel);
 	
 	this.initialData();
-}
+};
 
 FolderPickerAssistant.prototype.initialData = function()
 {
 	this.addRow({name: 'USB Partition', location: this.picker.topLevel, rowClass: 'single'}, this.list);
-}
+};
+
 FolderPickerAssistant.prototype.activate = function(event)
 {
-	if (!this.alreadyActivated)
-	{
+	if (!this.alreadyActivated) {
 		this.tap(false, this.picker.topLevel, true);
-		if (this.selectedFolder)
-		{
+		if (this.selectedFolder) {
 			var tmp = this.selectedFolder.replace(this.picker.topLevel, '').split('/');
 			var build = this.picker.topLevel;
-			if (tmp.length > 0)
-			{
-				for (var t = 0; t < tmp.length; t++)
-				{
-					if (tmp[t])
-					{
+			if (tmp.length > 0) {
+				for (var t = 0; t < tmp.length; t++) {
+					if (tmp[t]) {
 						build += tmp[t] + '/';
-						if (!tmp[t+1])
-						{
+						if (!tmp[t+1]) {
 							this.tap(false, build);
 						}
-						else
-						{
+						else {
 							this.tap(false, build, true);
 						}
 					}
@@ -84,14 +86,13 @@ FolderPickerAssistant.prototype.activate = function(event)
 				0-(this.controller.get('folder' + filePicker.parseFileStringForId(this.selectedFolder)).cumulativeOffset().top-(this.controller.window.innerHeight-110)),
 				false);
 		}
-		else
-		{
+		else {
 			this.controller.sceneScroller.mojo.revealTop();
 		}
 
 	}
 	this.alreadyActivated = true;
-}
+};
 
 FolderPickerAssistant.prototype.addRow = function(data, parent)
 {
@@ -102,8 +103,7 @@ FolderPickerAssistant.prototype.addRow = function(data, parent)
 	parent.insert({bottom: html});
 	
 	this.controller.listen('folder' + folderId, Mojo.Event.tap, this.tap.bindAsEventListener(this, data.location));
-}
-
+};
 
 FolderPickerAssistant.prototype.tap = function(event, folder, initial)
 {
@@ -111,40 +111,34 @@ FolderPickerAssistant.prototype.tap = function(event, folder, initial)
 	var folderId = filePicker.parseFileStringForId(folder);
 	var drawer = this.controller.get('list' + folderId);
 	
-	if (!this.loadedFolders.include(folder))
-	{
+	if (!this.loadedFolders.include(folder)) {
 		this.picker.getDirectories(folder, this.expandResponse.bind(this));
 		//var data = this.picker.getDirectories(folder);
 	}
-	else
-	{
+	else {
 		drawer.mojo.toggleState();
 	}
 	
 	var tmpCN = this.controller.get('folder' + folderId).className;
-	if (drawer.mojo && drawer.mojo.getOpenState())
-	{
+	if (drawer.mojo && drawer.mojo.getOpenState()) {
 		this.controller.get('folder' + folderId).className = tmpCN + ' open';
 	}
-	else
-	{
+	else {
 		this.controller.get('folder' + folderId).className = tmpCN.replace(/open/g, '');
 	}
 	
-	if (!initial)
-	{
+	if (!initial) {
 		this.selectFolder(folder);
 	}
-}
+};
+
 FolderPickerAssistant.prototype.expandResponse = function(data, folder)
 {
 	var folderId = filePicker.parseFileStringForId(folder);
 	var drawer = this.controller.get('list' + folderId);
 	
-	if (data.length > 0)
-	{
-		for (var d = 0; d < data.length; d++)
-		{
+	if (data.length > 0) {
+		for (var d = 0; d < data.length; d++) {
 			this.addRow({name: data[d].name, location: data[d].location+'/', rowClass: (d == data.length-1?'last':'')}, drawer, false);
 		}
 		this.loadedFolders.push(folder);
@@ -152,38 +146,35 @@ FolderPickerAssistant.prototype.expandResponse = function(data, folder)
 		this.controller.instantiateChildWidgets(this.list);
 		drawer.mojo.setOpenState(true);
 	}
-}
+};
+
 FolderPickerAssistant.prototype.selectFolder = function(folder)
 {
-	if (this.selectedFolder)
-	{
+	if (this.selectedFolder) {
 		var tmpCN = this.controller.get('folder' + filePicker.parseFileStringForId(this.selectedFolder)).className;
 		this.controller.get('folder' + filePicker.parseFileStringForId(this.selectedFolder)).className = tmpCN.replace(/check/g, '');
 	}
 	this.selectedFolder = folder;
-	if (this.selectedFolder)
-	{
+	if (this.selectedFolder) {
 		var tmpCN = this.controller.get('folder' + filePicker.parseFileStringForId(this.selectedFolder)).className;
 		this.controller.get('folder' + filePicker.parseFileStringForId(this.selectedFolder)).className = tmpCN + ' check';
 	}
 	this.updateCommandMenu();
-}
+};
 
 FolderPickerAssistant.prototype.updateCommandMenu = function(skipUpdate)
 {
 	this.cmdMenuModel.items = [];
 	this.cmdMenuModel.items.push({});
 	
-	if (this.selectedFolder)
-	{
+	if (this.selectedFolder) {
 		this.cmdMenuModel.items.push({
 			label: 'Ok',
 			command: 'ok',
 			width: 100
 		});
 	}
-	else
-	{
+	else {
 		this.cmdMenuModel.items.push({
 			label: 'Ok',
 			disabled: true,
@@ -200,18 +191,16 @@ FolderPickerAssistant.prototype.updateCommandMenu = function(skipUpdate)
 	
 	this.cmdMenuModel.items.push({});
 	
-	if (!skipUpdate)
-	{
+	if (!skipUpdate) {
 		this.controller.modelChanged(this.cmdMenuModel);
 		this.controller.setMenuVisible(Mojo.Menu.commandMenu, true);
 	}		
-}
+};
+
 FolderPickerAssistant.prototype.handleCommand = function(event)
 {
-	if (event.type == Mojo.Event.command)
-	{
-		switch (event.command)
-		{
+	if (event.type == Mojo.Event.command) {
+		switch (event.command) {
 			case 'do-help':
 				this.controller.stageController.pushScene('help');
 				break;
@@ -233,9 +222,14 @@ FolderPickerAssistant.prototype.handleCommand = function(event)
 				break;
 		}
 	}
-}
+};
+
 FolderPickerAssistant.prototype.cleanup = function(event)
 {
 	if (!this.selected)
 		this.picker.cancel();
 }
+
+// Local Variables:
+// tab-width: 4
+// End:

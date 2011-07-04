@@ -1,8 +1,8 @@
 {
 	"title": "Impostah",
 	"id": "org.webosinternals.impostah",
-	"version": "0.9.3",
-	"release_date":	"28-May-2011",
+	"version": "0.9.4",
+	"release_date":	"4-July-2011",
 	"vendor": "WebOS Internals",
 	"vendor_email":	"support@webos-internals.org",
 	"vendor_url": "http://www.webos-internals.org/wiki/Application:Impostah",

@@ -6,6 +6,9 @@ function deviceProfile()
 
     this.requestDeviceProfile = false;
     this.requestDeviceId = false;
+
+    this.locationHost = false;
+    this.requestLocationHost = false;
 };
 
 deviceProfile.prototype.getDeviceProfile = function(callback, reload)
@@ -84,4 +87,76 @@ deviceProfile.prototype._gotDeviceId = function(payload)
     }
 };
 
+deviceProfile.prototype.getLocationHost = function(callback, reload)
+{
+    this.callback = callback;
+
+    if (this.locationHost && !reload) {
+	if (this.callback !== false) {
+	    this.callback(true, this.locationHost, '');
+	}
+	return;
+    }
+
+    this.locationHost = false;
+
+    if (this.requestLocationHost) this.requestLocationHost.cancel();
+    this.requestLocationHost = ImpostahService.impersonate(this._gotLocationHost.bind(this),
+							   "com.palm.configurator",
+							   "com.palm.systemservice",
+							   "getPreferences", { "keys": ["locationHost"] });
+};
+
+deviceProfile.prototype._gotLocationHost = function(payload)
+{
+    if (this.requestLocationHost) this.requestLocationHost.cancel();
+    this.requestLocationHost = false;
+
+    if (payload.returnValue === false) {
+	if (this.callback !== false) {
+	    this.callback(false, false, payload.errorText);
+	}
+    }
+    else {
+	this.locationHost = payload.locationHost;
+	if (this.callback !== false) {
+	    this.callback(true, this.locationHost, '');
+	}
+    }
+};
+
+deviceProfile.prototype.setLocationHost = function(callback, locationHost)
+{
+    this.callback = callback;
+
+    this.locationHost = false;
+
+    var locationDomain = locationHost.substring(locationHost.indexOf(".") + 1);
+
+    if (this.requestLocationHost) this.requestLocationHost.cancel();
+    this.requestLocationHost = ImpostahService.impersonate(this._setLocationHost.bind(this),
+							   "com.palm.configurator",
+							   "com.palm.systemservice",
+							   "setPreferences", {
+							       "locationHost" : locationHost,
+							       "locationDomain" : locationDomain
+							   });
+};
+
+deviceProfile.prototype._setLocationHost = function(payload)
+{
+    if (this.requestLocationHost) this.requestLocationHost.cancel();
+    this.requestLocationHost = false;
+
+    if (payload.returnValue === false) {
+	if (this.callback !== false) {
+	    this.callback(false, payload.errorText);
+	}
+    }
+    else {
+	if (this.callback !== false) {
+	    this.callback(true, '');
+	}
+    }
+};
 

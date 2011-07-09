@@ -11,6 +11,7 @@ function StartupAssistant(changelog)
     this.newMessages =
 	[
 	 // Don't forget the comma on all but the last entry
+	 { version: '0.9.5', log: [ 'Added the ability to set the locationHost system preference' ] },
 	 { version: '0.9.4', log: [ 'Added the ability to list all devices registered with your HP webOS account' ] },
 	 { version: '0.9.3', log: [ 'Added the ability to list all installed app catalog apps' ] },
 	 { version: '0.9.2', log: [ 'Now useable on devices without a back gesture' ] },

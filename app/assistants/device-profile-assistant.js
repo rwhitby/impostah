@@ -26,10 +26,22 @@ function DeviceProfileAssistant()
 		disabled: true
 	};
 
+	this.locationHostInputFieldModel = {
+		label: $L("Location Host"),
+		value: '',
+		disabled: true
+	};
+
+	this.setLocationHostButtonModel = {
+		label: $L("Set Location Host"),
+		disabled: true
+	};
+
 	this.deviceProfile = false;
 	this.reloadDeviceProfile = false;
 
-	this.requestPalmService = false;
+	this.locationHost = false;
+	this.reloadLocationHost = false;
 };
 
 DeviceProfileAssistant.prototype.setup = function()
@@ -42,6 +54,8 @@ DeviceProfileAssistant.prototype.setup = function()
 	this.spinnerElement = this.controller.get('spinner');
 	this.deviceProfileButton = this.controller.get('deviceProfileButton');
 	this.manageOverridesButton = this.controller.get('manageOverridesButton');
+	this.locationHostInputField = this.controller.get('locationHostInputField');
+	this.setLocationHostButton = this.controller.get('setLocationHostButton');
 	
 	// setup back tap
 	this.backElement = this.controller.get('icon');
@@ -51,6 +65,8 @@ DeviceProfileAssistant.prototype.setup = function()
 	// setup handlers
 	this.deviceProfileTapHandler = this.deviceProfileTap.bindAsEventListener(this);
 	this.manageOverridesTapHandler = this.manageOverridesTap.bindAsEventListener(this);
+	this.locationHostChangedHandler = this.locationHostChanged.bindAsEventListener(this);
+	this.setLocationHostTapHandler = this.setLocationHostTap.bindAsEventListener(this);
 	
 	// setup wigets
 	this.spinnerModel = {spinning: true};
@@ -59,6 +75,16 @@ DeviceProfileAssistant.prototype.setup = function()
 	this.controller.listen(this.deviceProfileButton,  Mojo.Event.tap, this.deviceProfileTapHandler);
 	this.controller.setupWidget('manageOverridesButton', { }, this.manageOverridesButtonModel);
 	this.controller.listen(this.manageOverridesButton,  Mojo.Event.tap, this.manageOverridesTapHandler);
+	this.controller.setupWidget('locationHostInputField', {
+			autoReplace: false,
+				hintText: 'Enter location host ...',
+				changeOnKeyPress: true,
+				'textCase':Mojo.Widget.steModeLowerCase,
+				focusMode: Mojo.Widget.focusSelectMode },
+		this.locationHostInputFieldModel);
+	this.controller.listen(this.locationHostInputField, Mojo.Event.propertyChange, this.locationHostChangedHandler);
+	this.controller.setupWidget('setLocationHostButton', { type: Mojo.Widget.activityButton }, this.setLocationHostButtonModel);
+	this.controller.listen(this.setLocationHostButton,  Mojo.Event.tap, this.setLocationHostTapHandler);
 };
 
 DeviceProfileAssistant.prototype.activate = function()
@@ -91,6 +117,33 @@ DeviceProfileAssistant.prototype.getDeviceProfile = function(returnValue, device
 		this.manageOverridesButtonModel.disabled = false;
 		this.controller.modelChanged(this.manageOverridesButtonModel);
 	}
+
+	this.updateSpinner(true);
+	DeviceProfile.getLocationHost(this.getLocationHost.bind(this), this.reloadLocationHost);
+};
+
+DeviceProfileAssistant.prototype.dirtyLocationHost = function()
+{
+	this.reloadLocationHost = true;
+};
+
+DeviceProfileAssistant.prototype.getLocationHost = function(returnValue, locationHost, errorText)
+{
+	this.updateSpinner(false);
+
+	if (returnValue === false) {
+		this.errorMessage('<b>Service Error (getLocationHost):</b><br>'+errorText);
+		return;
+	}
+
+	this.locationHost = locationHost;
+	this.reloadLocationHost = false;
+
+	if (this.locationHost) {
+		this.locationHostInputFieldModel.value = this.locationHost;
+		this.locationHostInputFieldModel.disabled = false;
+		this.controller.modelChanged(this.locationHostInputFieldModel);
+	}
 };
 
 DeviceProfileAssistant.prototype.deviceProfileTap = function(event)
@@ -113,6 +166,39 @@ DeviceProfileAssistant.prototype.manageOverridesTap = function(event)
 												  "org.webosinternals.impostah.deviceprofile",
 												  this.dirtyDeviceProfile.bind(this));
 	}
+};
+
+DeviceProfileAssistant.prototype.locationHostChanged = function(event)
+{
+	if (event.value != '') {
+		this.setLocationHostButtonModel.disabled = false;
+		this.controller.modelChanged(this.setLocationHostButtonModel);
+	}
+	else {
+		this.setLocationHostButtonModel.disabled = true;
+		this.controller.modelChanged(this.setLocationHostButtonModel);
+	}
+};
+
+DeviceProfileAssistant.prototype.setLocationHostTap = function(event)
+{
+	DeviceProfile.setLocationHost(this.setLocationHost.bind(this), this.locationHostInputFieldModel.value);
+};
+
+DeviceProfileAssistant.prototype.setLocationHost = function(returnValue, errorText)
+{
+	this.setLocationHostButton.mojo.deactivate();
+
+	if (returnValue === false) {
+		this.errorMessage('<b>Service Error (setLocationHost):</b><br>'+errorText);
+		this.locationHost = false;
+		this.dirtyLocationHost();
+		return;
+	}
+
+	this.locationHost = this.locationHostInputFieldModel.value;
+	this.setLocationHostButtonModel.disabled = true;
+	this.controller.modelChanged(this.setLocationHostButtonModel);
 };
 
 DeviceProfileAssistant.prototype.updateSpinner = function(active)
@@ -169,6 +255,10 @@ DeviceProfileAssistant.prototype.cleanup = function(event)
 								  this.deviceProfileTapHandler);
 	this.controller.stopListening(this.manageOverridesButton,  Mojo.Event.tap,
 								  this.manageOverridesTapHandler);
+	this.controller.stopListening(this.locationHostInputField, Mojo.Event.propertyChange,
+								  this.locationHostChangedHandler);
+	this.controller.stopListening(this.setLocationHostButton,  Mojo.Event.tap,
+								  this.setLocationHostTapHandler);
 };
 
 // Local Variables:

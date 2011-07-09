@@ -448,10 +448,12 @@ ActivationAssistant.prototype.updateAuthentication = function(info)
 															  "com.palm.configurator", "com.palm.db",
 															  "merge", {
 																  "objects" : [
-		{ "_id": "com.palm.palmprofile.token",
+		{ "_id": "com.palm.palmprofile.token", "_kind": "com.palm.palmprofile:1",
+		  "accountServerUrl": this.accountServerUrl, "accountExpirationTime": "",
 		  "alias": info.accountAlias, "authenticatedTime": info.authenticationTime,
-		  "jabberId": info.jabberId, "state": info.accountState, "token": info.token,
-		  "tokenexpireTime": info.expirationTime, "uniqueId": info.uniqueId }
+		  "jabberId": info.jabberId, "phoneNumber": "", "state": info.accountState,
+		  "token": info.token, "tokenexpireTime": info.expirationTime,
+		  "uniqueId": info.uniqueId }
 																			   ]
 															  });
 	}

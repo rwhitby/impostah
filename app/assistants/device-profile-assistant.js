@@ -119,7 +119,7 @@ DeviceProfileAssistant.prototype.getDeviceProfile = function(returnValue, device
 	}
 
 	this.updateSpinner(true);
-	DeviceProfile.getLocationHost(this.getLocationHost.bind(this), this.reloadLocationHost);
+	AccountServer.getLocationHost(this.getLocationHost.bind(this), this.reloadLocationHost);
 };
 
 DeviceProfileAssistant.prototype.dirtyLocationHost = function()
@@ -182,7 +182,7 @@ DeviceProfileAssistant.prototype.locationHostChanged = function(event)
 
 DeviceProfileAssistant.prototype.setLocationHostTap = function(event)
 {
-	DeviceProfile.setLocationHost(this.setLocationHost.bind(this), this.locationHostInputFieldModel.value);
+	AccountServer.setLocationHost(this.setLocationHost.bind(this), this.locationHostInputFieldModel.value);
 };
 
 DeviceProfileAssistant.prototype.setLocationHost = function(returnValue, errorText)

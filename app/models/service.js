@@ -171,6 +171,18 @@ ImpostahService.restartLuna = function(callback)
     return request;
 };
 
+
+ImpostahService.restartUpdateDaemon = function(callback)
+{
+    var request = new Mojo.Service.Request(ImpostahService.identifier,
+	{
+	    method: 'restartUpdateDaemon',
+	    onSuccess: callback,
+	    onFailure: callback
+	});
+    return request;
+};
+
 // Local Variables:
 // tab-width: 4
 // End:

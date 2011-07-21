@@ -1087,6 +1087,13 @@ bool restart_luna_method(LSHandle* lshandle, LSMessage *message, void *ctx) {
 }
 
 //
+// Restart UpdateDaemon, and return the output to webOS.
+//
+bool restart_update_daemon_method(LSHandle* lshandle, LSMessage *message, void *ctx) {
+  return simple_command(message, "/usr/bin/killall -HUP UpdateDaemon 2>&1");
+}
+
+//
 // Handler for the addResourceHandler service.
 //
 bool addResource_handler(LSHandle* lshandle, LSMessage *reply, void *ctx) {
@@ -1187,6 +1194,7 @@ LSMethod luna_methods[] = {
 
   { "removeFirstUseFlag",	remove_first_use_flag_method },
   { "restartLuna",		restart_luna_method },
+  { "restartUpdateDaemon",	restart_update_daemon_method },
 
   { "addResource",		addResource_method },
   { "swapResource",		swapResource_method },

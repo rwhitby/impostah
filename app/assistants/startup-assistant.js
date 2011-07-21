@@ -11,6 +11,7 @@ function StartupAssistant(changelog)
     this.newMessages =
 	[
 	 // Don't forget the comma on all but the last entry
+	 { version: '0.9.8', log: [ 'Restart the UpdateDaemon on locationHost change' ] },
 	 { version: '0.9.7', log: [ 'Fixed an account server URL caching bug' ] },
 	 { version: '0.9.6', log: [ 'Fixed a profile merging bug' ] },
 	 { version: '0.9.5', log: [ 'Added the ability to set the locationHost system preference' ] },

@@ -77,11 +77,22 @@ accountServer.prototype._setLocationHost = function(payload)
 	if (this.locationHostCallback !== false) {
 	    this.locationHostCallback(false, payload.errorText);
 	}
+	return;
     }
-    else {
-	if (this.locationHostCallback !== false) {
-	    this.locationHostCallback(true, '');
-	}
+
+    if (this.requestLocationHost) this.requestLocationHost.cancel();
+    this.requestLocationHost = ImpostahService.restartUpdateDaemon(this._updateDaemonRestarted.bind(this));
+};
+
+accountServer.prototype._updateDaemonRestarted = function(payload)
+{
+    if (this.requestLocationHost) this.requestLocationHost.cancel();
+    this.requestLocationHost = false;
+
+    // Ignore the return value from the restart call, since it may not have been running.
+
+    if (this.locationHostCallback !== false) {
+	this.locationHostCallback(true, '');
     }
 };
 

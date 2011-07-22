@@ -68,8 +68,9 @@ function ActivationAssistant()
 
 	this.deviceId = false;
 	this.deviceProfile = false;
-	this.palmProfile = false;
+	this.locationHost = false;
 	this.accountServerUrl = false;
+	this.palmProfile = false;
 
 	this.overrideMcc = false;
 	this.overrideMnc = false;
@@ -194,6 +195,43 @@ ActivationAssistant.prototype.getDeviceProfile = function(returnValue, devicePro
 				this.controller.modelChanged(this.createNewProfileButtonModel);
 			}
 		}
+	}
+
+	this.locationHost = false;
+	this.updateSpinner(true);
+	AccountServer.getLocationHost(this.getLocationHost.bind(this), false);
+};
+
+ActivationAssistant.prototype.getLocationHost = function(returnValue, locationHost, errorText)
+{
+	this.updateSpinner(false);
+
+	if (returnValue === false) {
+		this.errorMessage('<b>Service Error (getLocationHost):</b><br>'+errorText);
+		return;
+	}
+
+	this.locationHost = locationHost;
+
+	if (this.locationHost) {
+		this.accountServerUrl = false;
+		this.updateSpinner(true);
+		AccountServer.getAccountServerUrl(this.getAccountServerUrl.bind(this), false);
+	}
+	else {
+		this.locationHost = "ps.palmws.com";
+		this.updateSpinner(true);
+		AccountServer.setLocationHost(this.setLocationHost.bind(this), this.locationHost);
+	}
+};
+
+ActivationAssistant.prototype.setLocationHost = function(returnValue, errorText)
+{
+	this.updateSpinner(false);
+
+	if (returnValue === false) {
+		this.errorMessage('<b>Service Error (setLocationHost):</b><br>'+errorText);
+		return;
 	}
 
 	this.accountServerUrl = false;

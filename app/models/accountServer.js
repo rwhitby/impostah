@@ -41,6 +41,7 @@ accountServer.prototype._gotLocationHost = function(payload)
     }
     else {
 	this.locationHost = payload.locationHost;
+
 	if (this.locationHostCallback !== false) {
 	    this.locationHostCallback(true, this.locationHost, '');
 	}

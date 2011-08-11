@@ -313,7 +313,8 @@ OverridesAssistant.prototype.saveOverrides = function()
 	this.requestDb8 = new Mojo.Service.Request("palm://com.palm.db/", {
 			method: "del",
 			parameters: {
-				"ids" : [this.id]
+				"ids" : [this.id],
+				"purge": true
 			},
 			onSuccess: this.delOverridesHandler,
 			onFailure: this.delOverridesHandler
@@ -360,7 +361,8 @@ OverridesAssistant.prototype.clearOverrides = function()
 	this.requestDb8 = new Mojo.Service.Request("palm://com.palm.db/", {
 			method: "del",
 			parameters: {
-				"ids" : [this.id]
+				"ids" : [this.id],
+				"purge": true
 			},
 			onSuccess: this.clearedOverridesHandler,
 			onFailure: this.clearedOverridesHandler

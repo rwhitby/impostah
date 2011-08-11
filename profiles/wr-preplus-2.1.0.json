@@ -1,0 +1,9 @@
+{
+    "_id":"org.webosinternals.impostah.deviceprofile",
+    "_kind":"org.webosinternals.impostah:1",
+    "deviceModel":"P101UNA", "carrier":"ROW",
+    "softwareBuildBranch":"HP webOS 2.1.0",
+    "carrierROM":"Nova-WR-Castle-285", "softwareVersion":"Nova-WR-Castle-285",
+    "dmSets":"{\"sets\":\"312\",\"674\"}",
+    "buildTime":"20110302170730",
+}

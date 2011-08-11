@@ -11,6 +11,7 @@ function StartupAssistant(changelog)
     this.newMessages =
 	[
 	 // Don't forget the comma on all but the last entry
+	 { version: '0.9.10', log: [ 'Purge deleted overrides' ] },
 	 { version: '0.9.9', log: [ 'Handle missing locationHost information correctly' ] },
 	 { version: '0.9.8', log: [ 'Restart the UpdateDaemon on locationHost change' ] },
 	 { version: '0.9.7', log: [ 'Fixed an account server URL caching bug' ] },

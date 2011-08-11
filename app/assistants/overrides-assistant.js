@@ -373,6 +373,7 @@ OverridesAssistant.prototype.clearedOverrides = function()
 {
 	this.clearButtonElement.mojo.deactivate();
 
+	if (this.dirtyCallback) this.dirtyCallback();
 	this.readOverrides();
 };
 

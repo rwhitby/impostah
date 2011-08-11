@@ -144,6 +144,22 @@ DeviceProfileAssistant.prototype.getLocationHost = function(returnValue, locatio
 		this.locationHostInputFieldModel.disabled = false;
 		this.controller.modelChanged(this.locationHostInputFieldModel);
 	}
+	else {
+		this.locationHost = "ps.palmws.com";
+		this.updateSpinner(true);
+		AccountServer.setLocationHost(this.initLocationHost.bind(this), this.locationHost);
+	}
+};
+
+DeviceProfileAssistant.prototype.initLocationHost = function(returnValue, errorText)
+{
+	if (returnValue === false) {
+		this.errorMessage('<b>Service Error (setLocationHost):</b><br>'+errorText);
+		this.updateSpinner(false);
+		return;
+	}
+
+	AccountServer.getLocationHost(this.getLocationHost.bind(this), this.reloadLocationHost);
 };
 
 DeviceProfileAssistant.prototype.deviceProfileTap = function(event)

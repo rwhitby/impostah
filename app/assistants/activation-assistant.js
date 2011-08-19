@@ -382,7 +382,7 @@ ActivationAssistant.prototype.authenticateFromDevice = function(value)
 			"password": this.passwordInputFieldModel.value,
 			"device": {
 				"serialNumber": this.deviceProfile.serialNumber,
-				"HPSerialNumber": this.deviceProfile.HPSerialNumber,
+				// "HPSerialNumber": this.deviceProfile.HPSerialNumber,
 				"carrier": this.deviceProfile.carrier,
 				"dataNetwork": this.deviceProfile.dataNetwork,
 				"deviceID": this.deviceId,
@@ -397,7 +397,7 @@ ActivationAssistant.prototype.authenticateFromDevice = function(value)
 				"homeMnc": this.overrideMnc || this.deviceProfile.homeMnc,
 				"currentMcc": this.overrideMcc || this.deviceProfile.currentMcc,
 				"currentMnc": this.overrideMnc || this.deviceProfile.currentMnc,
-				"productSku": this.deviceProfile.productSku
+				// "productSku": this.deviceProfile.productSku
 			},
 			"romToken": {
 				"buildVariant": this.deviceProfile.dmSets,
@@ -583,7 +583,7 @@ ActivationAssistant.prototype.createDeviceAccount = function(value)
 			"password": this.passwordInputFieldModel.value,
 			"device": {
 				"serialNumber": this.deviceProfile.serialNumber,
-				"HPSerialNumber": this.deviceProfile.HPSerialNumber,
+				// "HPSerialNumber": this.deviceProfile.HPSerialNumber,
 				"carrier": this.deviceProfile.carrier,
 				"dataNetwork": this.deviceProfile.dataNetwork,
 				"deviceID": this.deviceId,
@@ -598,7 +598,7 @@ ActivationAssistant.prototype.createDeviceAccount = function(value)
 				"homeMnc": this.overrideMnc || this.deviceProfile.homeMnc,
 				"currentMcc": this.overrideMcc || this.deviceProfile.currentMcc,
 				"currentMnc": this.overrideMnc || this.deviceProfile.currentMnc,
-				"productSku": this.deviceProfile.productSku
+				// "productSku": this.deviceProfile.productSku
 			},
 			"romToken": {
 				"buildVariant": this.deviceProfile.dmSets,

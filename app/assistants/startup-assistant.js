@@ -11,6 +11,7 @@ function StartupAssistant(changelog)
     this.newMessages =
 	[
 	 // Don't forget the comma on all but the last entry
+	 { version: '0.9.12', log: [ 'Modify the device information passed during activation for the Pre 3' ] },
 	 { version: '0.9.11', log: [ 'Purge cleared overrides' ] },
 	 { version: '0.9.10', log: [ 'Purge deleted overrides' ] },
 	 { version: '0.9.9', log: [ 'Handle missing locationHost information correctly' ] },

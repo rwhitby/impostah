@@ -21,6 +21,7 @@ function ActivationAssistant()
 		choices: [
 	{label:"United States", value:'US'},
 	{label:"United Kingdom", value:'GB'},
+	{label:"Australia", value:'AU'},
 	{label:"Canada", value:'CA'},
 	{label:"France", value:'FR'},
 	{label:"Germany", value:'DE'},
@@ -292,6 +293,9 @@ ActivationAssistant.prototype.countryChanged = function(event)
 	switch (country) {
 	case 'GB':
 		this.overrideMcc = '234'; this.overrideMnc = '10';
+		break;
+	case 'AU':
+		this.overrideMcc = '505'; this.overrideMnc = '01';
 		break;
 	case 'CA':
 		this.overrideMcc = '302'; this.overrideMnc = '720';

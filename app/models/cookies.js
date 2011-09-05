@@ -17,7 +17,7 @@ preferenceCookie.prototype.get = function(reload)
 				theme: 'palm-default',
 				
 				// For Resource Handler Object
-				resourceHandlerCheck: true,
+				resourceHandlerCheck: false,
 				
 				// non-pref settings
 				lastAccountTemplate: '',

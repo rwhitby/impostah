@@ -16,10 +16,9 @@ function QueryAssistant(owner, service, database, labelfunc) {
 	this.menuModel = {
 		visible: true,
 		items: [
-	{ label: $L("Preferences"),
-	  command: 'do-prefs' },
-	{ label: $L("Help"),
-	  command: 'do-help' }
+			{ label: $L("Delete All Items"), command: 'do-delete-all' },
+			{ label: $L("Preferences"), command: 'do-prefs' },
+			{ label: $L("Help"), command: 'do-help' }
 				]
 	};
 
@@ -42,6 +41,8 @@ QueryAssistant.prototype.setup = function() {
 	this.iconTapHandler = this.iconTap.bindAsEventListener(this);
     this.listTapHandler = this.listTap.bindAsEventListener(this);
     this.impersonateHandler = this.impersonate.bindAsEventListener(this);
+    this.deleteAllAckHandler = this.deleteAllAck.bind(this);
+    this.itemsDeletedHandler = this.itemsDeleted.bind(this);
 	
     // setup widgets
 	this.spinnerModel = {spinning: true};
@@ -122,6 +123,46 @@ QueryAssistant.prototype.listTap = function(event)
 											  event.item.label, event.item.id);
 };
 
+QueryAssistant.prototype.deleteAll = function()
+{
+	this.controller.showAlertDialog({
+			allowHTMLMessage:	true,
+			title:				'Delete All Items',
+			message:			"Are you sure? This will permanently delete all database items.",
+			choices:			[{label:$L("Delete"), value:'delete', type:'negative'},{label:$L("Cancel"), value:'cancel', type:'dismiss'}],
+			onChoose:			this.deleteAllAckHandler
+		});
+};
+
+QueryAssistant.prototype.deleteAllAck = function(value)
+{
+	if (value != "delete") {
+		return;
+	}
+
+	this.query = {
+		"from" : this.database,
+	};
+
+	if (this.requestPalmService) this.requestPalmService.cancel();
+	this.requestPalmService = ImpostahService.impersonate(this.itemsDeletedHandler,
+														  "com.palm.configurator",
+														  "com.palm.db",
+														  "del", {"query":this.query, "purge":false});
+
+};
+
+QueryAssistant.prototype.itemsDeleted = function(payload)
+{
+	if (this.requestPalmService) this.requestPalmService.cancel();
+	this.requestPalmService = false;
+
+	if (payload.returnValue === false) {
+		this.errorMessage('<b>Service Error (deleteAll):</b><br>'+payload.errorText);
+		return;
+	}
+};
+
 QueryAssistant.prototype.errorMessage = function(msg)
 {
 	this.controller.showAlertDialog(
@@ -146,13 +187,19 @@ QueryAssistant.prototype.handleCommand = function(event)
 	{
 		switch (event.command)
 		{
-			case 'do-prefs':
-				this.controller.stageController.pushScene('preferences');
-				break;
+		case 'do-delete-all':
+		if (this.database) {
+			this.deleteAll();
+		}
+		break;
+		
+		case 'do-prefs':
+		this.controller.stageController.pushScene('preferences');
+		break;
 				
-			case 'do-help':
-				this.controller.stageController.pushScene('help');
-				break;
+		case 'do-help':
+		this.controller.stageController.pushScene('help');
+		break;
 		}
 	}
 };

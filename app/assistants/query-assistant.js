@@ -4,6 +4,8 @@ function QueryAssistant(owner, service, database, labelfunc) {
 	this.database = database;
 	this.labelfunc = labelfunc;
 
+	this.reloadQuery = true;
+
 	this.results = 0;
 
 	this.request = false;
@@ -52,16 +54,29 @@ QueryAssistant.prototype.setup = function() {
     this.controller.setupWidget('mainList', {
 			itemTemplate: "query/rowTemplate", swipeToDelete: false, reorderable: false }, this.mainModel);
     this.controller.listen(this.listElement, Mojo.Event.listTap, this.listTapHandler);
+};
 
-	this.query = {
-		"from" : this.database,
-		"limit" : this.requestSize
-	};
+QueryAssistant.prototype.activate = function()
+{
+	if (this.reloadQuery) {
 
-	if (this.request) this.request.cancel();
-	this.request = ImpostahService.impersonate(this.impersonateHandler, this.owner, this.service,
-											   "find", { "query" : this.query, "count" : true });
+		this.results = 0;
+		this.mainModel.items = [];
 
+		this.query = {
+			"from" : this.database,
+			"limit" : this.requestSize
+		};
+
+		if (this.request) this.request.cancel();
+		this.request = ImpostahService.impersonate(this.impersonateHandler, this.owner, this.service,
+												   "find", { "query" : this.query, "count" : true });
+	}
+};
+
+QueryAssistant.prototype.dirtyQuery = function()
+{
+	this.reloadQuery = true;
 };
 
 QueryAssistant.prototype.impersonate = function(payload)
@@ -107,6 +122,8 @@ QueryAssistant.prototype.impersonate = function(payload)
 			if (this.request) this.request.cancel();
 			this.request = false;
 
+			this.reloadQuery = false;
+
 			this.iconElement.style.display = 'inline';
 			this.spinnerModel.spinning = false;
 			this.controller.modelChanged(this.spinnerModel);
@@ -120,7 +137,7 @@ QueryAssistant.prototype.impersonate = function(payload)
 QueryAssistant.prototype.listTap = function(event)
 {
 	this.controller.stageController.pushScene("item", "Database Record", event.item.value,
-											  event.item.label, event.item.id);
+											  event.item.label, event.item.id, this.dirtyQuery.bind(this));
 };
 
 QueryAssistant.prototype.deleteAll = function()
@@ -161,6 +178,8 @@ QueryAssistant.prototype.itemsDeleted = function(payload)
 		this.errorMessage('<b>Service Error (deleteAll):</b><br>'+payload.errorText);
 		return;
 	}
+
+	this.controller.stageController.popScene();
 };
 
 QueryAssistant.prototype.errorMessage = function(msg)

@@ -1,9 +1,10 @@
-function ItemAssistant(label, item, name, dbId) {
+function ItemAssistant(label, item, name, dbId, dirtyCallback) {
 
 	this.label = label;
 	this.item = item;
 	this.name = name;
 	this.dbId = dbId;
+	this.dirtyCallback = dirtyCallback;
 
 	// setup list model
 	this.mainModel = {items:[]};
@@ -149,6 +150,9 @@ ItemAssistant.prototype.itemDeleted = function(payload)
 		this.errorMessage('<b>Service Error (deleteItem):</b><br>'+payload.errorText);
 		return;
 	}
+
+	if (this.dirtyCallback) this.dirtyCallback();
+	this.controller.stageController.popScene();
 };
 
 ItemAssistant.prototype.errorMessage = function(msg)

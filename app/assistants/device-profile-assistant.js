@@ -54,9 +54,15 @@ DeviceProfileAssistant.prototype.setup = function()
 	this.spinnerElement = this.controller.get('spinner');
 	this.deviceProfileButton = this.controller.get('deviceProfileButton');
 	this.manageOverridesButton = this.controller.get('manageOverridesButton');
+	this.locationHostGroup = this.controller.get('locationHostGroup');
 	this.locationHostInputField = this.controller.get('locationHostInputField');
 	this.setLocationHostButton = this.controller.get('setLocationHostButton');
 	
+	if (Mojo.Environment.DeviceInfo.platformVersionMajor == 1) {
+		this.manageOverridesButton.style.display = 'none';
+		this.locationHostGroup.style.display = 'none';
+	}
+
 	// setup back tap
 	this.backElement = this.controller.get('icon');
 	this.backTapHandler = this.backTap.bindAsEventListener(this);

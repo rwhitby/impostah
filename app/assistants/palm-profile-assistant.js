@@ -58,6 +58,11 @@ PalmProfileAssistant.prototype.setup = function()
 	this.resetPalmProfileButton = this.controller.get('resetPalmProfileButton');
 	this.getAccountInfoButton = this.controller.get('getAccountInfoButton');
 	
+	if (Mojo.Environment.DeviceInfo.platformVersionMajor == 1) {
+		this.manageOverridesButton.style.display = 'none';
+		this.resetPalmProfileButton.style.display = 'none';
+	}
+
 	// setup back tap
 	this.backElement = this.controller.get('icon');
 	this.backTapHandler = this.backTap.bindAsEventListener(this);
@@ -91,6 +96,7 @@ PalmProfileAssistant.prototype.setup = function()
 PalmProfileAssistant.prototype.activate = function()
 {
 	this.palmProfile = false;
+	this.accountServerUrl = false;
 	this.updateSpinner(true);
 	PalmProfile.getPalmProfile(this.getPalmProfile.bind(this), this.reloadPalmProfile);
 };
@@ -121,6 +127,9 @@ PalmProfileAssistant.prototype.getPalmProfile = function(returnValue, palmProfil
 		this.controller.modelChanged(this.resetPalmProfileButtonModel);
 		this.getAccountInfoButtonModel.disabled = false;
 		this.controller.modelChanged(this.getAccountInfoButtonModel);
+
+		this.updateSpinner(true);
+		AccountServer.getAccountServerUrl(this.getAccountServerUrl.bind(this), false);
 	}
 	else {
 		this.controller.showAlertDialog({
@@ -132,6 +141,18 @@ PalmProfileAssistant.prototype.getPalmProfile = function(returnValue, palmProfil
 				onChoose:			function(e){}
 			});
 	}
+};
+
+PalmProfileAssistant.prototype.getAccountServerUrl = function(returnValue, accountServerUrl, errorText)
+{
+	this.updateSpinner(false);
+
+	if (returnValue === false) {
+		this.errorMessage('<b>Service Error (getAccountServerUrl):</b><br>'+errorText);
+		return;
+	}
+
+	this.accountServerUrl = accountServerUrl;
 };
 
 PalmProfileAssistant.prototype.palmProfileTap = function(event)
@@ -250,7 +271,7 @@ PalmProfileAssistant.prototype.getAccountInfoTap = function(event)
 
 	var callback = this.getAccountInfoHandler;
 
-	var url = this.palmProfile.accountServerUrl+"getAccountInfoAggregate";
+	var url = this.accountServerUrl+"getAccountInfoAggregate";
 	var body = {
 		"InAccountInfoAggretate": {
 			"locale": "en_us",

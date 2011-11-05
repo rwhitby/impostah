@@ -63,13 +63,11 @@ MainAssistant.prototype.setup = function()
     this.mainModel.items.push({
 			name:     $L('Palm Profile'),
 				scene:   'palm-profile',
-				disabled: (Mojo.Environment.DeviceInfo.platformVersionMajor == 1)
 				});
 
     this.mainModel.items.push({
 			name:     $L('App Catalog'),
 				scene:   'app-catalog',
-				disabled: (Mojo.Environment.DeviceInfo.platformVersionMajor == 1)
 				});
 
     this.mainModel.items.push({

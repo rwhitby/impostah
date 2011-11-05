@@ -268,11 +268,6 @@ AppCatalogAssistant.prototype.getPalmProfile = function(returnValue, palmProfile
 	this.palmProfile = palmProfile;
 
 	if (this.palmProfile) {
-
-		this.accountServerUrl = this.palmProfile.accountServerUrl;
-		var matches = /([^&]*):\/\/([^&/]*)\/([^&]*)/.exec(this.accountServerUrl);
-		this.catalogServerUrl = matches[1]+"://"+matches[2]+"/appcatalog/2.0/";
-
 		this.appIdInputFieldModel.disabled = false;
 		this.controller.modelChanged(this.appIdInputFieldModel);
 		this.deviceInfoButtonModel.disabled = false;
@@ -290,9 +285,8 @@ AppCatalogAssistant.prototype.getPalmProfile = function(returnValue, palmProfile
 		this.countryListButtonModel.disabled = false;
 		this.controller.modelChanged(this.countryListButtonModel);
 
-		this.paymentServerUrl = false;
 		this.updateSpinner(true);
-		PaymentServer.getPaymentServerUrl(this.getPaymentServerUrl.bind(this), this.accountServerUrl, false);
+		AccountServer.getAccountServerUrl(this.getAccountServerUrl.bind(this), false);
 	}
 	else {
 		this.controller.showAlertDialog({
@@ -304,6 +298,25 @@ AppCatalogAssistant.prototype.getPalmProfile = function(returnValue, palmProfile
 				onChoose:			function(e){}
 			});
 	}
+};
+
+AppCatalogAssistant.prototype.getAccountServerUrl = function(returnValue, accountServerUrl, errorText)
+{
+	this.updateSpinner(false);
+
+	if (returnValue === false) {
+		this.errorMessage('<b>Service Error (getAccountServerUrl):</b><br>'+errorText);
+		return;
+	}
+
+	this.accountServerUrl = accountServerUrl;
+	if (this.accountServerUrl) {
+		var matches = /([^&]*):\/\/([^&/]*)\/([^&]*)/.exec(this.accountServerUrl);
+		this.catalogServerUrl = matches[1]+"://"+matches[2]+"/appcatalog/2.0/";
+	}
+
+	this.updateSpinner(true);
+	PaymentServer.getPaymentServerUrl(this.getPaymentServerUrl.bind(this), this.accountServerUrl, false);
 };
 
 AppCatalogAssistant.prototype.getPaymentServerUrl = function(returnValue, paymentServerUrl, errorText)

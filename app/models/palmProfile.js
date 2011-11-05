@@ -20,10 +20,19 @@ palmProfile.prototype.getPalmProfile = function(callback, reload)
     this.palmProfile = false;
 
     if (this.requestPalmService) this.requestPalmService.cancel();
-    this.requestPalmService = ImpostahService.impersonate(this._gotPalmProfile.bind(this),
-							  "com.palm.configurator",
-							  "com.palm.db",
-							  "get", {"ids":["com.palm.palmprofile.token"]});
+
+    if (Mojo.Environment.DeviceInfo.platformVersionMajor == 1) {
+	this.requestPalmService = ImpostahService.impersonate(this._gotPalmProfile.bind(this),
+							      "com.palm.configurator",
+							      "com.palm.accountservices",
+							      "getAccountToken", {});
+    }
+    else {
+	this.requestPalmService = ImpostahService.impersonate(this._gotPalmProfile.bind(this),
+							      "com.palm.configurator",
+							      "com.palm.db",
+							      "get", {"ids":["com.palm.palmprofile.token"]});
+    }
 };
 
 palmProfile.prototype._gotPalmProfile = function(payload)
@@ -31,15 +40,26 @@ palmProfile.prototype._gotPalmProfile = function(payload)
     if (this.requestPalmService) this.requestPalmService.cancel();
     this.requestPalmService = false;
 
-    if (payload.returnValue === false) {
+    if (Mojo.Environment.DeviceInfo.platformVersionMajor == 1) {
+	this.palmProfile = payload;
+	if (this.palmProfile) {
+	    this.palmProfile.alias = this.palmProfile.accountAlias;
+	}
 	if (this.callback !== false) {
-	    this.callback(false, false, payload.errorText);
+	    this.callback(true, this.palmProfile, '');
 	}
     }
     else {
-	this.palmProfile = payload.results[0];
-	if (this.callback !== false) {
-	    this.callback(true, this.palmProfile, '');
+	if (payload.returnValue === false) {
+	    if (this.callback !== false) {
+		this.callback(false, false, payload.errorText);
+	    }
+	}
+	else {
+	    this.palmProfile = payload.results[0];
+	    if (this.callback !== false) {
+		this.callback(true, this.palmProfile, '');
+	    }
 	}
     }
 };

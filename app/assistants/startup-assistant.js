@@ -11,6 +11,7 @@ function StartupAssistant(changelog)
     this.newMessages =
 	[
 	 // Don't forget the comma on all but the last entry
+	 { version: '0.9.16', log: [ 'Added the ability to display app catalog device and session information' ] },
 	 { version: '0.9.15', log: [ 'Added the ability to show all your purchased apps' ] },
 	 { version: '0.9.14', log: [ 'Added the ability to delete all items in a database' ] },
 	 { version: '0.9.13', log: [ 'Add support for Australian app catalog activation' ] },

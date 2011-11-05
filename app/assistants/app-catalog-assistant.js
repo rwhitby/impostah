@@ -894,7 +894,7 @@ AppCatalogAssistant.prototype.installedApps = function(payload)
 		return;
 	}
 
-	if (payload.response.OutGetUserInstalledAppsV2) {
+	if (payload.response.OutGetUserInstalledAppsV2 != undefined) {
 		var apps = payload.response.OutGetUserInstalledAppsV2.userApps;
 		var list = {};
 		if (apps) {
@@ -978,8 +978,8 @@ AppCatalogAssistant.prototype.purchasedApps = function(payload)
 		return;
 	}
 
-	if (payload.response.purchasedApplications.apps) {
-		var apps = payload.response.purchasedApplications.apps;
+	if (payload.response.purchasedApplications != undefined) {
+		var apps = payload.response.purchasedApplications.apps || [];
 		this.controller.stageController.pushScene("item", "Purchased Apps", apps, 'apps', false);
 	}
 

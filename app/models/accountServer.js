@@ -41,7 +41,7 @@ accountServer.prototype._gotLocationHost = function(payload)
     }
     else {
 	this.locationHost = payload.locationHost;
-
+	
 	if (this.locationHostCallback !== false) {
 	    this.locationHostCallback(true, this.locationHost, '');
 	}
@@ -122,17 +122,30 @@ accountServer.prototype._gotAccountServerUrl = function(payload)
     if (this.requestAccountServerUrl) this.requestAccountServerUrl.cancel();
     this.requestAccountServerUrl = false;
 
-    if (payload.returnValue === false) {
-	if (this.accountServerUrlCallback !== false) {
-	    this.accountServerUrlCallback(false, false, payload.errorText);
+    if (Mojo.Environment.DeviceInfo.platformVersionMajor == 1) {
+	if (payload.errorCode == "NULL_SERVER_URL") {
+	    this.accountServerUrl = false;
 	}
-    }
-    else {
-	if (payload.serverUrl) {
+	else {
 	    this.accountServerUrl = payload.serverUrl;
 	}
 	if (this.accountServerUrlCallback !== false) {
 	    this.accountServerUrlCallback(true, this.accountServerUrl, '');
+	}
+    }
+    else {
+	if (payload.returnValue === false) {
+	    if (this.accountServerUrlCallback !== false) {
+		this.accountServerUrlCallback(false, false, payload.errorText);
+	    }
+	}
+	else {
+	    if (payload.serverUrl) {
+		this.accountServerUrl = payload.serverUrl;
+	    }
+	    if (this.accountServerUrlCallback !== false) {
+		this.accountServerUrlCallback(true, this.accountServerUrl, '');
+	    }
 	}
     }
 };

@@ -41,8 +41,11 @@ palmProfile.prototype._gotPalmProfile = function(payload)
     this.requestPalmService = false;
 
     if (Mojo.Environment.DeviceInfo.platformVersionMajor == 1) {
-	this.palmProfile = payload;
-	if (this.palmProfile) {
+	if (payload.errorCode == "NO_TOKEN") {
+	    this.palmProfile = false;
+	}
+	else {
+	    this.palmProfile = payload;
 	    this.palmProfile.alias = this.palmProfile.accountAlias;
 	}
 	if (this.callback !== false) {

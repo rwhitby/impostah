@@ -251,9 +251,17 @@ ActivationAssistant.prototype.getAccountServerUrl = function(returnValue, accoun
 
 	this.accountServerUrl = accountServerUrl;
 
-	this.palmProfile = false;
-	this.updateSpinner(true);
-	PalmProfile.getPalmProfile(this.getPalmProfile.bind(this), false);
+	if (this.accountServerUrl) {
+		this.palmProfile = false;
+		this.updateSpinner(true);
+		PalmProfile.getPalmProfile(this.getPalmProfile.bind(this), false);
+	}
+	else {
+		this.accountServerUrl = "https://" + this.locationHost + "/palmcsext/services/deviceJ/";
+		this.palmProfile = false;
+		this.updateSpinner(true);
+		PalmProfile.getPalmProfile(this.getPalmProfile.bind(this), false);
+	}
 };
 
 ActivationAssistant.prototype.getPalmProfile = function(returnValue, palmProfile, errorText)
@@ -397,10 +405,10 @@ ActivationAssistant.prototype.authenticateFromDevice = function(value)
 				"network": this.deviceProfile.network,
 				"platform": this.deviceProfile.platform,
 				"macAddress": this.deviceProfile.macAddress,
-				"homeMcc": this.overrideMcc || this.deviceProfile.homeMcc,
-				"homeMnc": this.overrideMnc || this.deviceProfile.homeMnc,
-				"currentMcc": this.overrideMcc || this.deviceProfile.currentMcc,
-				"currentMnc": this.overrideMnc || this.deviceProfile.currentMnc,
+				"homeMcc": this.overrideMcc || "0",
+				"homeMnc": this.overrideMnc || "0",
+				"currentMcc": this.overrideMcc || "0",
+				"currentMnc": this.overrideMnc || "0",
 				// "productSku": this.deviceProfile.productSku
 			},
 			"romToken": {
@@ -485,33 +493,45 @@ ActivationAssistant.prototype.updateAuthentication = function(info)
 {
 	this.authenticationInfo = info;
 
-	if (this.palmProfile) {
-		this.requestPalmService = ImpostahService.impersonate(this.authenticationUpdateHandler,
-															  "com.palm.configurator", "com.palm.db",
-															  "merge", {
-																  "objects" : [
-		{ "_id": "com.palm.palmprofile.token", "_kind": "com.palm.palmprofile:1",
-		  "accountServerUrl": this.accountServerUrl, "accountExpirationTime": "",
-		  "alias": info.accountAlias, "authenticatedTime": info.authenticationTime,
-		  "jabberId": info.jabberId, "phoneNumber": "", "state": info.accountState,
-		  "token": info.token, "tokenexpireTime": info.expirationTime,
-		  "uniqueId": info.uniqueId }
-																			   ]
-															  });
+	if (Mojo.Environment.DeviceInfo.platformVersionMajor == 1) {
+		this.controller.showAlertDialog({
+				allowHTMLMessage:	true,
+				preventCancel:		true,
+				title:				'Run First Use App',
+				message:			'Impostah cannot update the Palm Profile on webOS 1.x - you must now login using the First Use application.',
+				choices:			[{label:$L("Ok"), value:'ok'}],
+				onChoose:			function(e) { this.authenticationUpdate({returnValue: true}) }
+			});
 	}
 	else {
-		this.requestPalmService = ImpostahService.impersonate(this.authenticationUpdateHandler,
-															  "com.palm.configurator", "com.palm.db",
-															  "put", {
-																  "objects" : [
-		{ "_id": "com.palm.palmprofile.token", "_kind": "com.palm.palmprofile:1",
-		  "accountServerUrl": this.accountServerUrl, "accountExpirationTime": "",
-		  "alias": info.accountAlias, "authenticatedTime": info.authenticationTime,
-		  "jabberId": info.jabberId, "phoneNumber": "", "state": info.accountState,
-		  "token": info.token, "tokenexpireTime": info.expirationTime,
-		  "uniqueId": info.uniqueId }
-																			   ]
-															  });
+		if (this.palmProfile) {
+			this.requestPalmService = ImpostahService.impersonate(this.authenticationUpdateHandler,
+																  "com.palm.configurator", "com.palm.db",
+																  "merge", {
+																	  "objects" : [
+			{ "_id": "com.palm.palmprofile.token", "_kind": "com.palm.palmprofile:1",
+			  "accountServerUrl": this.accountServerUrl, "accountExpirationTime": "",
+			  "alias": info.accountAlias, "authenticatedTime": info.authenticationTime,
+			  "jabberId": info.jabberId, "phoneNumber": "", "state": info.accountState,
+			  "token": info.token, "tokenexpireTime": info.expirationTime,
+			  "uniqueId": info.uniqueId }
+																				   ]
+																  });
+		}
+		else {
+			this.requestPalmService = ImpostahService.impersonate(this.authenticationUpdateHandler,
+																  "com.palm.configurator", "com.palm.db",
+																  "put", {
+																	  "objects" : [
+			{ "_id": "com.palm.palmprofile.token", "_kind": "com.palm.palmprofile:1",
+			  "accountServerUrl": this.accountServerUrl, "accountExpirationTime": "",
+			  "alias": info.accountAlias, "authenticatedTime": info.authenticationTime,
+			  "jabberId": info.jabberId, "phoneNumber": "", "state": info.accountState,
+			  "token": info.token, "tokenexpireTime": info.expirationTime,
+			  "uniqueId": info.uniqueId }
+																				   ]
+																  });
+		}
 	}
 };
 
@@ -598,10 +618,10 @@ ActivationAssistant.prototype.createDeviceAccount = function(value)
 				"network": this.deviceProfile.network,
 				"platform": this.deviceProfile.platform,
 				"macAddress": this.deviceProfile.macAddress,
-				"homeMcc": this.overrideMcc || this.deviceProfile.homeMcc,
-				"homeMnc": this.overrideMnc || this.deviceProfile.homeMnc,
-				"currentMcc": this.overrideMcc || this.deviceProfile.currentMcc,
-				"currentMnc": this.overrideMnc || this.deviceProfile.currentMnc,
+				"homeMcc": this.overrideMcc || "0",
+				"homeMnc": this.overrideMnc || "0",
+				"currentMcc": this.overrideMcc || "0",
+				"currentMnc": this.overrideMnc || "0",
 				// "productSku": this.deviceProfile.productSku
 			},
 			"romToken": {

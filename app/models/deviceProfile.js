@@ -21,6 +21,7 @@ deviceProfile.prototype.getDeviceProfile = function(callback, reload)
     }
 
     this.deviceProfile = false;
+    this.deviceId = false;
 
     if (this.requestDeviceProfile) this.requestDeviceProfile.cancel();
     this.requestDeviceProfile = ImpostahService.impersonate(this._gotDeviceProfile.bind(this),

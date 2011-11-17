@@ -26,6 +26,43 @@ function DeviceProfileAssistant()
 		disabled: true
 	};
 
+	this.deviceImpersonationSelectorModel = {
+		disabled: true,
+		choices: [
+	{label:"NA Pre (Sprint)",		value:'P100EWW/Sprint'},
+	{label:"NA Pre (Bell)",			value:'P100EWW/Bell'},
+	{label:"NA Pre (Telcel)",		value:'P100UNA/ROW'},
+	{label:"EU Pre (ROW)",			value:'P100UEU/ROW'},
+	{label:"NA Pre+ (AT&T)",		value:'P101UNA/ATT'},
+	{label:"NA Pre+ (Verizon)",		value:'P101EWW/Verizon'},
+	{label:"EU Pre+ (ROW)",			value:'P101UEU/ROW'},
+	{label:"NA Pixi (Sprint)",		value:'P120EWW/Sprint'},
+	{label:"NA Pixi+ (AT&T)",		value:'P121UNA/ATT'},
+	{label:"NA Pixi+ (Verizon)",	value:'P121UNA/Verizon'},
+	{label:"EU Pixi+ (ROW)",		value:'P121UEU/ROW'},
+	{label:"NA Pre 2 (AT&T)",		value:'P102UNA/ATT'},
+	{label:"NA Pre 2 (Sprint)",		value:'P102EWW/Sprint'},
+	{label:"NA Pre 2 (Verizon)",	value:'P102EWW/Verizon'},
+	{label:"NA Pre 2 (ROW)",		value:'P102UNA/ROW'},
+	{label:"EU Pre 2 (ROW)",		value:'P102UEU/ROW'},
+	{label:"NA Veer (AT&T)",		value:'P160UNA/ATT'},
+	{label:"NA Veer (ROW)",			value:'P160UNA/ROW'},
+	{label:"EU Veer (ROW)",			value:'P160UEU/ROW'},
+	{label:"NA Pre 3 (AT&T)",		value:'HSTNH-F30CN/ATT'},
+	{label:"NA Pre 3 (Verizon)",	value:'HSTNH-F30CV/Verizon'},
+	{label:"EU Pre 3 (ROW)",		value:'HSTNH-F30CE/ROW'},
+	{label:"TouchPad (WiFi)",		value:'HSTNH-129C/'},
+	{label:"TouchPad (AT&T)",		value:'HSTNH-130C/ATT'},
+	{label:"TouchPad Go",			value:'HSTNH-132C/'},
+	{label:"SDK Emulator",			value:'/'},
+				  ],
+	};
+
+	this.setDeviceImpersonationButtonModel = {
+		label: $L("Set Device Impersonation"),
+		disabled: true
+	};
+
 	this.locationHostInputFieldModel = {
 		label: $L("Location Host"),
 		value: '',
@@ -40,8 +77,11 @@ function DeviceProfileAssistant()
 	this.deviceProfile = false;
 	this.reloadDeviceProfile = false;
 
+	this.currentDevice = false;
+
 	this.locationHost = false;
 	this.reloadLocationHost = false;
+
 };
 
 DeviceProfileAssistant.prototype.setup = function()
@@ -54,12 +94,16 @@ DeviceProfileAssistant.prototype.setup = function()
 	this.spinnerElement = this.controller.get('spinner');
 	this.deviceProfileButton = this.controller.get('deviceProfileButton');
 	this.manageOverridesButton = this.controller.get('manageOverridesButton');
+	this.deviceImpersonationGroup = this.controller.get('deviceImpersonationGroup');
+	this.deviceImpersonationSelector = this.controller.get('deviceImpersonationSelector');
+	this.setDeviceImpersonationButton = this.controller.get('setDeviceImpersonationButton');
 	this.locationHostGroup = this.controller.get('locationHostGroup');
 	this.locationHostInputField = this.controller.get('locationHostInputField');
 	this.setLocationHostButton = this.controller.get('setLocationHostButton');
 	
 	if (Mojo.Environment.DeviceInfo.platformVersionMajor == 1) {
 		this.manageOverridesButton.style.display = 'none';
+		this.deviceImpersonationGroup.style.display = 'none';
 		this.locationHostGroup.style.display = 'none';
 	}
 
@@ -71,6 +115,11 @@ DeviceProfileAssistant.prototype.setup = function()
 	// setup handlers
 	this.deviceProfileTapHandler = this.deviceProfileTap.bindAsEventListener(this);
 	this.manageOverridesTapHandler = this.manageOverridesTap.bindAsEventListener(this);
+	this.deviceImpersonationChangedHandler = this.deviceImpersonationChanged.bindAsEventListener(this);
+	this.setDeviceImpersonationTapHandler = this.setDeviceImpersonationTap.bindAsEventListener(this);
+	this.getOverridesHandler =  this.getOverrides.bindAsEventListener(this);
+	this.delOverridesHandler =  this.delOverrides.bindAsEventListener(this);
+	this.putOverridesHandler =  this.putOverrides.bindAsEventListener(this);
 	this.locationHostChangedHandler = this.locationHostChanged.bindAsEventListener(this);
 	this.setLocationHostTapHandler = this.setLocationHostTap.bindAsEventListener(this);
 	
@@ -81,6 +130,10 @@ DeviceProfileAssistant.prototype.setup = function()
 	this.controller.listen(this.deviceProfileButton,  Mojo.Event.tap, this.deviceProfileTapHandler);
 	this.controller.setupWidget('manageOverridesButton', { }, this.manageOverridesButtonModel);
 	this.controller.listen(this.manageOverridesButton,  Mojo.Event.tap, this.manageOverridesTapHandler);
+	this.controller.setupWidget('deviceImpersonationSelector', { label: $L("Device") }, this.deviceImpersonationSelectorModel);
+	this.controller.listen(this.deviceImpersonationSelector, Mojo.Event.propertyChange, this.deviceImpersonationChangedHandler);
+	this.controller.setupWidget('setDeviceImpersonationButton', { type: Mojo.Widget.activityButton }, this.setDeviceImpersonationButtonModel);
+	this.controller.listen(this.setDeviceImpersonationButton,  Mojo.Event.tap, this.setDeviceImpersonationTapHandler);
 	this.controller.setupWidget('locationHostInputField', {
 			autoReplace: false,
 				hintText: 'Enter location host ...',
@@ -122,6 +175,10 @@ DeviceProfileAssistant.prototype.getDeviceProfile = function(returnValue, device
 		this.controller.modelChanged(this.deviceProfileButtonModel);
 		this.manageOverridesButtonModel.disabled = false;
 		this.controller.modelChanged(this.manageOverridesButtonModel);
+		this.deviceImpersonationSelectorModel.disabled = false;
+		this.deviceImpersonationSelectorModel.value = 
+			this.deviceProfile.deviceModel+"/"+this.deviceProfile.carrier;
+		this.controller.modelChanged(this.deviceImpersonationSelectorModel);
 	}
 
 	this.updateSpinner(true);
@@ -189,6 +246,173 @@ DeviceProfileAssistant.prototype.manageOverridesTap = function(event)
 												  this.dirtyDeviceProfile.bind(this));
 	}
 };
+
+DeviceProfileAssistant.prototype.deviceImpersonationChanged = function(event)
+{
+	if (event.value != this.currentDevice) {
+		this.setDeviceImpersonationButtonModel.disabled = false;
+		this.controller.modelChanged(this.setDeviceImpersonationButtonModel);
+	}
+	else {
+		this.setDeviceImpersonationButtonModel.disabled = true;
+		this.controller.modelChanged(this.setDeviceImpersonationButtonModel);
+	}
+};
+
+DeviceProfileAssistant.prototype.setDeviceImpersonationTap = function(event)
+{
+	this.updateSpinner(true);
+
+	if (this.requestDb8) this.requestDb8.cancel();
+	this.requestDb8 = new Mojo.Service.Request("palm://com.palm.db/", {
+			method: "get",
+			parameters: {
+				"ids" : ['org.webosinternals.impostah.deviceprofile']
+			},
+			onSuccess: this.getOverridesHandler,
+			onFailure: this.getOverridesHandler
+		});
+};
+
+DeviceProfileAssistant.prototype.getOverrides = function(payload)
+{
+	if (this.requestDb8) this.requestDb8.cancel();
+	this.requestDb8 = false;
+
+	this.updateSpinner(false);
+
+	if (payload.returnValue === false) {
+		this.errorMessage('<b>Service Error (getOverrides):</b><br>'+payload.errorText);
+		return;
+	}
+
+	if (payload.results && (payload.results.length == 1)) {
+		this.overrides = payload.results[0];
+		delete this.overrides["_rev"];
+		delete this.overrides["_sync"];
+		if (this.overrides["_del"] == true) {
+			this.overrides = {
+				"_id":'org.webosinternals.impostah.deviceprofile',
+				"_kind":"org.webosinternals.impostah:1"
+			}
+		}
+	}
+	else {
+		this.overrides = {
+			"_id":'org.webosinternals.impostah.deviceprofile',
+			"_kind":"org.webosinternals.impostah:1"
+		}
+	}
+
+	this.currentDevice = this.deviceImpersonationSelectorModel.value;
+	var model = this.currentDevice.split("/")[0];
+	var carrier = this.currentDevice.split("/")[1];
+
+	this.overrides['deviceModel'] = model;
+	this.overrides['carrier'] = carrier;
+
+	switch (this.currentDevice) {
+	case "P100EWW/Sprint":
+		break;
+	case "P100EWW/Bell":
+		break;
+	case "P100UNA/ROW":
+		break;
+	case "P100UEU/ROW":
+		break;
+	case "P101UNA/ATT":
+		break;
+	case "P101EWW/Verizon":
+		break;
+	case "P101UEU/ROW":
+		break;
+	case "P120EWW/Sprint":
+		break;
+	case "P121UNA/ATT":
+		break;
+	case "P121UNA/Verizon":
+		break;
+	case "P121UEU/ROW":
+		break;
+	case "P102UNA/ATT":
+		break;
+	case "P102EWW/Sprint":
+		break;
+	case "P102EWW/Verizon":
+		break;
+	case "P102UNA/ROW":
+		break;
+	case "P102UEU/ROW":
+		break;
+	case "P160UNA/ATT":
+		break;
+	case "P160UNA/ROW":
+		break;
+	case "P160UEU/ROW":
+		break;
+	case "HSTNH-F30CN/ATT":
+		this.overrides['carrierROM'] = "Nova-ATT-Mantaray-2207";
+		this.overrides['softwareVersion'] = "Nova-ATT-Mantaray-2207";
+		this.overrides['hardwareType'] = "mantaray";
+		this.overrides['HPSerialNumber'] = "180-10867-01";
+		this.overrides['productSku'] = "FB389AA#ABA";
+		this.overrides['dmSets'] = '{"sets":"2175";"2179"}';
+		this.overrides['softwareBuildBranch'] = "HP webOS 2.2.3";
+		break;
+	case "HSTNH-F30CV/Verizon":
+		break;
+	case "HSTNH-F30CE/ROW":
+		break;
+	case "HSTNH-129C/":
+		break;
+	case "HSTNH-130C/ATT":
+		break;
+	case "HSTNH-132C/":
+		break;
+	}
+
+	this.saveOverrides();
+};
+
+DeviceProfileAssistant.prototype.saveOverrides = function()
+{
+	if (this.requestDb8) this.requestDb8.cancel();
+	this.requestDb8 = new Mojo.Service.Request("palm://com.palm.db/", {
+			method: "del",
+			parameters: {
+				"ids" : ['org.webosinternals.impostah.deviceprofile'],
+				"purge": true
+			},
+			onSuccess: this.delOverridesHandler,
+			onFailure: this.delOverridesHandler
+		});
+};
+
+DeviceProfileAssistant.prototype.delOverrides = function(payload)
+{
+	if (this.requestDb8) this.requestDb8.cancel();
+	this.requestDb8 = new Mojo.Service.Request("palm://com.palm.db/", {
+			method: "put",
+			parameters: {
+				"objects" : [this.overrides]
+			},
+			onSuccess: this.putOverridesHandler,
+			onFailure: this.putOverridesHandler
+		});
+}
+
+DeviceProfileAssistant.prototype.putOverrides = function(payload)
+{
+	if (this.requestDb8) this.requestDb8.cancel();
+	this.requestDb8 = false;
+
+	this.setDeviceImpersonationButton.mojo.deactivate();
+
+	if (payload.returnValue === false) {
+		this.errorMessage('<b>Service Error (putOverrides):</b><br>'+payload.errorText);
+		return;
+	}
+}
 
 DeviceProfileAssistant.prototype.locationHostChanged = function(event)
 {
@@ -277,6 +501,10 @@ DeviceProfileAssistant.prototype.cleanup = function(event)
 								  this.deviceProfileTapHandler);
 	this.controller.stopListening(this.manageOverridesButton,  Mojo.Event.tap,
 								  this.manageOverridesTapHandler);
+	this.controller.stopListening(this.deviceImpersonationSelector, Mojo.Event.propertyChange,
+								  this.deviceImpersonationChangedHandler);
+	this.controller.stopListening(this.setDeviceImpersonationButton,  Mojo.Event.tap,
+								  this.setDeviceImpersonationTapHandler);
 	this.controller.stopListening(this.locationHostInputField, Mojo.Event.propertyChange,
 								  this.locationHostChangedHandler);
 	this.controller.stopListening(this.setLocationHostButton,  Mojo.Event.tap,

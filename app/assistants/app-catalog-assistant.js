@@ -58,6 +58,10 @@ function AppCatalogAssistant()
 		label: $L("Show Purchased Apps"),
 		disabled: true
 	};
+	this.availableAppsButtonModel = {
+		label: $L("Show Available Apps"),
+		disabled: true
+	};
 	this.paidAppsButtonModel = {
 		label: $L("Check Paid Apps Access"),
 		disabled: true
@@ -93,6 +97,8 @@ function AppCatalogAssistant()
 	this.accountServerUrl = false;
 	this.catalogServerUrl = false;
 	this.paymentServerUrl = false;
+	this.appList = false;
+	this.appCount = 0;
 	this.appInfo = false;
 	this.appDetail = false;
 	this.promoCodeInfo = false;
@@ -121,6 +127,7 @@ AppCatalogAssistant.prototype.setup = function()
 	this.sessionInfoButton = this.controller.get('sessionInfoButton');
 	this.installedAppsButton = this.controller.get('installedAppsButton');
 	this.purchasedAppsButton = this.controller.get('purchasedAppsButton');
+	this.availableAppsButton = this.controller.get('availableAppsButton');
 	this.paidAppsButton = this.controller.get('paidAppsButton');
 	this.accessCountryButton = this.controller.get('accessCountryButton');
 	this.countryListButton = this.controller.get('countryListButton');
@@ -152,6 +159,8 @@ AppCatalogAssistant.prototype.setup = function()
 	this.installedAppsHandler =	this.installedApps.bindAsEventListener(this);
 	this.purchasedAppsTapHandler = this.purchasedAppsTap.bindAsEventListener(this);
 	this.purchasedAppsHandler =	this.purchasedApps.bindAsEventListener(this);
+	this.availableAppsTapHandler = this.availableAppsTap.bindAsEventListener(this);
+	this.availableAppsHandler =	this.availableApps.bindAsEventListener(this);
 	this.paidAppsTapHandler = this.paidAppsTap.bindAsEventListener(this);
 	this.paidAppsHandler =	this.paidApps.bindAsEventListener(this);
 	this.accessCountryTapHandler = this.accessCountryTap.bindAsEventListener(this);
@@ -192,6 +201,8 @@ AppCatalogAssistant.prototype.setup = function()
 	this.controller.listen(this.installedAppsButton,  Mojo.Event.tap, this.installedAppsTapHandler);
 	this.controller.setupWidget('purchasedAppsButton', { type: Mojo.Widget.activityButton }, this.purchasedAppsButtonModel);
 	this.controller.listen(this.purchasedAppsButton,  Mojo.Event.tap, this.purchasedAppsTapHandler);
+	this.controller.setupWidget('availableAppsButton', { type: Mojo.Widget.activityButton }, this.availableAppsButtonModel);
+	this.controller.listen(this.availableAppsButton,  Mojo.Event.tap, this.availableAppsTapHandler);
 	this.controller.setupWidget('paidAppsButton', { type: Mojo.Widget.activityButton }, this.paidAppsButtonModel);
 	this.controller.listen(this.paidAppsButton,  Mojo.Event.tap, this.paidAppsTapHandler);
 	this.controller.setupWidget('accessCountryButton', { type: Mojo.Widget.activityButton }, this.accessCountryButtonModel);
@@ -215,6 +226,8 @@ AppCatalogAssistant.prototype.setup = function()
 
 AppCatalogAssistant.prototype.activate = function()
 {
+	this.availableAppsButtonModel.label = $L("Show Available Apps");
+	this.controller.modelChanged(this.availableAppsButtonModel);
 	this.deviceId = false;
 	this.updateSpinner(true);
 	DeviceProfile.getDeviceId(this.getDeviceId.bind(this), false);
@@ -278,6 +291,8 @@ AppCatalogAssistant.prototype.getPalmProfile = function(returnValue, palmProfile
 		this.controller.modelChanged(this.installedAppsButtonModel);
 		this.purchasedAppsButtonModel.disabled = false;
 		this.controller.modelChanged(this.purchasedAppsButtonModel);
+		this.availableAppsButtonModel.disabled = false;
+		this.controller.modelChanged(this.availableAppsButtonModel);
 		this.paidAppsButtonModel.disabled = false;
 		this.controller.modelChanged(this.paidAppsButtonModel);
 		this.accessCountryButtonModel.disabled = false;
@@ -1000,6 +1015,162 @@ AppCatalogAssistant.prototype.purchasedApps = function(payload)
 	this.purchasedAppsButton.mojo.deactivate();
 };
 
+AppCatalogAssistant.prototype.availableAppsTap = function(event)
+{
+	this.overlay.show();
+
+	this.appList = {};
+	this.appCount = 0;
+
+	var callback = this.availableAppsHandler;
+
+	var url = this.accountServerUrl+"appList_ext2";
+	var body = {
+		"InGetAppListV2": {
+			"accountTokenInfo": {
+				"token": this.palmProfile.token,
+				"deviceId": this.deviceId,
+				"email": this.palmProfile.alias
+			},
+			"startPosition": 0,
+			"count":100,
+			"sort":"NAME_ASC",
+			"locale": "en_us",
+			"packageIds": []
+		}
+	};
+
+	Mojo.Log.warn("request %j", body);
+
+	this.requestWebService = new Ajax.Request(url, {
+			method: 'POST',
+			contentType: 'application/json',
+			postBody: Object.toJSON(body),
+			evalJSON: 'force',
+			onSuccess: function(response) {
+				response = response.responseJSON;
+				Mojo.Log.warn("onSuccess %j", response);
+				if (!response) {
+					callback({"returnValue":true}); // Empty replies are okay
+				}
+				else {
+					var exception = response.JSONException;
+					if (exception) {
+						Mojo.Log.error("CatalogServer._callServer %j", exception);
+						callback({"returnValue":false, "errorText":Object.toJSON(exception)});
+					}
+					else {
+						callback({"returnValue":true, "response":response});
+					}
+				}
+			},
+			onFailure: function(response) {
+				Mojo.Log.warn("onFailure %j", response);
+				if (response.responseJSON && response.responseJSON.JSONException) {
+					callback({"returnValue":false, "errorText":Object.toJSON(response.responseJSON.JSONException)});
+				}
+				else {
+					callback({"returnValue":false, "errorText":response.status});
+				}
+			},
+			on0: function(response) {
+				Mojo.Log.warn("on0 %j", response);
+				callback({"returnValue":false, "errorText":response.status});
+			}
+	});
+};
+
+AppCatalogAssistant.prototype.availableApps = function(payload)
+{
+	this.requestWebService = false;
+
+	Mojo.Log.warn("payload %j", payload);
+
+	if (payload.returnValue === false) {
+		this.errorMessage('<b>Service Error (availableApps):</b><br>'+payload.errorText);
+		this.overlay.hide();
+		this.availableAppsButton.mojo.deactivate();
+		return;
+	}
+
+	if (payload.response.OutGetAppList != undefined) {
+		var apps = payload.response.OutGetAppList.appList.appSummary || [];
+
+		for (var i = 0; i < apps.length; i++) {
+			this.appList[apps[i].title] = apps[i];
+			this.appCount++;
+		}
+
+		this.availableAppsButtonModel.label = $L("Loading")+" ("+this.appCount+"/"+payload.response.OutGetAppList.appList.totalCount+")";
+		this.controller.modelChanged(this.availableAppsButtonModel);
+
+		//		if (this.appCount < payload.response.OutGetAppList.appList.totalCount) {
+		if (this.appCount < 500) {
+			var callback = this.availableAppsHandler;
+
+			var url = this.accountServerUrl+"appList_ext2";
+			var body = {
+				"InGetAppListV2": {
+					"accountTokenInfo": {
+						"token": this.palmProfile.token,
+						"deviceId": this.deviceId,
+						"email": this.palmProfile.alias
+					},
+					"startPosition": this.appCount,
+					"count":100,
+					"sort":"NAME_ASC",
+					"locale": "en_us",
+					"packageIds": []
+				}
+			};
+
+			Mojo.Log.warn("request %j", body);
+
+			this.requestWebService = new Ajax.Request(url, {
+					method: 'POST',
+					contentType: 'application/json',
+					postBody: Object.toJSON(body),
+					evalJSON: 'force',
+					onSuccess: function(response) {
+						response = response.responseJSON;
+						Mojo.Log.warn("onSuccess %j", response);
+						if (!response) {
+							callback({"returnValue":true}); // Empty replies are okay
+						}
+						else {
+							var exception = response.JSONException;
+							if (exception) {
+								Mojo.Log.error("CatalogServer._callServer %j", exception);
+								callback({"returnValue":false, "errorText":Object.toJSON(exception)});
+							}
+							else {
+								callback({"returnValue":true, "response":response});
+							}
+						}
+					},
+					onFailure: function(response) {
+						Mojo.Log.warn("onFailure %j", response);
+						if (response.responseJSON && response.responseJSON.JSONException) {
+							callback({"returnValue":false, "errorText":Object.toJSON(response.responseJSON.JSONException)});
+						}
+						else {
+							callback({"returnValue":false, "errorText":response.status});
+						}
+					},
+					on0: function(response) {
+						Mojo.Log.warn("on0 %j", response);
+						callback({"returnValue":false, "errorText":response.status});
+					}
+				});
+		}
+		else {
+			this.controller.stageController.pushScene("item", "Available Apps", this.appList, 'apps', false);
+			this.overlay.hide();
+			this.availableAppsButton.mojo.deactivate();
+		}
+	}
+};
+
 AppCatalogAssistant.prototype.paidAppsTap = function(event)
 {
 	this.overlay.show();
@@ -1487,6 +1658,8 @@ AppCatalogAssistant.prototype.cleanup = function(event)
 								  this.installedAppsTapHandler);
 	this.controller.stopListening(this.purchasedAppsButton,  Mojo.Event.tap,
 								  this.purchasedAppsTapHandler);
+	this.controller.stopListening(this.availableAppsButton,  Mojo.Event.tap,
+								  this.availableAppsTapHandler);
 	this.controller.stopListening(this.paidAppsButton,  Mojo.Event.tap,
 								  this.paidAppsTapHandler);
 	this.controller.stopListening(this.accessCountryButton,  Mojo.Event.tap,

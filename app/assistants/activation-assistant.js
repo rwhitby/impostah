@@ -19,19 +19,26 @@ function ActivationAssistant()
 	this.countrySelectorModel = {
 		disabled: true,
 		choices: [
-	{label:"United States", value:'US'},
+	{label:"United States (AT&T)", value:'US-1'},
+	{label:"United States (Sprint)", value:'US-4'},
+	{label:"United States (Palm)", value:'US-5'},
+	{label:"United States (Verizon)", value:'US-114'},
 	{label:"United Kingdom", value:'GB'},
-	{label:"Australia", value:'AU'},
-	{label:"Canada", value:'CA'},
+	{label:"Australia (Palm)", value:'AU-5'},
+	{label:"Australia (Telstra)", value:'AU-24'},
+	{label:"Canada (Bell)", value:'CA-0'},
+	{label:"Canada (Rogers)", value:'CA-64'},
 	{label:"France", value:'FR'},
 	{label:"Germany", value:'DE'},
 	{label:"Ireland", value:'IE'},
 	{label:"Italy", value:'IT'},
 	{label:"Spain", value:'ES'},
-	// {label:"Mexico", value:'MX'},
+	{label:"Mexico (Telcel)", value:'MX'},
 				  ],
-		value: 'US'
+		value: 'US-5'
 	};
+
+	this.country = "US";
 
 	this.languageSelectorModel = {
 		disabled: true,
@@ -299,31 +306,68 @@ ActivationAssistant.prototype.countryChanged = function(event)
 	var country = event.value;
 
 	switch (country) {
+	case 'US-1':
+		this.country = "US";
+		this.overrideMcc = "310"; this.overrideMnc = "410";
+		break;
+	case 'US-4':
+		this.country = "US";
+		this.overrideMcc = false; this.overrideMnc = false;
+		break;
+	case 'US-5':
+		this.country = "US";
+		this.overrideMcc = false; this.overrideMnc = false;
+		break;
+	case 'US-114':
+		this.country = "US";
+		this.overrideMcc = false; this.overrideMnc = false;
+		break;
 	case 'GB':
+		this.country = "GB";
 		this.overrideMcc = '234'; this.overrideMnc = '10';
 		break;
-	case 'AU':
+	case 'AU-5':
+		this.country = "AU";
+		this.overrideMcc = false; this.overrideMnc = false;
+		break;
+	case 'AU-24':
+		this.country = "AU";
 		this.overrideMcc = '505'; this.overrideMnc = '01';
 		break;
-	case 'CA':
+	case 'CA-0':
+		this.country = "CA";
+		this.overrideMcc = '302'; this.overrideMnc = '610';
+		break;
+	case 'CA-64':
+		this.country = "CA";
 		this.overrideMcc = '302'; this.overrideMnc = '720';
 		break;
 	case 'FR':
+		this.country = "FR";
 		this.overrideMcc = '208'; this.overrideMnc = '10';
 		break;
 	case 'DE':
+		this.country = "DE";
 		this.overrideMcc = '262'; this.overrideMnc = '07';
 		break;
 	case 'ES':
+		this.country = "ES";
 		this.overrideMcc = '214'; this.overrideMnc = '07';
 		break;
 	case 'IT':
+		this.country = "IT";
 		this.overrideMcc = '222'; this.overrideMnc = '10';
 		break;
 	case 'IE':
+		this.country = "IE";
 		this.overrideMcc = '272'; this.overrideMnc = '02';
 		break;
+	case 'MX':
+		this.country = "MX";
+		this.overrideMcc = '334'; this.overrideMnc = '20';
+		break;
 	default:
+		this.country = country;
 		this.overrideMcc = false; this.overrideMnc = false;
 		break;
 	}
@@ -400,7 +444,6 @@ ActivationAssistant.prototype.authenticateFromDevice = function(value)
 			"password": this.passwordInputFieldModel.value,
 			"device": {
 				"serialNumber": this.deviceProfile.serialNumber,
-				// "HPSerialNumber": this.deviceProfile.HPSerialNumber,
 				"carrier": this.deviceProfile.carrier,
 				"dataNetwork": this.deviceProfile.dataNetwork,
 				"deviceID": this.deviceId,
@@ -411,11 +454,6 @@ ActivationAssistant.prototype.authenticateFromDevice = function(value)
 				"network": this.deviceProfile.network,
 				"platform": this.deviceProfile.platform,
 				"macAddress": this.deviceProfile.macAddress,
-				"homeMcc": this.overrideMcc || "0",
-				"homeMnc": this.overrideMnc || "0",
-				"currentMcc": this.overrideMcc || "0",
-				"currentMnc": this.overrideMnc || "0",
-				// "productSku": this.deviceProfile.productSku
 			},
 			"romToken": {
 				"buildVariant": this.deviceProfile.dmSets,
@@ -431,6 +469,18 @@ ActivationAssistant.prototype.authenticateFromDevice = function(value)
 			}
 		}
 	};
+
+	if (this.overrideMcc && this.overrideMnc) {
+		body.InAuthenticateFromDevice.device.homeMcc = this.overrideMcc;
+		body.InAuthenticateFromDevice.device.homeMnc = this.overrideMnc;
+		body.InAuthenticateFromDevice.device.currentMcc = this.overrideMcc;
+		body.InAuthenticateFromDevice.device.currentMnc = this.overrideMnc;
+	}
+
+	if (this.deviceProfile.hardwareType == "topaz") {
+		body.InAuthenticateFromDevice.device.HPSerialNumber = this.deviceProfile.HPSerialNumber;
+		body.InAuthenticateFromDevice.device.productSku = this.deviceProfile.productSku;
+	}
 
 	Mojo.Log.warn("request %j", body);
 
@@ -608,12 +658,11 @@ ActivationAssistant.prototype.createDeviceAccount = function(value)
 				"firstName": "Impostah",
 				"lastName": "User",
 				"language": this.languageSelectorModel.value,
-				"country": this.countrySelectorModel.value
+				"country": this.country
 			},
 			"password": this.passwordInputFieldModel.value,
 			"device": {
 				"serialNumber": this.deviceProfile.serialNumber,
-				// "HPSerialNumber": this.deviceProfile.HPSerialNumber,
 				"carrier": this.deviceProfile.carrier,
 				"dataNetwork": this.deviceProfile.dataNetwork,
 				"deviceID": this.deviceId,
@@ -623,12 +672,7 @@ ActivationAssistant.prototype.createDeviceAccount = function(value)
 				"firmwareVersion": this.deviceProfile.firmwareVersion,
 				"network": this.deviceProfile.network,
 				"platform": this.deviceProfile.platform,
-				"macAddress": this.deviceProfile.macAddress,
-				"homeMcc": this.overrideMcc || "0",
-				"homeMnc": this.overrideMnc || "0",
-				"currentMcc": this.overrideMcc || "0",
-				"currentMnc": this.overrideMnc || "0",
-				// "productSku": this.deviceProfile.productSku
+				"macAddress": this.deviceProfile.macAddress
 			},
 			"romToken": {
 				"buildVariant": this.deviceProfile.dmSets,
@@ -644,6 +688,18 @@ ActivationAssistant.prototype.createDeviceAccount = function(value)
 			}
 		}
 	};
+
+	if (this.overrideMcc && this.overrideMnc) {
+		body.InCreateDeviceAccount.device.homeMcc = this.overrideMcc;
+		body.InCreateDeviceAccount.device.homeMnc = this.overrideMnc;
+		body.InCreateDeviceAccount.device.currentMcc = this.overrideMcc;
+		body.InCreateDeviceAccount.device.currentMnc = this.overrideMnc;
+	}
+
+	if (this.deviceProfile.hardwareType == "topaz") {
+		body.InCreateDeviceAccount.device.HPSerialNumber = this.deviceProfile.HPSerialNumber;
+		body.InCreateDeviceAccount.device.productSku = this.deviceProfile.productSku;
+	}
 
 	Mojo.Log.warn("request %j", body);
 

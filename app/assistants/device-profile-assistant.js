@@ -51,9 +51,9 @@ function DeviceProfileAssistant()
 	{label:"NA Pre 3 (AT&T)",		value:'HSTNH-F30CN/ATT'},
 	{label:"NA Pre 3 (Verizon)",	value:'HSTNH-F30CV/Verizon'},
 	{label:"EU Pre 3 (ROW)",		value:'HSTNH-F30CE/ROW'},
-	{label:"TouchPad (WiFi)",		value:'HSTNH-129C/'},
-	{label:"TouchPad (AT&T)",		value:'HSTNH-130C/ATT'},
-	{label:"TouchPad Go",			value:'HSTNH-132C/'},
+	{label:"TouchPad (WiFi)",		value:'HSTNH-I29C/'},
+	{label:"TouchPad (AT&T)",		value:'HSTNH-I30C/ATT'},
+	{label:"TouchPad Go",			value:'HSTNH-I32C/'},
 	{label:"SDK Emulator",			value:'/'},
 				  ],
 	};
@@ -263,6 +263,8 @@ DeviceProfileAssistant.prototype.setDeviceImpersonationTap = function(event)
 {
 	this.updateSpinner(true);
 
+	this.dirtyDeviceProfile();
+	
 	if (this.requestDb8) this.requestDb8.cancel();
 	this.requestDb8 = new Mojo.Service.Request("palm://com.palm.db/", {
 			method: "get",
@@ -354,20 +356,44 @@ DeviceProfileAssistant.prototype.getOverrides = function(payload)
 		this.overrides['carrierROM'] = "Nova-ATT-Mantaray-2207";
 		this.overrides['softwareVersion'] = "Nova-ATT-Mantaray-2207";
 		this.overrides['hardwareType'] = "mantaray";
-		this.overrides['HPSerialNumber'] = "180-10867-01";
-		this.overrides['productSku'] = "FB389AA#ABA";
-		this.overrides['dmSets'] = '{"sets":"2175";"2179"}';
+		this.overrides['dmSets'] = '{"sets":"2175","2179"}';
 		this.overrides['softwareBuildBranch'] = "HP webOS 2.2.3";
 		break;
 	case "HSTNH-F30CV/Verizon":
+		this.overrides['carrierROM'] = "Nova-Verizon-Mantaray-1217";
+		this.overrides['softwareVersion'] = "Nova-Verizon-Mantaray-1217";
+		this.overrides['hardwareType'] = "mantaray";
+		this.overrides['dmSets'] = '{"sets":"2167","2171"}';
+		this.overrides['softwareBuildBranch'] = "HP webOS 2.2.3";
+		break;
 		break;
 	case "HSTNH-F30CE/ROW":
+		this.overrides['carrierROM'] = "Nova-WR-Mantaray-3171";
+		this.overrides['softwareVersion'] = "Nova-WR-Mantaray-3171";
+		this.overrides['hardwareType'] = "mantaray";
+		this.overrides['dmSets'] = '{"sets":"2191","2195"}';
+		this.overrides['softwareBuildBranch'] = "HP webOS 2.2.0";
 		break;
-	case "HSTNH-129C/":
+	case "HSTNH-I29C/":
+		this.overrides['deviceId'] = "";
+		this.overrides['carrierROM'] = "Nova-HP-Topaz-77";
+		this.overrides['softwareVersion'] = "Nova-HP-Topaz-77";
+		this.overrides['hardwareType'] = "topaz";
+		this.overrides['dmSets'] = '{"sets":"2151","2155"}';
+		this.overrides['softwareBuildBranch'] = "HP webOS 3.0.4";
+		this.overrides['HPSerialNumber'] = "180-10871-01";
+		this.overrides['productSku'] = "FB359UA#ABA";
 		break;
-	case "HSTNH-130C/ATT":
+	case "HSTNH-I30C/ATT":
+		this.overrides['carrierROM'] = "Nova-ATT-Topaz-78";
+		this.overrides['softwareVersion'] = "Nova-ATT-Topaz-78";
+		this.overrides['hardwareType'] = "topaz";
+		this.overrides['dmSets'] = '{"sets":"2143","2147"}';
+		this.overrides['softwareBuildBranch'] = "HP webOS 3.0.4";
+		this.overrides['HPSerialNumber'] = "180-10874-02";
+		this.overrides['productSku'] = "FB354UA#ABA";
 		break;
-	case "HSTNH-132C/":
+	case "HSTNH-I32C/":
 		break;
 	}
 
@@ -412,6 +438,8 @@ DeviceProfileAssistant.prototype.putOverrides = function(payload)
 		this.errorMessage('<b>Service Error (putOverrides):</b><br>'+payload.errorText);
 		return;
 	}
+
+	this.activate();
 }
 
 DeviceProfileAssistant.prototype.locationHostChanged = function(event)

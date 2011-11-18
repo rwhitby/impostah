@@ -11,6 +11,7 @@ function StartupAssistant(changelog)
     this.newMessages =
 	[
 	 // Don't forget the comma on all but the last entry
+	 { version: '0.9.19', log: [ 'Fixed TouchPad 3.0.4 activation issues' ] },
 	 { version: '0.9.18', log: [ 'Enabled activation scene for 1.4.5 devices' ] },
 	 { version: '0.9.17', log: [ 'Enabled device profile, palm profile and app catalog information for 1.4.5 devices' ] },
 	 { version: '0.9.16', log: [ 'Added the ability to display app catalog device and session information' ] },

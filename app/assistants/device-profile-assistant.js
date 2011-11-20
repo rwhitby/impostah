@@ -583,7 +583,7 @@ DeviceProfileAssistant.prototype.GetIdentityOverrides = function(payload)
 
 	var serialNumber = this.deviceProfile.serialNumber;
 	if (serialNumber && (serialNumber.length > 7)) {
-		this.overrides['serialNumber'] = serialNumber.slice(0, serialNumber.length-6) + numeric;
+		this.overrides['serialNumber'] = serialNumber.slice(0, serialNumber.length-7) + numeric;
 	}
 	else {
 		this.overrides['serialNumber'] = "AE21P" + numeric;

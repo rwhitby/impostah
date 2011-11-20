@@ -74,6 +74,17 @@ function DeviceProfileAssistant()
 		disabled: true
 	};
 
+	this.chameleonIdentityInputFieldModel = {
+		label: $L("Chameleon Identity"),
+		value: '',
+		disabled: true
+	};
+
+	this.setChameleonIdentityButtonModel = {
+		label: $L("Set Chameleon Identiy"),
+		disabled: true
+	};
+
 	this.deviceProfile = false;
 	this.reloadDeviceProfile = false;
 
@@ -100,11 +111,15 @@ DeviceProfileAssistant.prototype.setup = function()
 	this.locationHostGroup = this.controller.get('locationHostGroup');
 	this.locationHostInputField = this.controller.get('locationHostInputField');
 	this.setLocationHostButton = this.controller.get('setLocationHostButton');
+	this.chameleonIdentityGroup = this.controller.get('chameleonIdentityGroup');
+	this.chameleonIdentityInputField = this.controller.get('chameleonIdentityInputField');
+	this.setChameleonIdentityButton = this.controller.get('setChameleonIdentityButton');
 	
 	if (Mojo.Environment.DeviceInfo.platformVersionMajor == 1) {
 		this.manageOverridesButton.style.display = 'none';
 		this.deviceImpersonationGroup.style.display = 'none';
 		this.locationHostGroup.style.display = 'none';
+		this.chameleonIdentityGroup.style.display = 'none';
 	}
 
 	// setup back tap
@@ -117,11 +132,14 @@ DeviceProfileAssistant.prototype.setup = function()
 	this.manageOverridesTapHandler = this.manageOverridesTap.bindAsEventListener(this);
 	this.deviceImpersonationChangedHandler = this.deviceImpersonationChanged.bindAsEventListener(this);
 	this.setDeviceImpersonationTapHandler = this.setDeviceImpersonationTap.bindAsEventListener(this);
-	this.getOverridesHandler =  this.getOverrides.bindAsEventListener(this);
+	this.getDeviceOverridesHandler =  this.getDeviceOverrides.bindAsEventListener(this);
+	this.GetIdentityOverridesHandler =  this.GetIdentityOverrides.bindAsEventListener(this);
 	this.delOverridesHandler =  this.delOverrides.bindAsEventListener(this);
 	this.putOverridesHandler =  this.putOverrides.bindAsEventListener(this);
 	this.locationHostChangedHandler = this.locationHostChanged.bindAsEventListener(this);
 	this.setLocationHostTapHandler = this.setLocationHostTap.bindAsEventListener(this);
+	this.chameleonIdentityChangedHandler = this.chameleonIdentityChanged.bindAsEventListener(this);
+	this.setChameleonIdentityTapHandler = this.setChameleonIdentityTap.bindAsEventListener(this);
 	
 	// setup wigets
 	this.spinnerModel = {spinning: true};
@@ -144,6 +162,16 @@ DeviceProfileAssistant.prototype.setup = function()
 	this.controller.listen(this.locationHostInputField, Mojo.Event.propertyChange, this.locationHostChangedHandler);
 	this.controller.setupWidget('setLocationHostButton', { type: Mojo.Widget.activityButton }, this.setLocationHostButtonModel);
 	this.controller.listen(this.setLocationHostButton,  Mojo.Event.tap, this.setLocationHostTapHandler);
+	this.controller.setupWidget('chameleonIdentityInputField', {
+			autoReplace: false,
+				hintText: 'Enter chameleon identity ...',
+				changeOnKeyPress: true,
+				'textCase':Mojo.Widget.steModeLowerCase,
+				focusMode: Mojo.Widget.focusSelectMode },
+		this.chameleonIdentityInputFieldModel);
+	this.controller.listen(this.chameleonIdentityInputField, Mojo.Event.propertyChange, this.chameleonIdentityChangedHandler);
+	this.controller.setupWidget('setChameleonIdentityButton', { type: Mojo.Widget.activityButton }, this.setChameleonIdentityButtonModel);
+	this.controller.listen(this.setChameleonIdentityButton,  Mojo.Event.tap, this.setChameleonIdentityTapHandler);
 };
 
 DeviceProfileAssistant.prototype.activate = function()
@@ -179,6 +207,8 @@ DeviceProfileAssistant.prototype.getDeviceProfile = function(returnValue, device
 		this.deviceImpersonationSelectorModel.value = 
 			this.deviceProfile.deviceModel+"/"+this.deviceProfile.carrier;
 		this.controller.modelChanged(this.deviceImpersonationSelectorModel);
+		this.chameleonIdentityInputFieldModel.disabled = false;
+		this.controller.modelChanged(this.chameleonIdentityInputFieldModel);
 	}
 
 	this.updateSpinner(true);
@@ -271,12 +301,12 @@ DeviceProfileAssistant.prototype.setDeviceImpersonationTap = function(event)
 			parameters: {
 				"ids" : ['org.webosinternals.impostah.deviceprofile']
 			},
-			onSuccess: this.getOverridesHandler,
-			onFailure: this.getOverridesHandler
+			onSuccess: this.getDeviceOverridesHandler,
+			onFailure: this.getDeviceOverridesHandler
 		});
 };
 
-DeviceProfileAssistant.prototype.getOverrides = function(payload)
+DeviceProfileAssistant.prototype.getDeviceOverrides = function(payload)
 {
 	if (this.requestDb8) this.requestDb8.cancel();
 	this.requestDb8 = false;
@@ -284,7 +314,7 @@ DeviceProfileAssistant.prototype.getOverrides = function(payload)
 	this.updateSpinner(false);
 
 	if (payload.returnValue === false) {
-		this.errorMessage('<b>Service Error (getOverrides):</b><br>'+payload.errorText);
+		this.errorMessage('<b>Service Error (getDeviceOverrides):</b><br>'+payload.errorText);
 		return;
 	}
 
@@ -366,7 +396,6 @@ DeviceProfileAssistant.prototype.getOverrides = function(payload)
 		this.overrides['dmSets'] = '{"sets":"2167","2171"}';
 		this.overrides['softwareBuildBranch'] = "HP webOS 2.2.3";
 		break;
-		break;
 	case "HSTNH-F30CE/ROW":
 		this.overrides['carrierROM'] = "Nova-WR-Mantaray-3171";
 		this.overrides['softwareVersion'] = "Nova-WR-Mantaray-3171";
@@ -432,7 +461,9 @@ DeviceProfileAssistant.prototype.putOverrides = function(payload)
 	if (this.requestDb8) this.requestDb8.cancel();
 	this.requestDb8 = false;
 
+	// Either button can trigger this path
 	this.setDeviceImpersonationButton.mojo.deactivate();
+	this.setChameleonIdentityButton.mojo.deactivate();
 
 	if (payload.returnValue === false) {
 		this.errorMessage('<b>Service Error (putOverrides):</b><br>'+payload.errorText);
@@ -473,6 +504,92 @@ DeviceProfileAssistant.prototype.setLocationHost = function(returnValue, errorTe
 	this.locationHost = this.locationHostInputFieldModel.value;
 	this.setLocationHostButtonModel.disabled = true;
 	this.controller.modelChanged(this.setLocationHostButtonModel);
+};
+
+DeviceProfileAssistant.prototype.chameleonIdentityChanged = function(event)
+{
+	if (event.value != '') {
+		this.setChameleonIdentityButtonModel.disabled = false;
+		this.controller.modelChanged(this.setChameleonIdentityButtonModel);
+	}
+	else {
+		this.setChameleonIdentityButtonModel.disabled = true;
+		this.controller.modelChanged(this.setChameleonIdentityButtonModel);
+	}
+};
+
+DeviceProfileAssistant.prototype.setChameleonIdentityTap = function(event)
+{
+	this.updateSpinner(true);
+
+	this.dirtyDeviceProfile();
+	
+	if (this.requestDb8) this.requestDb8.cancel();
+	this.requestDb8 = new Mojo.Service.Request("palm://com.palm.db/", {
+			method: "get",
+			parameters: {
+				"ids" : ['org.webosinternals.impostah.deviceprofile']
+			},
+			onSuccess: this.GetIdentityOverridesHandler,
+			onFailure: this.GetIdentityOverridesHandler
+		});
+};
+
+DeviceProfileAssistant.prototype.GetIdentityOverrides = function(payload)
+{
+	if (this.requestDb8) this.requestDb8.cancel();
+	this.requestDb8 = false;
+
+	this.updateSpinner(false);
+
+	if (payload.returnValue === false) {
+		this.errorMessage('<b>Service Error (GetIdentityOverrides):</b><br>'+payload.errorText);
+		return;
+	}
+
+	if (payload.results && (payload.results.length == 1)) {
+		this.overrides = payload.results[0];
+		delete this.overrides["_rev"];
+		delete this.overrides["_sync"];
+		if (this.overrides["_del"] == true) {
+			this.overrides = {
+				"_id":'org.webosinternals.impostah.deviceprofile',
+				"_kind":"org.webosinternals.impostah:1"
+			}
+		}
+	}
+	else {
+		this.overrides = {
+			"_id":'org.webosinternals.impostah.deviceprofile',
+			"_kind":"org.webosinternals.impostah:1"
+		}
+	}
+
+	var alphanumeric = hex_sha1(this.chameleonIdentityInputFieldModel.value);
+
+	var numeric = '';
+	for (var i = 0; i < 40; i++) {
+		var char = alphanumeric.charAt(i);
+		if ((char >= '0') && (char <= '9')) {
+			numeric += char;
+		}
+	}
+	numeric += "0000000";
+	numeric = numeric.slice(0,7);
+
+	this.overrides['nduId'] = alphanumeric;
+
+	this.overrides['deviceId'] = 'IMEI:00440145' + numeric;
+
+	var serialNumber = this.deviceProfile.serialNumber;
+	if (serialNumber && (serialNumber.length > 7)) {
+		this.overrides['serialNumber'] = serialNumber.slice(0, serialNumber.length-6) + numeric;
+	}
+	else {
+		this.overrides['serialNumber'] = "AE21P" + numeric;
+	}
+
+	this.saveOverrides();
 };
 
 DeviceProfileAssistant.prototype.updateSpinner = function(active)
@@ -537,6 +654,10 @@ DeviceProfileAssistant.prototype.cleanup = function(event)
 								  this.locationHostChangedHandler);
 	this.controller.stopListening(this.setLocationHostButton,  Mojo.Event.tap,
 								  this.setLocationHostTapHandler);
+	this.controller.stopListening(this.chameleonIdentityInputField, Mojo.Event.propertyChange,
+								  this.chameleonIdentityChangedHandler);
+	this.controller.stopListening(this.setChameleonIdentityButton,  Mojo.Event.tap,
+								  this.setChameleonIdentityTapHandler);
 };
 
 // Local Variables:

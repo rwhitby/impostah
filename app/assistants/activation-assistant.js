@@ -23,7 +23,8 @@ function ActivationAssistant()
 	{label:"United States (Sprint)", value:'US-4'},
 	{label:"United States (Palm)", value:'US-5'},
 	{label:"United States (Verizon)", value:'US-114'},
-	{label:"United Kingdom", value:'GB'},
+	{label:"United Kingdom (Palm)", value:'GB-5'},
+	{label:"United Kingdom (O2)", value:'GB-46'},
 	{label:"Australia (Palm)", value:'AU-5'},
 	{label:"Australia (Telstra)", value:'AU-24'},
 	{label:"Canada (Bell)", value:'CA-0'},
@@ -322,7 +323,11 @@ ActivationAssistant.prototype.countryChanged = function(event)
 		this.country = "US";
 		this.overrideMcc = false; this.overrideMnc = false;
 		break;
-	case 'GB':
+	case 'GB-5':
+		this.country = "GB";
+		this.overrideMcc = false; this.overrideMnc = false;
+		break;
+	case 'GB-46':
 		this.country = "GB";
 		this.overrideMcc = '234'; this.overrideMnc = '10';
 		break;

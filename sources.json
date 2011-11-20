@@ -12,6 +12,7 @@
     {"source": "app/models/paymentServer.js"},
     {"source": "app/models/backupServer.js"},
     {"source": "app/models/systemPreferences.js"},
+    {"source": "app/models/sha1.js"},
     {"source": "app/assistants/app-assistant.js"},
     {
         "scenes": "startup",

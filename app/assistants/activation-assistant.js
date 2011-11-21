@@ -19,22 +19,30 @@ function ActivationAssistant()
 	this.countrySelectorModel = {
 		disabled: true,
 		choices: [
-	{label:"United States (AT&T)", value:'US-1'},
-	{label:"United States (Sprint)", value:'US-4'},
-	{label:"United States (Palm)", value:'US-5'},
-	{label:"United States (Verizon)", value:'US-114'},
-	{label:"United Kingdom (Palm)", value:'GB-5'},
-	{label:"United Kingdom (O2)", value:'GB-46'},
 	{label:"Australia (Palm)", value:'AU-5'},
 	{label:"Australia (Telstra)", value:'AU-24'},
 	{label:"Canada (Bell)", value:'CA-0'},
+	{label:"Canada (Palm)", value:'CA-5'},
 	{label:"Canada (Rogers)", value:'CA-64'},
-	{label:"France", value:'FR'},
-	{label:"Germany", value:'DE'},
-	{label:"Ireland", value:'IE'},
-	{label:"Italy", value:'IT'},
-	{label:"Spain", value:'ES'},
-	{label:"Mexico (Telcel)", value:'MX'},
+	{label:"France (Palm)", value:'FR-5'},
+	{label:"France (SFR)", value:'FR-37'},
+	{label:"Germany (O2)", value:'DE-56'},
+	{label:"Germany (Palm)", value:'DE-5'},
+	{label:"Hong Kong (Palm)", value:'HK-5'},
+	{label:"Ireland (O2)", value:'IE-60'},
+	{label:"Ireland (Palm)", value:'IE-5'},
+	{label:"Singapore (Palm)", value:'SG-5'},
+	{label:"Spain (Movistar)", value:'ES-39'},
+	{label:"Spain (Palm)", value:'ES-5'},
+	{label:"Mexico (Palm)", value:'MX-5'},
+	{label:"Mexico (Telcel)", value:'MX-10'},
+	{label:"New Zealand (Palm)", value:'NZ-5'},
+	{label:"United Kingdom (O2)", value:'GB-46'},
+	{label:"United Kingdom (Palm)", value:'GB-5'},
+	{label:"United States (AT&T)", value:'US-1'},
+	{label:"United States (Palm)", value:'US-5'},
+	{label:"United States (Sprint)", value:'US-4'},
+	{label:"United States (Verizon)", value:'US-114'},
 				  ],
 		value: 'US-5'
 	};
@@ -307,6 +315,86 @@ ActivationAssistant.prototype.countryChanged = function(event)
 	var country = event.value;
 
 	switch (country) {
+	case 'AU-5':
+		this.country = "AU";
+		this.overrideMcc = false; this.overrideMnc = false;
+		break;
+	case 'AU-24':
+		this.country = "AU";
+		this.overrideMcc = '505'; this.overrideMnc = '01';
+		break;
+	case 'CA-5':
+		this.country = "CA";
+		this.overrideMcc = false; this.overrideMnc = false;
+		break;
+	case 'CA-0':
+		this.country = "CA";
+		this.overrideMcc = '302'; this.overrideMnc = '610';
+		break;
+	case 'CA-64':
+		this.country = "CA";
+		this.overrideMcc = '302'; this.overrideMnc = '720';
+		break;
+	case 'FR-5':
+		this.country = "FR";
+		this.overrideMcc = false; this.overrideMnc = false;
+		break;
+	case 'FR-37':
+		this.country = "FR";
+		this.overrideMcc = '208'; this.overrideMnc = '10';
+		break;
+	case 'DE-5':
+		this.country = "DE";
+		this.overrideMcc = false; this.overrideMnc = false;
+		break;
+	case 'DE-56':
+		this.country = "DE";
+		this.overrideMcc = '262'; this.overrideMnc = '07';
+		break;
+	case 'ES-5':
+		this.country = "ES";
+		this.overrideMcc = false; this.overrideMnc = false;
+		break;
+	case 'ES-39':
+		this.country = "ES";
+		this.overrideMcc = '214'; this.overrideMnc = '07';
+		break;
+	case 'GB-5':
+		this.country = "GB";
+		this.overrideMcc = false; this.overrideMnc = false;
+		break;
+	case 'GB-46':
+		this.country = "GB";
+		this.overrideMcc = '234'; this.overrideMnc = '10';
+		break;
+	case 'HK-5':
+		this.country = "HK";
+		this.overrideMcc = false; this.overrideMnc = false;
+		break;
+	case 'IE-5':
+		this.country = "IE";
+		this.overrideMcc = false; this.overrideMnc = false;
+		break;
+	case 'IE-60':
+		this.country = "IE";
+		this.overrideMcc = '272'; this.overrideMnc = '02';
+		break;
+	case 'MX-5':
+		this.country = "MX";
+		this.overrideMcc = false; this.overrideMnc = false;
+		break;
+	case 'MX-10':
+		this.country = "MX";
+		this.overrideMcc = '334'; this.overrideMnc = '20';
+		break;
+	case 'NZ-5':
+		this.country = "NZ";
+		this.overrideMcc = false; this.overrideMnc = false;
+		break;
+	case 'SG-5':
+		this.country = "SG";
+		this.overrideMcc = false; this.overrideMnc = false;
+		break;
 	case 'US-1':
 		this.country = "US";
 		this.overrideMcc = "310"; this.overrideMnc = "410";
@@ -322,54 +410,6 @@ ActivationAssistant.prototype.countryChanged = function(event)
 	case 'US-114':
 		this.country = "US";
 		this.overrideMcc = false; this.overrideMnc = false;
-		break;
-	case 'GB-5':
-		this.country = "GB";
-		this.overrideMcc = false; this.overrideMnc = false;
-		break;
-	case 'GB-46':
-		this.country = "GB";
-		this.overrideMcc = '234'; this.overrideMnc = '10';
-		break;
-	case 'AU-5':
-		this.country = "AU";
-		this.overrideMcc = false; this.overrideMnc = false;
-		break;
-	case 'AU-24':
-		this.country = "AU";
-		this.overrideMcc = '505'; this.overrideMnc = '01';
-		break;
-	case 'CA-0':
-		this.country = "CA";
-		this.overrideMcc = '302'; this.overrideMnc = '610';
-		break;
-	case 'CA-64':
-		this.country = "CA";
-		this.overrideMcc = '302'; this.overrideMnc = '720';
-		break;
-	case 'FR':
-		this.country = "FR";
-		this.overrideMcc = '208'; this.overrideMnc = '10';
-		break;
-	case 'DE':
-		this.country = "DE";
-		this.overrideMcc = '262'; this.overrideMnc = '07';
-		break;
-	case 'ES':
-		this.country = "ES";
-		this.overrideMcc = '214'; this.overrideMnc = '07';
-		break;
-	case 'IT':
-		this.country = "IT";
-		this.overrideMcc = '222'; this.overrideMnc = '10';
-		break;
-	case 'IE':
-		this.country = "IE";
-		this.overrideMcc = '272'; this.overrideMnc = '02';
-		break;
-	case 'MX':
-		this.country = "MX";
-		this.overrideMcc = '334'; this.overrideMnc = '20';
 		break;
 	default:
 		this.country = country;

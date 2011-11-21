@@ -29,31 +29,31 @@ function DeviceProfileAssistant()
 	this.deviceImpersonationSelectorModel = {
 		disabled: true,
 		choices: [
-	{label:"NA Pre (Sprint)",		value:'P100EWW/Sprint'},
-	{label:"NA Pre (Bell)",			value:'P100EWW/Bell'},
-	{label:"NA Pre (Telcel)",		value:'P100UNA/ROW'},
-	{label:"EU Pre (ROW)",			value:'P100UEU/ROW'},
-	{label:"NA Pre+ (AT&T)",		value:'P101UNA/ATT'},
-	{label:"NA Pre+ (Verizon)",		value:'P101EWW/Verizon'},
-	{label:"EU Pre+ (ROW)",			value:'P101UEU/ROW'},
-	{label:"NA Pixi (Sprint)",		value:'P120EWW/Sprint'},
-	{label:"NA Pixi+ (AT&T)",		value:'P121UNA/ATT'},
-	{label:"NA Pixi+ (Verizon)",	value:'P121UNA/Verizon'},
-	{label:"EU Pixi+ (ROW)",		value:'P121UEU/ROW'},
-	{label:"NA Pre 2 (AT&T)",		value:'P102UNA/ATT'},
-	{label:"NA Pre 2 (Sprint)",		value:'P102EWW/Sprint'},
-	{label:"NA Pre 2 (Verizon)",	value:'P102EWW/Verizon'},
-	{label:"NA Pre 2 (ROW)",		value:'P102UNA/ROW'},
-	{label:"EU Pre 2 (ROW)",		value:'P102UEU/ROW'},
-	{label:"NA Veer (AT&T)",		value:'P160UNA/ATT'},
-	{label:"NA Veer (ROW)",			value:'P160UNA/ROW'},
-	{label:"EU Veer (ROW)",			value:'P160UEU/ROW'},
+				  //	{label:"NA Pre (Sprint)",		value:'P100EWW/Sprint'},
+				  //	{label:"NA Pre (Bell)",			value:'P100EWW/Bell'},
+				  //	{label:"NA Pre (ROW)",			value:'P100UNA/ROW'},
+				  //	{label:"EU Pre (ROW)",			value:'P100UEU/ROW'},
+				  //	{label:"NA Pre+ (AT&T)",		value:'P101UNA/ATT'},
+				  //	{label:"NA Pre+ (Verizon)",		value:'P101EWW/Verizon'},
+				  //	{label:"EU Pre+ (ROW)",			value:'P101UEU/ROW'},
+				  //	{label:"NA Pixi (Sprint)",		value:'P120EWW/Sprint'},
+				  //	{label:"NA Pixi+ (AT&T)",		value:'P121UNA/ATT'},
+				  //	{label:"NA Pixi+ (Verizon)",	value:'P121UNA/Verizon'},
+				  //	{label:"EU Pixi+ (ROW)",		value:'P121UEU/ROW'},
+				  //	{label:"NA Pre 2 (AT&T)",		value:'P102UNA/ATT'},
+				  //	{label:"NA Pre 2 (Sprint)",		value:'P102EWW/Sprint'},
+				  //	{label:"NA Pre 2 (Verizon)",	value:'P102EWW/Verizon'},
+				  //	{label:"NA Pre 2 (ROW)",		value:'P102UNA/ROW'},
+				  //	{label:"EU Pre 2 (ROW)",		value:'P102UEU/ROW'},
+				  //	{label:"NA Veer (AT&T)",		value:'P160UNA/ATT'},
+				  //	{label:"NA Veer (ROW)",			value:'P160UNA/ROW'},
+				  //	{label:"EU Veer (ROW)",			value:'P160UEU/ROW'},
 	{label:"NA Pre 3 (AT&T)",		value:'HSTNH-F30CN/ATT'},
 	{label:"NA Pre 3 (Verizon)",	value:'HSTNH-F30CV/Verizon'},
 	{label:"EU Pre 3 (ROW)",		value:'HSTNH-F30CE/ROW'},
 	{label:"TouchPad (WiFi)",		value:'HSTNH-I29C/'},
-	{label:"TouchPad (AT&T)",		value:'HSTNH-I30C/ATT'},
-	{label:"TouchPad Go",			value:'HSTNH-I32C/'},
+	{label:"TouchPad 3G (AT&T)",	value:'HSTNH-I30C/ATT'},
+	//	{label:"TouchPad Go",			value:'HSTNH-I32C/'},
 	{label:"SDK Emulator",			value:'/'},
 				  ],
 	};
@@ -81,7 +81,7 @@ function DeviceProfileAssistant()
 	};
 
 	this.setChameleonIdentityButtonModel = {
-		label: $L("Set Chameleon Identiy"),
+		label: $L("Set Chameleon Identity"),
 		disabled: true
 	};
 
@@ -203,9 +203,9 @@ DeviceProfileAssistant.prototype.getDeviceProfile = function(returnValue, device
 		this.controller.modelChanged(this.deviceProfileButtonModel);
 		this.manageOverridesButtonModel.disabled = false;
 		this.controller.modelChanged(this.manageOverridesButtonModel);
+		this.currentDevice = this.deviceProfile.deviceModel+"/"+this.deviceProfile.carrier;
 		this.deviceImpersonationSelectorModel.disabled = false;
-		this.deviceImpersonationSelectorModel.value = 
-			this.deviceProfile.deviceModel+"/"+this.deviceProfile.carrier;
+		this.deviceImpersonationSelectorModel.value = this.currentDevice;
 		this.controller.modelChanged(this.deviceImpersonationSelectorModel);
 		this.chameleonIdentityInputFieldModel.disabled = false;
 		this.controller.modelChanged(this.chameleonIdentityInputFieldModel);
@@ -384,6 +384,8 @@ DeviceProfileAssistant.prototype.getDeviceOverrides = function(payload)
 		break;
 	case "HSTNH-F30CN/ATT":
 		this.overrides['carrierROM'] = "Nova-ATT-Mantaray-2207";
+		this.overrides['network'] = "gsm";
+		this.overrides['dataNetwork'] = "gsm,edge,umts,hsdpa";
 		this.overrides['softwareVersion'] = "Nova-ATT-Mantaray-2207";
 		this.overrides['hardwareType'] = "mantaray";
 		this.overrides['dmSets'] = '{"sets":"2175","2179"}';
@@ -391,6 +393,8 @@ DeviceProfileAssistant.prototype.getDeviceOverrides = function(payload)
 		break;
 	case "HSTNH-F30CV/Verizon":
 		this.overrides['carrierROM'] = "Nova-Verizon-Mantaray-1217";
+		this.overrides['network'] = "gsm";
+		this.overrides['dataNetwork'] = "gsm,edge,umts,hsdpa";
 		this.overrides['softwareVersion'] = "Nova-Verizon-Mantaray-1217";
 		this.overrides['hardwareType'] = "mantaray";
 		this.overrides['dmSets'] = '{"sets":"2167","2171"}';
@@ -398,6 +402,8 @@ DeviceProfileAssistant.prototype.getDeviceOverrides = function(payload)
 		break;
 	case "HSTNH-F30CE/ROW":
 		this.overrides['carrierROM'] = "Nova-WR-Mantaray-3171";
+		this.overrides['network'] = "gsm";
+		this.overrides['dataNetwork'] = "gsm,edge,umts,hsdpa";
 		this.overrides['softwareVersion'] = "Nova-WR-Mantaray-3171";
 		this.overrides['hardwareType'] = "mantaray";
 		this.overrides['dmSets'] = '{"sets":"2191","2195"}';
@@ -406,6 +412,8 @@ DeviceProfileAssistant.prototype.getDeviceOverrides = function(payload)
 	case "HSTNH-I29C/":
 		this.overrides['deviceId'] = "";
 		this.overrides['carrierROM'] = "Nova-HP-Topaz-77";
+		this.overrides['network'] = "none";
+		this.overrides['dataNetwork'] = "unknown";
 		this.overrides['softwareVersion'] = "Nova-HP-Topaz-77";
 		this.overrides['hardwareType'] = "topaz";
 		this.overrides['dmSets'] = '{"sets":"2151","2155"}';
@@ -415,6 +423,8 @@ DeviceProfileAssistant.prototype.getDeviceOverrides = function(payload)
 		break;
 	case "HSTNH-I30C/ATT":
 		this.overrides['carrierROM'] = "Nova-ATT-Topaz-78";
+		this.overrides['network'] = "gsm";
+		this.overrides['dataNetwork'] = "gsm,edge,umts,hsdpa";
 		this.overrides['softwareVersion'] = "Nova-ATT-Topaz-78";
 		this.overrides['hardwareType'] = "topaz";
 		this.overrides['dmSets'] = '{"sets":"2143","2147"}';
@@ -579,7 +589,9 @@ DeviceProfileAssistant.prototype.GetIdentityOverrides = function(payload)
 
 	this.overrides['nduId'] = alphanumeric;
 
-	this.overrides['deviceId'] = 'IMEI:00440145' + numeric;
+	if (this.currentDevice != 'HSTNH-I29C/') {
+		this.overrides['deviceId'] = 'IMEI:00440145' + numeric;
+	}
 
 	var serialNumber = this.deviceProfile.serialNumber;
 	if (serialNumber && (serialNumber.length > 7)) {

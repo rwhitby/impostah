@@ -28,15 +28,19 @@ function ActivationAssistant()
 	{label:"France (SFR)", value:'FR-37'},
 	{label:"Germany (O2)", value:'DE-56'},
 	{label:"Germany (Palm)", value:'DE-5'},
+	{label:"Hong Kong (CSL)", value:'HK-67'},
 	{label:"Hong Kong (Palm)", value:'HK-5'},
 	{label:"Ireland (O2)", value:'IE-60'},
 	{label:"Ireland (Palm)", value:'IE-5'},
 	{label:"Singapore (Palm)", value:'SG-5'},
+	{label:"Singapore (SingTel)", value:'SG'},
 	{label:"Spain (Movistar)", value:'ES-39'},
 	{label:"Spain (Palm)", value:'ES-5'},
 	{label:"Mexico (Palm)", value:'MX-5'},
 	{label:"Mexico (Telcel)", value:'MX-10'},
+	{label:"Mexico (Movistar)", value:'MX-10'},
 	{label:"New Zealand (Palm)", value:'NZ-5'},
+	{label:"New Zealand (Vodafone)", value:'NZ-246'},
 	{label:"United Kingdom (O2)", value:'GB-46'},
 	{label:"United Kingdom (Palm)", value:'GB-5'},
 	{label:"United States (AT&T)", value:'US-1'},
@@ -371,6 +375,10 @@ ActivationAssistant.prototype.countryChanged = function(event)
 		this.country = "HK";
 		this.overrideMcc = false; this.overrideMnc = false;
 		break;
+	case 'HK-67':
+		this.country = "HK";
+		this.overrideMcc = '454'; this.overrideMnc = '00';
+		break;
 	case 'IE-5':
 		this.country = "IE";
 		this.overrideMcc = false; this.overrideMnc = false;
@@ -391,9 +399,17 @@ ActivationAssistant.prototype.countryChanged = function(event)
 		this.country = "NZ";
 		this.overrideMcc = false; this.overrideMnc = false;
 		break;
+	case 'NZ-246':
+		this.country = "NZ";
+		this.overrideMcc = '530'; this.overrideMnc = '01';
+		break;
 	case 'SG-5':
 		this.country = "SG";
 		this.overrideMcc = false; this.overrideMnc = false;
+		break;
+	case 'SG':
+		this.country = "SG";
+		this.overrideMcc = '525'; this.overrideMnc = '01';
 		break;
 	case 'US-1':
 		this.country = "US";

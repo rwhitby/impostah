@@ -36,25 +36,23 @@ function DeviceProfileAssistant()
 				  //	{label:"NA Pre+ (AT&T)",		value:'P101UNA/ATT'},
 				  //	{label:"NA Pre+ (Verizon)",		value:'P101EWW/Verizon'},
 				  //	{label:"EU Pre+ (ROW)",			value:'P101UEU/ROW'},
-				  //	{label:"NA Pixi (Sprint)",		value:'P120EWW/Sprint'},
-				  //	{label:"NA Pixi+ (AT&T)",		value:'P121UNA/ATT'},
-				  //	{label:"NA Pixi+ (Verizon)",	value:'P121UNA/Verizon'},
-				  //	{label:"EU Pixi+ (ROW)",		value:'P121UEU/ROW'},
-				  //	{label:"NA Pre 2 (AT&T)",		value:'P102UNA/ATT'},
-				  //	{label:"NA Pre 2 (Sprint)",		value:'P102EWW/Sprint'},
-				  //	{label:"NA Pre 2 (Verizon)",	value:'P102EWW/Verizon'},
-				  //	{label:"NA Pre 2 (ROW)",		value:'P102UNA/ROW'},
-				  //	{label:"EU Pre 2 (ROW)",		value:'P102UEU/ROW'},
-				  //	{label:"NA Veer (AT&T)",		value:'P160UNA/ATT'},
-				  //	{label:"NA Veer (ROW)",			value:'P160UNA/ROW'},
-				  //	{label:"EU Veer (ROW)",			value:'P160UEU/ROW'},
+	{label:"NA Pixi (Sprint)",		value:'P120EWW/Sprint'},
+	{label:"NA Pixi+ (AT&T)",		value:'P121UNA/ATT'},
+	{label:"NA Pixi+ (Verizon)",	value:'P121UNA/Verizon'},
+	{label:"EU Pixi+ (ROW)",		value:'P121UEU/ROW'},
+	{label:"NA Pre 2 (Verizon)",	value:'P102EWW/Verizon'},
+	{label:"NA Pre 2 (ROW)",		value:'P102UNA/ROW'},
+	{label:"EU Pre 2 (ROW)",		value:'P102UEU/ROW'},
+	{label:"NA Veer (AT&T)",		value:'P160UNA/ATT'},
+	{label:"NA Veer (ROW)",			value:'P160UNA/ROW'},
+	{label:"EU Veer (ROW)",			value:'P160UEU/ROW'},
 	{label:"NA Pre 3 (AT&T)",		value:'HSTNH-F30CN/ATT'},
 	{label:"NA Pre 3 (Verizon)",	value:'HSTNH-F30CV/Verizon'},
 	{label:"EU Pre 3 (ROW)",		value:'HSTNH-F30CE/ROW'},
 	{label:"TouchPad (WiFi)",		value:'HSTNH-I29C/'},
 	{label:"TouchPad 3G (AT&T)",	value:'HSTNH-I30C/ATT'},
-	//	{label:"TouchPad Go",			value:'HSTNH-I32C/'},
-	{label:"SDK Emulator",			value:'/'},
+	// {label:"TouchPad Go",			value:'HSTNH-I32C/'},
+	{label:"SDK Emulator",			value:'/'}
 				  ],
 	};
 
@@ -104,6 +102,7 @@ DeviceProfileAssistant.prototype.setup = function()
 	this.overlay = this.controller.get('overlay'); this.overlay.hide();
 	this.spinnerElement = this.controller.get('spinner');
 	this.deviceProfileButton = this.controller.get('deviceProfileButton');
+	this.patchNeeded = this.controller.get('patchNeeded');
 	this.manageOverridesButton = this.controller.get('manageOverridesButton');
 	this.deviceImpersonationGroup = this.controller.get('deviceImpersonationGroup');
 	this.deviceImpersonationSelector = this.controller.get('deviceImpersonationSelector');
@@ -116,6 +115,7 @@ DeviceProfileAssistant.prototype.setup = function()
 	this.setChameleonIdentityButton = this.controller.get('setChameleonIdentityButton');
 	
 	if (Mojo.Environment.DeviceInfo.platformVersionMajor == 1) {
+		this.patchNeeded.style.display = 'none';
 		this.manageOverridesButton.style.display = 'none';
 		this.deviceImpersonationGroup.style.display = 'none';
 		this.locationHostGroup.style.display = 'none';
@@ -326,14 +326,14 @@ DeviceProfileAssistant.prototype.getDeviceOverrides = function(payload)
 			this.overrides = {
 				"_id":'org.webosinternals.impostah.deviceprofile',
 				"_kind":"org.webosinternals.impostah:1"
-			}
+			};
 		}
 	}
 	else {
 		this.overrides = {
 			"_id":'org.webosinternals.impostah.deviceprofile',
 			"_kind":"org.webosinternals.impostah:1"
-		}
+		};
 	}
 
 	this.currentDevice = this.deviceImpersonationSelectorModel.value;
@@ -359,33 +359,88 @@ DeviceProfileAssistant.prototype.getDeviceOverrides = function(payload)
 	case "P101UEU/ROW":
 		break;
 	case "P120EWW/Sprint":
+		this.overrides['carrierROM'] = "Nova-Sprint-Pixie-271";
+		this.overrides['network'] = "cdma";
+		this.overrides['softwareVersion'] = "Nova-Sprint-Pixie-271";
+		this.overrides['hardwareType'] = "pixie";
+		this.overrides['dmSets'] = '{"sets":"443","447"}';
+		this.overrides['softwareBuildBranch'] = "Palm webOS 1.4.5";
 		break;
 	case "P121UNA/ATT":
+		this.overrides['carrierROM'] = "Nova-ATT-Pixie-233";
+		this.overrides['network'] = "gsm";
+		this.overrides['softwareVersion'] = "Nova-ATT-Pixie-233";
+		this.overrides['hardwareType'] = "pixie";
+		this.overrides['dmSets'] = '{"sets":"510","514"}';
+		this.overrides['softwareBuildBranch'] = "Palm webOS 1.4.5";
 		break;
 	case "P121UNA/Verizon":
+		this.overrides['carrierROM'] = "Nova-Verizon-Pixie-276";
+		this.overrides['network'] = "cdma";
+		this.overrides['softwareVersion'] = "Nova-Verizon-Pixie-276";
+		this.overrides['hardwareType'] = "pixie";
+		this.overrides['dmSets'] = '{"sets":"500","504"}';
+		this.overrides['softwareBuildBranch'] = "Palm webOS 1.4.5.1";
 		break;
 	case "P121UEU/ROW":
-		break;
-	case "P102UNA/ATT":
-		break;
-	case "P102EWW/Sprint":
+		this.overrides['carrierROM'] = "Nova-WR-Pixie-231";
+		this.overrides['network'] = "gsm";
+		this.overrides['softwareVersion'] = "Nova-WR-Pixie-231";
+		this.overrides['hardwareType'] = "pixie";
+		this.overrides['dmSets'] = '{"sets":"548","552"}';
+		this.overrides['softwareBuildBranch'] = "Palm webOS 1.4.5";
 		break;
 	case "P102EWW/Verizon":
+		this.overrides['carrierROM'] = "Nova-Verizon-Roadrunner-124";
+		this.overrides['network'] = "cdma";
+		this.overrides['softwareVersion'] = "Nova-Verizon-RoadRunner-124";
+		this.overrides['hardwareType'] = "roadrunner";
+		this.overrides['dmSets'] = '{"sets":"1435","1439"}';
+		this.overrides['softwareBuildBranch'] = "HP webOS 2.1.0";
 		break;
 	case "P102UNA/ROW":
+		this.overrides['carrierROM'] = "Nova-WR-Roadrunner-100";
+		this.overrides['network'] = "gsm";
+		this.overrides['softwareVersion'] = "Nova-WR-RoadRunner-100";
+		this.overrides['hardwareType'] = "roadrunner";
+		this.overrides['dmSets'] = '{"sets":"1443","1447"}';
+		this.overrides['softwareBuildBranch'] = "HP webOS 2.1.0";
 		break;
 	case "P102UEU/ROW":
+		this.overrides['carrierROM'] = "Nova-WR-Roadrunner-100";
+		this.overrides['network'] = "gsm";
+		this.overrides['softwareVersion'] = "Nova-WR-RoadRunner-100";
+		this.overrides['hardwareType'] = "roadrunner";
+		this.overrides['dmSets'] = '{"sets":"1443","1447"}';
+		this.overrides['softwareBuildBranch'] = "HP webOS 2.1.0";
 		break;
 	case "P160UNA/ATT":
+		this.overrides['carrierROM'] = "Nova-ATT-Broadway-2296";
+		this.overrides['network'] = "gsm";
+		this.overrides['softwareVersion'] = "Nova-ATT-Broadway-2296";
+		this.overrides['hardwareType'] = "broadway";
+		this.overrides['dmSets'] = '{"sets":"1052","1056"}';
+		this.overrides['softwareBuildBranch'] = "HP webOS 2.1.2";
 		break;
 	case "P160UNA/ROW":
+		this.overrides['carrierROM'] = "Nova-WR-Broadway-4111";
+		this.overrides['network'] = "gsm";
+		this.overrides['softwareVersion'] = "Nova-WR-Broadway-4111";
+		this.overrides['hardwareType'] = "broadway";
+		this.overrides['dmSets'] = '{"sets":"1721","1725"}';
+		this.overrides['softwareBuildBranch'] = "HP webOS 2.1.1";
 		break;
 	case "P160UEU/ROW":
+		this.overrides['carrierROM'] = "Nova-WR-Broadway-4111";
+		this.overrides['network'] = "gsm";
+		this.overrides['softwareVersion'] = "Nova-WR-Broadway-4111";
+		this.overrides['hardwareType'] = "broadway";
+		this.overrides['dmSets'] = '{"sets":"1721","1725"}';
+		this.overrides['softwareBuildBranch'] = "HP webOS 2.1.1";
 		break;
 	case "HSTNH-F30CN/ATT":
 		this.overrides['carrierROM'] = "Nova-ATT-Mantaray-2207";
 		this.overrides['network'] = "gsm";
-		this.overrides['dataNetwork'] = "gsm,edge,umts,hsdpa";
 		this.overrides['softwareVersion'] = "Nova-ATT-Mantaray-2207";
 		this.overrides['hardwareType'] = "mantaray";
 		this.overrides['dmSets'] = '{"sets":"2175","2179"}';
@@ -394,7 +449,6 @@ DeviceProfileAssistant.prototype.getDeviceOverrides = function(payload)
 	case "HSTNH-F30CV/Verizon":
 		this.overrides['carrierROM'] = "Nova-Verizon-Mantaray-1217";
 		this.overrides['network'] = "gsm";
-		this.overrides['dataNetwork'] = "gsm,edge,umts,hsdpa";
 		this.overrides['softwareVersion'] = "Nova-Verizon-Mantaray-1217";
 		this.overrides['hardwareType'] = "mantaray";
 		this.overrides['dmSets'] = '{"sets":"2167","2171"}';
@@ -403,7 +457,6 @@ DeviceProfileAssistant.prototype.getDeviceOverrides = function(payload)
 	case "HSTNH-F30CE/ROW":
 		this.overrides['carrierROM'] = "Nova-WR-Mantaray-3171";
 		this.overrides['network'] = "gsm";
-		this.overrides['dataNetwork'] = "gsm,edge,umts,hsdpa";
 		this.overrides['softwareVersion'] = "Nova-WR-Mantaray-3171";
 		this.overrides['hardwareType'] = "mantaray";
 		this.overrides['dmSets'] = '{"sets":"2191","2195"}';
@@ -413,7 +466,6 @@ DeviceProfileAssistant.prototype.getDeviceOverrides = function(payload)
 		this.overrides['deviceId'] = "";
 		this.overrides['carrierROM'] = "Nova-HP-Topaz-77";
 		this.overrides['network'] = "none";
-		this.overrides['dataNetwork'] = "unknown";
 		this.overrides['softwareVersion'] = "Nova-HP-Topaz-77";
 		this.overrides['hardwareType'] = "topaz";
 		this.overrides['dmSets'] = '{"sets":"2151","2155"}';
@@ -424,7 +476,6 @@ DeviceProfileAssistant.prototype.getDeviceOverrides = function(payload)
 	case "HSTNH-I30C/ATT":
 		this.overrides['carrierROM'] = "Nova-ATT-Topaz-78";
 		this.overrides['network'] = "gsm";
-		this.overrides['dataNetwork'] = "gsm,edge,umts,hsdpa";
 		this.overrides['softwareVersion'] = "Nova-ATT-Topaz-78";
 		this.overrides['hardwareType'] = "topaz";
 		this.overrides['dmSets'] = '{"sets":"2143","2147"}';

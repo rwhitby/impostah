@@ -740,8 +740,8 @@ AppCatalogAssistant.prototype.deviceInfoTap = function(event)
 			},
 			onFailure: function(response) {
 				Mojo.Log.warn("onFailure %j", response);
-				if (response.responseJSON && response.responseJSON.JSONException) {
-					callback({"returnValue":false, "errorText":Object.toJSON(response.responseJSON.JSONException)});
+				if (response.responseJSON) {
+					callback({"returnValue":false, "errorText":Object.toJSON(response.responseJSON)});
 				}
 				else {
 					callback({"returnValue":false, "errorText":response.status});

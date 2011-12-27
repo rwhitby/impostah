@@ -35,7 +35,7 @@ function DeviceProfileAssistant()
 				  //	{label:"EU Pre (ROW)",			value:'P100UEU/ROW'},
 				  //	{label:"NA Pre+ (AT&T)",		value:'P101UNA/ATT'},
 				  //	{label:"NA Pre+ (Verizon)",		value:'P101EWW/Verizon'},
-				  //	{label:"EU Pre+ (ROW)",			value:'P101UEU/ROW'},
+	{label:"EU Pre+ (ROW)",			value:'P101UEU/ROW'},
 	{label:"NA Pixi (Sprint)",		value:'P120EWW/Sprint'},
 	{label:"NA Pixi+ (AT&T)",		value:'P121UNA/ATT'},
 	{label:"NA Pixi+ (Verizon)",	value:'P121EWW/Verizon'},
@@ -357,6 +357,12 @@ DeviceProfileAssistant.prototype.getDeviceOverrides = function(payload)
 	case "P101EWW/Verizon":
 		break;
 	case "P101UEU/ROW":
+		this.overrides['carrierROM'] = "Nova-WR-Castle-285";
+		this.overrides['network'] = "gsm";
+		this.overrides['softwareVersion'] = "Nova-WR-Castle-285";
+		this.overrides['hardwareType'] = "castle";
+		this.overrides['dmSets'] = '{"sets":"312","674"}';
+		this.overrides['softwareBuildBranch'] = "HP webOS 2.1.0";
 		break;
 	case "P120EWW/Sprint":
 		this.overrides['carrierROM'] = "Nova-Sprint-Pixie-271";

@@ -38,7 +38,7 @@ function DeviceProfileAssistant()
 				  //	{label:"EU Pre+ (ROW)",			value:'P101UEU/ROW'},
 	{label:"NA Pixi (Sprint)",		value:'P120EWW/Sprint'},
 	{label:"NA Pixi+ (AT&T)",		value:'P121UNA/ATT'},
-	{label:"NA Pixi+ (Verizon)",	value:'P121UNA/Verizon'},
+	{label:"NA Pixi+ (Verizon)",	value:'P121EWW/Verizon'},
 	{label:"EU Pixi+ (ROW)",		value:'P121UEU/ROW'},
 	{label:"NA Pre 2 (Verizon)",	value:'P102EWW/Verizon'},
 	{label:"NA Pre 2 (ROW)",		value:'P102UNA/ROW'},
@@ -374,7 +374,7 @@ DeviceProfileAssistant.prototype.getDeviceOverrides = function(payload)
 		this.overrides['dmSets'] = '{"sets":"510","514"}';
 		this.overrides['softwareBuildBranch'] = "Palm webOS 1.4.5";
 		break;
-	case "P121UNA/Verizon":
+	case "P121EWW/Verizon":
 		this.overrides['carrierROM'] = "Nova-Verizon-Pixie-276";
 		this.overrides['network'] = "cdma";
 		this.overrides['softwareVersion'] = "Nova-Verizon-Pixie-276";
@@ -616,14 +616,14 @@ DeviceProfileAssistant.prototype.GetIdentityOverrides = function(payload)
 			this.overrides = {
 				"_id":'org.webosinternals.impostah.deviceprofile',
 				"_kind":"org.webosinternals.impostah:1"
-			}
+			};
 		}
 	}
 	else {
 		this.overrides = {
 			"_id":'org.webosinternals.impostah.deviceprofile',
 			"_kind":"org.webosinternals.impostah:1"
-		}
+		};
 	}
 
 	var alphanumeric = hex_sha1(this.chameleonIdentityInputFieldModel.value);
@@ -646,7 +646,80 @@ DeviceProfileAssistant.prototype.GetIdentityOverrides = function(payload)
 
 	var serialNumber = this.deviceProfile.serialNumber;
 	if (serialNumber && (serialNumber.length > 7)) {
-		this.overrides['serialNumber'] = serialNumber.slice(0, serialNumber.length-7) + numeric;
+		switch (this.currentDevice) {
+		case "P100EWW/Sprint":
+			this.overrides['serialNumber'] = "P5PE0" + numeric;
+			break;
+		case "P100EWW/Bell":
+			this.overrides['serialNumber'] = "P5BE0" + numeric;
+			break;
+		case "P100UNA/ROW":
+			this.overrides['serialNumber'] = "P5XU0" + numeric;
+			break;
+		case "P100UEU/ROW":
+			this.overrides['serialNumber'] = "P5HUG" + numeric;
+			break;
+		case "P101UNA/ATT":
+			this.overrides['serialNumber'] = "P7CG0" + numeric;
+			break;
+		case "P101EWW/Verizon":
+			this.overrides['serialNumber'] = "P7VE0" + numeric;
+			break;
+		case "P101UEU/ROW":
+			this.overrides['serialNumber'] = "P7NUG" + numeric;
+			break;
+		case "P120EWW/Sprint":
+			this.overrides['serialNumber'] = "P6P20" + numeric;
+			break;
+		case "P121UNA/ATT":
+			this.overrides['serialNumber'] = "P8WU0" + numeric;
+			break;
+		case "P121EWW/Verizon":
+			this.overrides['serialNumber'] = "P8V20" + numeric;
+			break;
+		case "P121UEU/ROW":
+			this.overrides['serialNumber'] = "P8GUG" + numeric;
+			break;
+		case "P102EWW/Verizon":
+			this.overrides['serialNumber'] = "PGVE0" + numeric;
+			break;
+		case "P102UNA/ROW":
+			this.overrides['serialNumber'] = "PG9U0" + numeric;
+			break;
+		case "P102UEU/ROW":
+			this.overrides['serialNumber'] = "PG4U0" + numeric;
+			break;
+		case "P160UNA/ATT":
+			this.overrides['serialNumber'] = "W1BD6" + numeric;
+			break;
+		case "P160UNA/ROW":
+			this.overrides['serialNumber'] = "W3NA1" + numeric;
+			break;
+		case "P160UEU/ROW":
+			this.overrides['serialNumber'] = "W3UE1" + numeric;
+			break;
+		case "HSTNH-F30CN/ATT":
+			this.overrides['serialNumber'] = "W3BD1" + numeric;
+			break;
+		case "HSTNH-F30CV/Verizon":
+			this.overrides['serialNumber'] = "MDVPW" + numeric;
+			break;
+		case "HSTNH-F30CE/ROW":
+			this.overrides['serialNumber'] = "W3RE1" + numeric;
+			break;
+		case "HSTNH-I29C/":
+			this.overrides['serialNumber'] = "5CL1" + numeric;
+			break;
+		case "HSTNH-I30C/ATT":
+			this.overrides['serialNumber'] = "5CL1" + numeric;
+			break;
+		case "HSTNH-I32C/":
+			this.overrides['serialNumber'] = "5CLG" + numeric;
+			break;
+		default:
+			this.overrides['serialNumber'] = serialNumber.slice(0, serialNumber.length-7) + numeric;
+			break;
+		}
 	}
 	else {
 		this.overrides['serialNumber'] = "AE21P" + numeric;

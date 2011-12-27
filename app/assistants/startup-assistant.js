@@ -11,6 +11,7 @@ function StartupAssistant(changelog)
     this.newMessages =
 	[
 	 // Don't forget the comma on all but the last entry
+	 { version: '0.9.21', log: [ 'Added more device impersonation options' ] },
 	 { version: '0.9.20', log: [ 'Added chameleonic capabilities' ] },
 	 { version: '0.9.19', log: [ 'Fixed TouchPad 3.0.4 activation issues' ] },
 	 { version: '0.9.18', log: [ 'Enabled activation scene for 1.4.5 devices' ] },
